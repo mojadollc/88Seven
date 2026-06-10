@@ -1,0 +1,253 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { getDrivers, getAllPartners, findNearestOnlineDriver, type Driver, type LaundryPartner } from "@/lib/firebase"
+import { getFirestore, collection, query, orderBy, onSnapshot, updateDoc, doc, serverTimestamp } from "firebase/firestore"
+
+const db = getFirestore()
+
+type LaundryOrder = {
+  id: string
+  serviceName: string
+  weight: number
+  price: number
+  pickupFee: number
+  deliveryFee: number
+  totalPrice: number
+  pickupAddress: string
+  pickupLat?: number
+  pickupLng?: number
+  notes: string
+  status: string
+  customerId: string
+  customerName: string
+  customerPhone: string
+  partnerId?: string
+  partnerName?: string
+  riderId?: string
+  riderName?: string
+  createdAt: any
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  pending: "Waiting for Shop",
+  accepted: "Shop Accepted — Needs Rider",
+  rider_to_customer: "Rider → Customer (Pickup)",
+  rider_picked_up: "Rider Has Laundry",
+  rider_to_laundromat: "Rider → Shop",
+  at_laundromat: "At Shop",
+  washing: "Washing",
+  ready: "Clean — Needs Return Rider",
+  rider_return_pickup: "Rider → Shop (Return)",
+  rider_returning: "Rider → Customer (Returning)",
+  delivered: "Delivered",
+  cancelled: "Cancelled",
+}
+
+const STATUS_COLORS: Record<string, string> = {
+  pending: "bg-yellow-100 text-yellow-800",
+  accepted: "bg-blue-100 text-blue-800",
+  rider_to_customer: "bg-cyan-100 text-cyan-800",
+  rider_picked_up: "bg-cyan-100 text-cyan-800",
+  rider_to_laundromat: "bg-teal-100 text-teal-800",
+  at_laundromat: "bg-purple-100 text-purple-800",
+  washing: "bg-indigo-100 text-indigo-800",
+  ready: "bg-orange-100 text-orange-800",
+  rider_return_pickup: "bg-teal-100 text-teal-800",
+  rider_returning: "bg-cyan-100 text-cyan-800",
+  delivered: "bg-green-100 text-green-800",
+  cancelled: "bg-red-100 text-red-800",
+}
+
+const ALL_STATUSES = Object.keys(STATUS_LABELS)
+
+type FilterTab = "needs_action" | "active" | "completed" | "all"
+
+export default function AdminLaundryPage() {
+  const [orders, setOrders] = useState<LaundryOrder[]>([])
+  const [drivers, setDrivers] = useState<Driver[]>([])
+  const [partners, setPartners] = useState<LaundryPartner[]>([])
+  const [loading, setLoading] = useState(true)
+  const [tab, setTab] = useState<FilterTab>("needs_action")
+
+  useEffect(() => {
+    getDrivers().then((d) => setDrivers(d.filter((x) => x.status === "active")))
+    getAllPartners().then((p) => setPartners(p.filter((x) => x.status === "active")))
+    const q = query(collection(db, "laundryOrders"), orderBy("createdAt", "desc"))
+    const unsub = onSnapshot(q, (snap) => {
+      setOrders(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as LaundryOrder))
+      setLoading(false)
+    }, () => setLoading(false))
+    return () => unsub()
+  }, [])
+
+  const handleStatus = async (orderId: string, status: string) => {
+    await updateDoc(doc(db, "laundryOrders", orderId), { status, updatedAt: serverTimestamp() })
+  }
+
+  const handleAssignRider = async (orderId: string, driverId: string) => {
+    const d = drivers.find((x) => x.id === driverId)
+    await updateDoc(doc(db, "laundryOrders", orderId), { riderId: driverId, riderName: d?.name || "", updatedAt: serverTimestamp() })
+  }
+
+  const handleAutoAssignRider = async (orderId: string, targetLat: number, targetLng: number, nextStatus: string) => {
+    const nearest = await findNearestOnlineDriver(targetLat, targetLng)
+    if (nearest) {
+      await updateDoc(doc(db, "laundryOrders", orderId), { riderId: nearest.id, riderName: nearest.name, status: nextStatus, updatedAt: serverTimestamp() })
+    } else {
+      alert("No online riders available nearby. Please assign manually.")
+    }
+  }
+
+  // Admin only needs to act on: accepted (assign pickup rider) and ready (assign return rider)
+  const needsAction = orders.filter((o) => ["accepted", "ready"].includes(o.status))
+  const active = orders.filter((o) => !["pending", "accepted", "ready", "delivered", "cancelled"].includes(o.status))
+  const completed = orders.filter((o) => ["delivered", "cancelled"].includes(o.status))
+  const filtered = tab === "needs_action" ? needsAction : tab === "active" ? active : tab === "completed" ? completed : orders
+
+  const deliveredOrders = orders.filter((o) => o.status === "delivered")
+
+  return (
+    <>
+      <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-20">
+        <div className="flex items-center justify-between">
+          <h1 className="text-lg font-bold text-[#1a1a2e]">Laundry Orders</h1>
+          {needsAction.length > 0 && <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">{needsAction.length} needs action</span>}
+        </div>
+      </header>
+
+      <div className="p-6">
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+          <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+            <p className="text-2xl font-bold text-orange-600">{needsAction.length}</p>
+            <p className="text-xs text-gray-400">Needs Action</p>
+          </div>
+          <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+            <p className="text-2xl font-bold text-blue-600">{active.length + orders.filter((o) => o.status === "pending").length}</p>
+            <p className="text-xs text-gray-400">In Progress</p>
+          </div>
+          <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+            <p className="text-2xl font-bold text-green-600">{deliveredOrders.length}</p>
+            <p className="text-xs text-gray-400">Delivered</p>
+          </div>
+          <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+            <p className="text-2xl font-bold text-[#D62828]">₱{deliveredOrders.reduce((s, o) => s + (o.totalPrice || 0), 0).toFixed(0)}</p>
+            <p className="text-xs text-gray-400">Revenue</p>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-2 mb-4 overflow-x-auto">
+          {([["needs_action", `Action (${needsAction.length})`], ["active", `Active (${active.length})`], ["completed", "Completed"], ["all", "All"]] as [FilterTab, string][]).map(([key, label]) => (
+            <button key={key} onClick={() => setTab(key)} className={`px-4 py-2 text-xs rounded-lg whitespace-nowrap font-medium transition-colors ${tab === key ? "bg-blue-600 text-white" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Orders */}
+        {loading ? (
+          <div className="text-center py-10 text-gray-400">Loading...</div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-16 bg-white rounded-xl border border-gray-100">
+            <p className="text-gray-400 text-sm">No orders</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filtered.map((order) => (
+              <div key={order.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="px-5 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase ${STATUS_COLORS[order.status] || "bg-gray-100 text-gray-600"}`}>
+                      {STATUS_LABELS[order.status] || order.status}
+                    </span>
+                    <span className="text-[10px] text-gray-400 font-mono">#{order.id.slice(0, 8)}</span>
+                  </div>
+                  <span className="font-bold text-blue-600">₱{order.totalPrice || order.price}</span>
+                </div>
+
+                <div className="p-5">
+                  <div className="grid grid-cols-2 gap-4 mb-3">
+                    <div>
+                      <p className="text-[10px] text-gray-400">Customer</p>
+                      <p className="text-sm font-medium">{order.customerName}</p>
+                      <p className="text-xs text-gray-400">{order.customerPhone}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-gray-400">Service</p>
+                      <p className="text-sm font-medium">{order.serviceName} • {order.weight}kg</p>
+                    </div>
+                  </div>
+                  <div className="mb-3">
+                    <p className="text-[10px] text-gray-400">Pickup Address</p>
+                    <p className="text-sm text-gray-700">{order.pickupAddress}</p>
+                  </div>
+
+                  {/* Assignments */}
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {order.partnerName && <span className="text-[10px] bg-purple-50 text-purple-700 px-2 py-1 rounded-lg font-medium">🧺 {order.partnerName}</span>}
+                    {order.riderName && <span className="text-[10px] bg-cyan-50 text-cyan-700 px-2 py-1 rounded-lg font-medium">🏍️ {order.riderName}</span>}
+                  </div>
+
+                  {/* Admin Actions */}
+                  <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-gray-100">
+                    {/* ACCEPTED by shop — Admin dispatches pickup rider */}
+                    {order.status === "accepted" && (
+                      <>
+                        <button
+                          onClick={() => handleAutoAssignRider(order.id, order.pickupLat || 0, order.pickupLng || 0, "rider_to_customer")}
+                          className="text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-green-700"
+                        >
+                          ⚡ Auto-Assign Nearest Rider
+                        </button>
+                        <span className="text-[10px] text-gray-300">or</span>
+                        <select onChange={(e) => e.target.value && handleAssignRider(order.id, e.target.value)} defaultValue="" className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none bg-white">
+                          <option value="" disabled>Manual Assign</option>
+                          {drivers.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+                        </select>
+                        <button onClick={() => handleStatus(order.id, "rider_to_customer")} disabled={!order.riderId} className="text-xs bg-cyan-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-cyan-700 disabled:opacity-40 ml-auto">
+                          Dispatch
+                        </button>
+                      </>
+                    )}
+
+                    {/* READY (clean) — Admin dispatches return rider */}
+                    {order.status === "ready" && (
+                      <>
+                        <button
+                          onClick={() => {
+                            const p = partners.find((x) => x.id === order.partnerId)
+                            handleAutoAssignRider(order.id, p?.lat || 0, p?.lng || 0, "rider_return_pickup")
+                          }}
+                          className="text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-green-700"
+                        >
+                          ⚡ Auto-Assign Nearest Rider
+                        </button>
+                        <span className="text-[10px] text-gray-300">or</span>
+                        <select onChange={(e) => e.target.value && handleAssignRider(order.id, e.target.value)} defaultValue="" className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none bg-white">
+                          <option value="" disabled>Manual Assign</option>
+                          {drivers.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+                        </select>
+                        <button onClick={() => handleStatus(order.id, "rider_return_pickup")} disabled={!order.riderId} className="text-xs bg-teal-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-teal-700 disabled:opacity-40 ml-auto">
+                          Dispatch
+                        </button>
+                      </>
+                    )}
+
+                    {/* Other states — manual override */}
+                    {!["accepted", "ready", "delivered", "cancelled"].includes(order.status) && (
+                      <select value={order.status} onChange={(e) => handleStatus(order.id, e.target.value)} className="text-[10px] border border-gray-200 rounded-lg px-2 py-1.5 outline-none bg-white text-gray-500 ml-auto">
+                        {ALL_STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
+                      </select>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
+  )
+}

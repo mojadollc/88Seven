@@ -1,26 +1,175 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --primary: #EFBF04;
+  --secondary: #D62828;
+  --third: #FFFFFF;
+  --sat: env(safe-area-inset-top);
+  --sab: env(safe-area-inset-bottom);
+  --sal: env(safe-area-inset-left);
+  --sar: env(safe-area-inset-right);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ═══ BASE MOBILE-APP STYLES ═══ */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-x: none;
+  min-height: 100%;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Allow text selection in inputs/textareas */
+input, textarea, [contenteditable] {
+  -webkit-user-select: auto;
+  user-select: auto;
+}
+
+/* ═══ PWA SAFE AREAS ═══ */
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ═══ PWA STANDALONE MODE ═══ */
+@media (display-mode: standalone) {
+  body {
+    /* Extra padding for notch/dynamic island */
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-top {
+    padding-top: max(env(safe-area-inset-top), 8px);
+  }
+  
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 8px);
+  }
+
+  /* Hide browser UI artifacts */
+  header[class*="sticky"] {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* TWA fullscreen mode */
+@media (display-mode: fullscreen) {
+  body {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* ═══ TOUCH INTERACTIONS ═══ */
+button, a, [role="button"] {
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+}
+
+button:active, a:active, [role="button"]:active {
+  transform: scale(0.97);
+  transition: transform 0.05s;
+}
+
+/* Prevent double-tap zoom on interactive elements */
+button, a, input, select, textarea {
+  touch-action: manipulation;
+}
+
+/* ═══ INPUT ZOOM PREVENTION (iOS) ═══ */
+input, select, textarea {
+  font-size: 16px !important;
+}
+
+@media (min-width: 768px) {
+  input, select, textarea {
+    font-size: inherit !important;
+  }
+}
+
+/* ═══ SCROLLBAR ═══ */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ═══ LINE CLAMPING ═══ */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ═══ UTILITIES ═══ */
+@layer utilities {
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* ═══ ANIMATIONS ═══ */
+@keyframes scaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes ride {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+@keyframes slideRight {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+@keyframes bounceIn {
+  0% { transform: translateX(-50%) scale(0.8); opacity: 0; }
+  50% { transform: translateX(-50%) scale(1.05); }
+  100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+
+/* ═══ PULL TO REFRESH PREVENTION (native) ═══ */
+@media (display-mode: standalone) {
+  html, body {
+    overscroll-behavior-y: contain;
+  }
+}
+
+/* ═══ SPLASH SCREEN (while app loads) ═══ */
+@media (display-mode: standalone) {
+  html::before {
+    content: none;
+  }
+}
+
+/* ═══ MOBILE NAV BOTTOM SPACING ═══ */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-bottom {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 4px);
+  }
 }

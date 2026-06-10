@@ -1,0 +1,12 @@
+{
+  "projects": {
+    "default": "sari-pos-88979"
+  },
+  "targets": {
+    "sari-pos-88979": {
+      "hosting": {
+        "88seven": ["sari-pos-88979"]
+      }
+    }
+  }
+}
