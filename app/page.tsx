@@ -37,8 +37,34 @@ export default function HomePage() {
   const [mounted, setMounted] = useState(false)
   const [activeOrders, setActiveOrders] = useState<{ id: string; type: "grocery" | "laundry" | "service"; status: string; name: string; total: number; createdAt: any }[]>([])
   const [showOrderTracker, setShowOrderTracker] = useState(false)
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
+  const [showInstall, setShowInstall] = useState(false)
+  const [isStandalone, setIsStandalone] = useState(false)
 
   useEffect(() => setMounted(true), [])
+
+  // PWA/TWA Install Prompt
+  useEffect(() => {
+    const dismissed = sessionStorage.getItem("install-dismissed")
+    const standalone = window.matchMedia("(display-mode: standalone)").matches || (window.navigator as any).standalone
+    setIsStandalone(!!standalone)
+    if (standalone || dismissed) return
+
+    const handler = (e: Event) => {
+      e.preventDefault()
+      setDeferredPrompt(e)
+      setTimeout(() => setShowInstall(true), 2000) // Show after 2s
+    }
+    window.addEventListener("beforeinstallprompt", handler)
+
+    // iOS: show custom prompt after 3s
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream
+    if (isIOS && !standalone) {
+      setTimeout(() => setShowInstall(true), 3000)
+    }
+
+    return () => window.removeEventListener("beforeinstallprompt", handler)
+  }, [])
 
   useEffect(() => {
     const saved = localStorage.getItem("user_location")
@@ -605,6 +631,77 @@ export default function HomePage() {
           </a>
         </div>
       </nav>
+
+      {/* ═══ PWA/TWA INSTALL POPUP ═══ */}
+      {mounted && showInstall && !isStandalone && (
+        <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => { setShowInstall(false); sessionStorage.setItem("install-dismissed", "1") }} />
+          <div className="relative bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl animate-[slideUp_0.3s_ease-out]">
+            {/* Header gradient */}
+            <div className="bg-gradient-to-br from-[#D62828] to-[#8B0000] px-6 pt-8 pb-12 text-center relative overflow-hidden">
+              <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/5 rounded-full" />
+              <div className="absolute -left-6 -bottom-10 w-28 h-28 bg-white/5 rounded-full" />
+              <div className="w-16 h-16 bg-white rounded-2xl shadow-xl flex items-center justify-center mx-auto mb-4 relative">
+                <span className="text-[#D62828] font-black text-lg">88</span>
+              </div>
+              <h2 className="text-white font-black text-xl">Install 88 Seven</h2>
+              <p className="text-white/70 text-xs mt-1">Get the full app experience</p>
+            </div>
+
+            {/* Benefits */}
+            <div className="px-6 -mt-6 relative">
+              <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-3">
+                {[
+                  { icon: "⚡", text: "Faster loading & instant access" },
+                  { icon: "🔔", text: "Order notifications & updates" },
+                  { icon: "📱", text: "Works offline — like a native app" },
+                  { icon: "🏠", text: "Launch from your home screen" },
+                ].map((b) => (
+                  <div key={b.text} className="flex items-center gap-3">
+                    <span className="text-lg">{b.icon}</span>
+                    <p className="text-sm text-gray-700">{b.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="px-6 py-5 space-y-3">
+              {deferredPrompt ? (
+                <button
+                  onClick={async () => {
+                    deferredPrompt.prompt()
+                    const { outcome } = await deferredPrompt.userChoice
+                    if (outcome === "accepted") setShowInstall(false)
+                    setDeferredPrompt(null)
+                  }}
+                  className="w-full bg-[#D62828] text-white py-3.5 rounded-xl font-bold text-sm hover:bg-[#b71c1c] transition-colors shadow-lg shadow-red-200 flex items-center justify-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                  Install App
+                </button>
+              ) : (
+                /* iOS instructions */
+                <div className="bg-gray-50 rounded-xl p-4 text-center">
+                  <p className="text-sm font-bold text-gray-800 mb-2">Install on iPhone / iPad</p>
+                  <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+                    <span>Tap</span>
+                    <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                    <span>then</span>
+                    <span className="font-bold text-gray-800">"Add to Home Screen"</span>
+                  </div>
+                </div>
+              )}
+              <button
+                onClick={() => { setShowInstall(false); sessionStorage.setItem("install-dismissed", "1") }}
+                className="w-full text-center text-sm text-gray-400 py-2 hover:text-gray-600"
+              >
+                Maybe later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }

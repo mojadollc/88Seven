@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from "next"
-import { Poppins } from "next/font/google"
+import { Inter } from "next/font/google"
 import Script from "next/script"
 import PullToRefresh from "./components/PullToRefresh"
 import "./globals.css"
 
-const poppins = Poppins({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700", "800", "900"] })
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "88 Seven | Grocery, Laundry & Services",
@@ -57,7 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* TWA: Digital Asset Links verification */}
         <link rel="assetlinks.json" href="/.well-known/assetlinks.json" />
       </head>
-      <body className={`${poppins.className} bg-[#fafafa] antialiased`} suppressHydrationWarning>
+      <body className={`${inter.className} bg-[#fafafa] antialiased`} suppressHydrationWarning>
         <PullToRefresh>
           {children}
         </PullToRefresh>
