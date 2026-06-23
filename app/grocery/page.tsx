@@ -1,12 +1,13 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getProducts, getCategories, getHeroSlides, createOrder, getDeliverySettings, customerLogout, getCustomerProfile, onCustomerAuthChange, setupRecaptcha, sendOTP, verifyOTP, ensureCustomerProfile, notifyOrderPlaced, onNotifications, markAllNotificationsRead, getPopupBanner, getCustomerWalletBalance, deductCustomerWallet, getPaymentMethodsConfig, type Product, type HeroSlide, type CartItem, type OrderItem, type DeliverySettings, type CustomerProfile, type AppNotification, type PopupBanner, type PaymentMethodsConfig } from "@/lib/firebase"
+import { getProducts, getCategories, getStoreCategories, getHeroSlides, createOrder, getDeliverySettings, customerLogout, getCustomerProfile, onCustomerAuthChange, setupRecaptcha, sendOTP, verifyOTP, ensureCustomerProfile, notifyOrderPlaced, onNotifications, markAllNotificationsRead, getPopupBanner, getCustomerWalletBalance, deductCustomerWallet, getPaymentMethodsConfig, type Product, type HeroSlide, type CartItem, type OrderItem, type DeliverySettings, type CustomerProfile, type AppNotification, type PopupBanner, type PaymentMethodsConfig, type Category } from "@/lib/firebase"
 import type { User, ConfirmationResult } from "firebase/auth"
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<string[]>([])
+  const [storeCategories, setStoreCategories] = useState<Category[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string>("All")
   const [searchQuery, setSearchQuery] = useState("")
   const [loading, setLoading] = useState(true)
@@ -108,8 +109,9 @@ export default function Home() {
   // Load popup banner on every page load
   useEffect(() => {
     getPopupBanner().then((banner) => {
-      if (banner) { setPopupBanner(banner); setShowPopup(true) }
-    })
+      console.log("Popup banner:", banner)
+      if (banner && banner.imageUrl) { setPopupBanner(banner); setShowPopup(true) }
+    }).catch((e) => console.error("Popup error:", e))
   }, [])
   const [notifications, setNotifications] = useState<AppNotification[]>([])
   const [showNotifications, setShowNotifications] = useState(false)
@@ -328,7 +330,7 @@ export default function Home() {
   useEffect(() => {
     async function load() {
       try {
-        const [prods, cats] = await Promise.all([getProducts(), getCategories()])
+        const [prods, cats, storeCats] = await Promise.all([getProducts(), getCategories(), getStoreCategories()])
         // Shuffle products randomly on each page load
         for (let i = prods.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
@@ -336,6 +338,7 @@ export default function Home() {
         }
         setProducts(prods)
         setCategories(cats)
+        setStoreCategories(storeCats)
       } catch (e) {
         console.error("Failed to load products:", e)
       } finally {
@@ -351,7 +354,7 @@ export default function Home() {
     return matchCat && matchSearch && p.stock > 0
   })
 
-  const categoryList = [
+  const fallbackCategoryList = [
     { label: "Beverages", emoji: "🧃" },
     { label: "Household", emoji: "🧹" },
     { label: "Condiments", emoji: "🧂" },
@@ -370,8 +373,33 @@ export default function Home() {
     { label: "Others", emoji: "🛒" },
   ]
 
+  const categoryList = storeCategories.length > 0
+    ? storeCategories.map((c) => ({ label: c.name, emoji: c.emoji || "📁", imageUrl: c.imageUrl }))
+    : fallbackCategoryList
+
   return (
-    <main className="min-h-screen bg-[#f5f5f5] pb-20">
+    <>
+      {/* ═══ POPUP BANNER MODAL ═══ */}
+      {showPopup && popupBanner && popupBanner.imageUrl && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 99999, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
+          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.6)" }} onClick={() => setShowPopup(false)} />
+          <div style={{ position: "relative", maxWidth: "28rem", width: "100%" }}>
+            <button
+              onClick={() => setShowPopup(false)}
+              style={{ position: "absolute", top: "-12px", right: "-12px", width: "32px", height: "32px", background: "#fff", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", fontWeight: "bold", boxShadow: "0 4px 12px rgba(0,0,0,0.15)", border: "none", cursor: "pointer", zIndex: 10 }}
+            >&times;</button>
+            {popupBanner.linkUrl ? (
+              <a href={popupBanner.linkUrl} onClick={() => setShowPopup(false)}>
+                <img src={popupBanner.imageUrl} alt="Promo" referrerPolicy="no-referrer" style={{ width: "100%", height: "auto", maxHeight: "70vh", objectFit: "contain", borderRadius: "12px", boxShadow: "0 25px 50px rgba(0,0,0,0.25)" }} />
+              </a>
+            ) : (
+              <img src={popupBanner.imageUrl} alt="Promo" referrerPolicy="no-referrer" style={{ width: "100%", height: "auto", maxHeight: "70vh", objectFit: "contain", borderRadius: "12px", boxShadow: "0 25px 50px rgba(0,0,0,0.25)" }} />
+            )}
+          </div>
+        </div>
+      )}
+
+      <main className="min-h-screen bg-[#f5f5f5] pb-20">
       {/* ═══ TOP UTILITY BAR ═══ */}
       <div className="bg-[#EFBF04] text-[#1a1a2e] text-xs">
         <div className="max-w-[1200px] mx-auto px-4 flex items-center justify-between h-8">
@@ -540,7 +568,12 @@ export default function Home() {
                         selectedCategory === cat.label ? "text-[#D62828] font-semibold bg-red-50" : "text-gray-700 hover:text-[#D62828] hover:bg-gray-50"
                       }`}
                     >
-                      {cat.emoji} {cat.label}
+                      {(cat as any).imageUrl ? (
+                        <img src={(cat as any).imageUrl} className="w-5 h-5 object-cover rounded" />
+                      ) : (
+                        <span>{cat.emoji}</span>
+                      )}
+                      {cat.label}
                     </button>
                   </li>
                 ))}
@@ -565,7 +598,11 @@ export default function Home() {
                     onClick={() => setSelectedCategory(cat.label)}
                     className="flex flex-col items-center gap-1"
                   >
-                    <span className="text-2xl">{cat.emoji}</span>
+                    {(cat as any).imageUrl ? (
+                      <img src={(cat as any).imageUrl} className="w-8 h-8 object-cover rounded" />
+                    ) : (
+                      <span className="text-2xl">{cat.emoji}</span>
+                    )}
                     <span className="text-[10px] text-gray-600 text-center leading-tight">{cat.label}</span>
                   </button>
                 ))}
@@ -629,26 +666,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-
-      {/* ═══ POPUP BANNER MODAL ═══ */}
-      {showPopup && popupBanner && (
-        <div className="fixed inset-0 z-[130] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setShowPopup(false)} />
-          <div className="relative animate-[scaleIn_0.3s_ease-out] max-w-md w-full">
-            <button
-              onClick={() => setShowPopup(false)}
-              className="absolute -top-3 -right-3 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center text-gray-500 hover:text-red-500 z-10 text-lg font-bold"
-            >&times;</button>
-            {popupBanner.linkUrl ? (
-              <a href={popupBanner.linkUrl} onClick={() => setShowPopup(false)}>
-                <img src={popupBanner.imageUrl} alt="Promo" className="w-full rounded-xl shadow-2xl" />
-              </a>
-            ) : (
-              <img src={popupBanner.imageUrl} alt="Promo" className="w-full rounded-xl shadow-2xl" />
-            )}
-          </div>
-        </div>
-      )}
 
       {/* ═══ ADDED TO CART MODAL ═══ */}
       {addedProduct && (
@@ -1134,6 +1151,7 @@ export default function Home() {
         </div>
       </nav>
     </main>
+    </>
   )
 }
 
@@ -1242,9 +1260,15 @@ function HeroSlider() {
           <span className="text-yellow-300">{slide.highlight}</span>
         </h1>
         <p className="text-white/80 mt-1.5 text-xs md:text-sm max-w-[260px] drop-shadow line-clamp-2">{slide.description}</p>
-        <button className="mt-3 bg-white text-[#D62828] font-bold px-5 py-2 rounded-full text-xs hover:bg-gray-100 transition-colors shadow-md">
-          Shop Now →
-        </button>
+        {slide.link ? (
+          <a href={slide.link} className="mt-3 bg-white text-[#D62828] font-bold px-5 py-2 rounded-full text-xs hover:bg-gray-100 transition-colors shadow-md">
+            Shop Now →
+          </a>
+        ) : (
+          <button className="mt-3 bg-white text-[#D62828] font-bold px-5 py-2 rounded-full text-xs hover:bg-gray-100 transition-colors shadow-md">
+            Shop Now →
+          </button>
+        )}
       </div>
       {slides.length > 1 && (
         <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10">

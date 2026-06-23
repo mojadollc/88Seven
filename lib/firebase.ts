@@ -58,6 +58,7 @@ export interface HeroSlide {
   description: string
   imageUrl: string
   bgColor: string
+  link?: string
   order: number
   enabled: boolean
 }
@@ -178,6 +179,39 @@ export async function getCategories(): Promise<string[]> {
   const products = await getProducts()
   const cats = new Set(products.map((p) => p.category).filter(Boolean))
   return Array.from(cats).sort()
+}
+
+// ═══ CATEGORIES (from pos-app-for-stores) ═══
+
+export interface Category {
+  id: string
+  name: string
+  imageUrl?: string
+  emoji?: string
+  order?: number
+  unit?: string
+  salePrice?: number
+}
+
+const STORE_ID = process.env.NEXT_PUBLIC_STORE_ID || "8807"
+
+export async function getStoreCategories(): Promise<Category[]> {
+  const snap = await getDocs(collection(db, `pos-app-for-stores/${STORE_ID}/categories`))
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Category).sort((a, b) => (a.order || 0) - (b.order || 0))
+}
+
+export async function updateStoreCategory(id: string, data: Partial<Omit<Category, "id">>) {
+  const ref = doc(db, `pos-app-for-stores/${STORE_ID}/categories`, id)
+  await updateDoc(ref, data)
+}
+
+export async function createStoreCategory(data: Omit<Category, "id">) {
+  return addDoc(collection(db, `pos-app-for-stores/${STORE_ID}/categories`), data)
+}
+
+export async function deleteStoreCategory(id: string) {
+  const ref = doc(db, `pos-app-for-stores/${STORE_ID}/categories`, id)
+  await deleteDoc(ref)
 }
 
 // ═══ HERO SLIDES ═══

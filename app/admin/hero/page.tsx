@@ -16,6 +16,7 @@ const defaultSlide: Omit<HeroSlide, "id"> = {
   description: "",
   imageUrl: "",
   bgColor: "#D62828",
+  link: "",
   order: 0,
   enabled: true,
 }
@@ -44,7 +45,7 @@ export default function AdminHero() {
 
   function handleEdit(slide: HeroSlide) {
     setEditing(slide)
-    setForm({ badge: slide.badge, title: slide.title, highlight: slide.highlight, description: slide.description, imageUrl: slide.imageUrl, bgColor: slide.bgColor, order: slide.order, enabled: slide.enabled })
+    setForm({ badge: slide.badge, title: slide.title, highlight: slide.highlight, description: slide.description, imageUrl: slide.imageUrl, bgColor: slide.bgColor, link: slide.link || "", order: slide.order, enabled: slide.enabled })
     setShowForm(true)
   }
 
@@ -137,6 +138,10 @@ export default function AdminHero() {
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">Image URL</label>
                   <input type="text" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} placeholder="https://example.com/image.png" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#D62828]" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Link URL (optional)</label>
+                  <input type="text" value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} placeholder="https://... or /grocery (leave empty for no link)" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#D62828]" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>

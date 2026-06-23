@@ -151,13 +151,13 @@ export default function AdminBannersPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-gray-500">Link (e.g. /grocery)</label>
-                  <select value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 outline-none">
-                    <option value="/grocery">Grocery</option>
-                    <option value="/laundry">Laundry</option>
-                    <option value="/services">Home Services</option>
-                    <option value="#">No Link</option>
-                  </select>
+                  <label className="text-xs font-semibold text-gray-500">Link URL (optional)</label>
+                  <input value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} placeholder="/grocery or https://... (leave empty for no link)" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 outline-none focus:border-[#D62828]" />
+                  <div className="flex gap-1 mt-1.5">
+                    {["/grocery", "/laundry", "/services", "/travel"].map((l) => (
+                      <button key={l} type="button" onClick={() => setForm({ ...form, link: l })} className={`text-[10px] px-2 py-0.5 rounded border ${form.link === l ? "bg-[#D62828] text-white border-[#D62828]" : "bg-gray-50 text-gray-500 border-gray-200"}`}>{l.replace("/", "")}</button>
+                    ))}
+                  </div>
                 </div>
               </div>
               <div>

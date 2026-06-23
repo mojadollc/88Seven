@@ -11,6 +11,7 @@ const SERVICES = [
   { id: "grocery", name: "Grocery", icon: "🛒", href: "/grocery", color: "bg-red-50 text-red-600", available: true },
   { id: "laundry", name: "Laundry", icon: "🧺", href: "/laundry", color: "bg-blue-50 text-blue-600", available: true },
   { id: "services", name: "Services", icon: "🔧", href: "/home-services", color: "bg-teal-50 text-teal-600", available: true },
+  { id: "travel", name: "Hotel & Flights", icon: "✈️", href: "/travel", color: "bg-sky-50 text-sky-600", available: true },
   { id: "food", name: "Food", icon: "🍔", href: "#", color: "bg-orange-50 text-orange-600", available: false },
   { id: "errand", name: "Errands", icon: "📦", href: "#", color: "bg-purple-50 text-purple-600", available: false },
   { id: "bills", name: "Bills", icon: "🧾", href: "#", color: "bg-green-50 text-green-600", available: false },

@@ -96,8 +96,32 @@ function AuthPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#D62828] to-[#a11d1d] flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-sm">
+    <main className="min-h-screen bg-gradient-to-b from-[#D62828] to-[#a11d1d] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      {/* Background SVG vectors */}
+      <div className="absolute inset-0 pointer-events-none opacity-[0.07]">
+        {/* Shopping cart */}
+        <svg className="absolute top-[8%] left-[5%] w-24 h-24 rotate-[-15deg]" fill="white" viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
+        {/* Delivery truck */}
+        <svg className="absolute top-[15%] right-[8%] w-28 h-28 rotate-[10deg]" fill="white" viewBox="0 0 24 24"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+        {/* Washing machine / laundry */}
+        <svg className="absolute bottom-[20%] left-[3%] w-20 h-20 rotate-[12deg]" fill="white" viewBox="0 0 24 24"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-6 16c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm3-6c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3zM8 5c0-.55.45-1 1-1s1 .45 1 1-.45 1-1 1-1-.45-1-1zm4 0c0-.55.45-1 1-1s1 .45 1 1-.45 1-1 1-1-.45-1-1z"/></svg>
+        {/* Grocery bag */}
+        <svg className="absolute bottom-[12%] right-[6%] w-22 h-22 rotate-[-8deg]" fill="white" viewBox="0 0 24 24"><path d="M18 6h-2c0-2.21-1.79-4-4-4S8 3.79 8 6H6c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2c1.1 0 2 .9 2 2h-4c0-1.1.9-2 2-2zm6 16H6V8h2v2c0 .55.45 1 1 1s1-.45 1-1V8h4v2c0 .55.45 1 1 1s1-.45 1-1V8h2v12z"/></svg>
+        {/* Bottle */}
+        <svg className="absolute top-[40%] left-[10%] w-14 h-14 rotate-[20deg]" fill="white" viewBox="0 0 24 24"><path d="M5 22h14V9l-3-3V3H8v3L5 9v13zm5-3H8v-3h2v3zm0-5H8v-3h2v3zm4 5h-2v-3h2v3zm0-5h-2v-3h2v3z"/></svg>
+        {/* Home services / wrench */}
+        <svg className="absolute top-[45%] right-[4%] w-16 h-16 rotate-[-25deg]" fill="white" viewBox="0 0 24 24"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg>
+        {/* Food / apple */}
+        <svg className="absolute top-[65%] left-[25%] w-12 h-12 rotate-[5deg]" fill="white" viewBox="0 0 24 24"><path d="M20 10c-.13-3.86-3.19-4.3-4.39-3.66-.93-1.33-2.58-2.09-3.61-2.34.76-.8 1.75-1.26 2-1.36V1c-1.52.48-3.03 1.47-3.88 2.82-.56-.38-1.2-.63-1.84-.78C7.58 2.84 6.59 2.93 5.73 3.27c-.19.08-.37.16-.54.25C4.87 2.08 4.36 1.08 4 1c-.11.52-.3 1.12-.28 1.63.01.37.26.93.54 1.37-.37.44-.67.92-.87 1.44C2.72 7.13 3.38 9.13 5 10.39c.18.14.39.28.62.4C5.36 13.42 5 17.83 5 20c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2 0-2.17-.36-6.58-.62-9.21 1.44-.79 1.74-2.28 1.62-2.79z"/></svg>
+        {/* Snack / cookie */}
+        <svg className="absolute bottom-[35%] right-[20%] w-14 h-14 rotate-[15deg]" fill="white" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
+        {/* Medicine / pill */}
+        <svg className="absolute top-[25%] left-[30%] w-10 h-10 rotate-[30deg]" fill="white" viewBox="0 0 24 24"><path d="M4.22 11.29l5.07-5.07c1.95-1.95 5.12-1.95 7.07 0s1.95 5.12 0 7.07l-5.07 5.07c-1.95 1.95-5.12 1.95-7.07 0s-1.95-5.12 0-7.07zm1.41 1.41c-1.17 1.17-1.17 3.07 0 4.24s3.07 1.17 4.24 0l2.54-2.54-4.24-4.24-2.54 2.54z"/></svg>
+        {/* Location pin */}
+        <svg className="absolute bottom-[5%] left-[45%] w-12 h-12" fill="white" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+      </div>
+
+      <div className="w-full max-w-sm relative z-10">
         {/* Logo */}
         <div className="text-center mb-6">
           <a href="/" className="inline-block">
