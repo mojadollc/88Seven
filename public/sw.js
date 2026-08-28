@@ -1,4 +1,4 @@
-const CACHE_NAME = "88seven-v5"
+const CACHE_NAME = "88seven-v6"
 const OFFLINE_URL = "/offline.html"
 const STATIC_ASSETS = [
   "/icons/icon.svg",
@@ -34,28 +34,15 @@ self.addEventListener("fetch", (event) => {
   if (url.pathname.startsWith("/api/")) return
   if (url.hostname !== self.location.hostname) return
 
-  // Next.js build assets — cache first (immutable)
-  if (url.pathname.startsWith("/_next/static/")) {
-    event.respondWith(
-      caches.match(request).then((cached) => {
-        if (cached) return cached
-        return fetch(request).then((res) => {
-          const clone = res.clone()
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
-          return res
-        })
-      })
-    )
-    return
-  }
-
-  // Next.js data/RSC requests — network first
+  // Next.js assets — always network first, never serve stale chunks
   if (url.pathname.startsWith("/_next/")) {
     event.respondWith(
       fetch(request)
         .then((res) => {
-          const clone = res.clone()
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
+          if (res.ok && url.pathname.startsWith("/_next/static/")) {
+            const clone = res.clone()
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
+          }
           return res
         })
         .catch(() => caches.match(request))
