@@ -357,10 +357,19 @@ export default function Home() {
     { label: "Meat & Seafood", icon: "https://img.icons8.com/3d-fluency/94/steak.png" },
     { label: "Rice", icon: "https://img.icons8.com/3d-fluency/94/rice-bowl.png" },
     { label: "Others", icon: "https://img.icons8.com/3d-fluency/94/shopping-cart.png" },
+    { label: "Office & School Supply", icon: "https://img.icons8.com/3d-fluency/94/stationery.png" },
+    { label: "Baby", icon: "https://img.icons8.com/3d-fluency/94/baby.png" },
+    { label: "Pet", icon: "https://img.icons8.com/3d-fluency/94/dog.png" },
   ]
 
+  const categoryIconMap: Record<string, string> = Object.fromEntries(fallbackCategoryList.map(c => [c.label.toLowerCase(), c.icon]))
+  const getCategoryIcon = (name: string) =>
+    categoryIconMap[name.toLowerCase()] ||
+    fallbackCategoryList.find(c => name.toLowerCase().includes(c.label.toLowerCase().split(" ")[0]))?.icon ||
+    "https://img.icons8.com/3d-fluency/94/opened-folder.png"
+
   const categoryList = storeCategories.length > 0
-    ? storeCategories.map((c) => ({ label: c.name, icon: c.imageUrl || "https://img.icons8.com/3d-fluency/94/opened-folder.png", imageUrl: c.imageUrl }))
+    ? storeCategories.map((c) => ({ label: c.name, icon: c.imageUrl || getCategoryIcon(c.name), imageUrl: c.imageUrl }))
     : fallbackCategoryList
 
   return (
