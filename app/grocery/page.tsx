@@ -241,7 +241,7 @@ export default function Home() {
       setShowCheckout(false)
       setShowCart(false)
 
-      // Payroo Wallet payment
+      // Gruwcer Wallet payment
       if (checkoutForm.paymentMethod === "wallet") {
         const total = cartTotal + cartDeposit + deliveryFee
         await fetch("/api/wallet", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ownerId: user.id, ownerType: "customer", type: "deduction", amount: -(cartTotal + cartDeposit + deliveryFee), orderId, note: `Grocery order #${orderId.slice(-6).toUpperCase()}` }) })
@@ -261,7 +261,7 @@ export default function Home() {
           ["GRABPAY", "MAYA", "SHOPEEPAY", "QRPH", "DD_BPI", "DD_UBP", "DD_RCBC", "BILLEASE", "CEBUANA", "LBC"]
         const payment = await createXenditPayment({
           amount: total,
-          description: `Payroo Grocery #${orderId.slice(-6).toUpperCase()}`,
+          description: `Gruwcer Grocery #${orderId.slice(-6).toUpperCase()}`,
           externalId: `order_${orderId}`,
           paymentMethods,
           successRedirectUrl: `${window.location.origin}/order?id=${orderId}`,
@@ -413,7 +413,7 @@ export default function Home() {
           <div className="flex items-center gap-4">
             {/* Logo */}
             <a href="/" className="flex-shrink-0">
-              <span className="text-white font-black text-xl tracking-tight">88 Seven Store</span>
+              <span className="text-white font-black text-xl tracking-tight">Gruwcer</span>
             </a>
 
             {/* Search Bar */}
@@ -807,7 +807,7 @@ export default function Home() {
                   </label>
                   )}
 
-                  {/* Payroo Wallet */}
+                  {/* Gruwcer Wallet */}
                   {user && paymentMethods.wallet && (
                     <label className={`flex items-center gap-3 border-2 rounded-xl px-4 py-3 cursor-pointer transition-colors ${checkoutForm.paymentMethod === "wallet" ? "border-[#7C3AED] bg-purple-50" : "border-gray-200 hover:border-gray-300"}`}>
                       <input type="radio" name="payment" value="wallet" checked={checkoutForm.paymentMethod === "wallet"} onChange={() => setCheckoutForm({ ...checkoutForm, paymentMethod: "wallet" })} className="accent-[#7C3AED]" disabled={walletBalance < (cartTotal + cartDeposit + deliveryFee)} />
@@ -815,7 +815,7 @@ export default function Home() {
                         <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm font-bold text-gray-800">Payroo Wallet</p>
+                        <p className="text-sm font-bold text-gray-800">Gruwcer Wallet</p>
                         <p className="text-[11px] text-gray-400">Balance: <span className={`font-bold ${walletBalance >= (cartTotal + cartDeposit + deliveryFee) ? "text-green-600" : "text-green-500"}`}>₱{walletBalance.toFixed(2)}</span></p>
                       </div>
                       {walletBalance < (cartTotal + cartDeposit + deliveryFee) && (
@@ -880,7 +880,7 @@ export default function Home() {
                 {checkoutForm.paymentMethod === "wallet" && walletBalance >= (cartTotal + cartDeposit + deliveryFee) && (
                   <div className="mt-2 bg-purple-50 border border-purple-100 rounded-lg px-3 py-2 flex items-start gap-2">
                     <svg className="w-4 h-4 text-purple-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    <p className="text-[11px] text-purple-700">₱{(cartTotal + cartDeposit + deliveryFee).toFixed(2)} will be deducted from your Payroo Wallet. Remaining: ₱{(walletBalance - cartTotal - cartDeposit - deliveryFee).toFixed(2)}</p>
+                    <p className="text-[11px] text-purple-700">₱{(cartTotal + cartDeposit + deliveryFee).toFixed(2)} will be deducted from your Gruwcer Wallet. Remaining: ₱{(walletBalance - cartTotal - cartDeposit - deliveryFee).toFixed(2)}</p>
                   </div>
                 )}
               </div>
@@ -1023,7 +1023,7 @@ export default function Home() {
           <div className="grid md:grid-cols-3 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <a href="/" className="font-black tracking-tight">Payroo</a>
+                <a href="/" className="font-black tracking-tight">Gruwcer</a>
               </div>
               <p className="text-[#1F2937]/70 text-sm">Your neighborhood grocery store. Quality products, everyday low prices.</p>
             </div>
@@ -1045,7 +1045,7 @@ export default function Home() {
             </div>
           </div>
           <div className="border-t border-[#1F2937]/10 mt-6 pt-4 text-center">
-            <p className="text-[#1F2937]/60 text-xs">© 2024 Payroo. All rights reserved.</p>
+            <p className="text-[#1F2937]/60 text-xs">© 2024 Gruwcer. All rights reserved.</p>
           </div>
         </div>
       </footer>
@@ -1404,7 +1404,7 @@ function InstallPrompt() {
         <span className="text-white font-black text-[10px]">88</span>
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-bold text-gray-800">Install Payroo</p>
+        <p className="text-sm font-bold text-gray-800">Install Gruwcer</p>
         <p className="text-xs text-gray-500">{deferredPrompt ? "Add to home screen for quick access" : "Tap Share → Add to Home Screen"}</p>
       </div>
       {deferredPrompt && (

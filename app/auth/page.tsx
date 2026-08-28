@@ -70,7 +70,7 @@ function AuthPage() {
       <div className="w-full max-w-sm relative z-10">
         <div className="text-center mb-6">
           <a href="/" className="inline-block">
-            <h1 className="text-white text-2xl font-black tracking-tight">Payroo</h1>
+            <h1 className="text-white text-2xl font-black tracking-tight">Gruwcer</h1>
           </a>
           <p className="text-white/60 text-xs mt-1">Sign in to access all services</p>
         </div>

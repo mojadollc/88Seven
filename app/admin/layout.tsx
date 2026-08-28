@@ -94,7 +94,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <aside className="hidden md:flex flex-col w-[240px] bg-white border-r border-gray-200 fixed h-full z-30">
         <div className="p-5 border-b border-gray-100">
           <a href="/" className="flex items-center gap-2">
-            <span className="font-black text-sm text-[#1F2937] tracking-tight">Payroo</span>
+            <span className="font-black text-sm text-[#1F2937] tracking-tight">Gruwcer</span>
             <span className="text-[10px] text-gray-400">Admin</span>
           </a>
         </div>
@@ -134,7 +134,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* MOBILE HEADER */}
       <div className="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-30 px-4 py-3 flex items-center justify-between">
-        <a href="/" className="font-black text-sm text-[#1F2937] tracking-tight">Payroo</a>
+        <a href="/" className="font-black text-sm text-[#1F2937] tracking-tight">Gruwcer</a>
         <button onClick={handleLogout} className="text-xs text-gray-500 hover:text-[#16A34A]">Logout</button>
       </div>
 

@@ -96,7 +96,7 @@ export default function AccountPage() {
         <div className="w-20 h-20 bg-white/10 backdrop-blur rounded-full flex items-center justify-center mx-auto mb-6">
           <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
         </div>
-        <h2 className="font-bold text-2xl text-white mb-2">Welcome to Payroo</h2>
+        <h2 className="font-bold text-2xl text-white mb-2">Welcome to Gruwcer</h2>
         <p className="text-white/60 text-sm mb-8">Sign in to manage orders, wallet & more</p>
         <a href="/auth?redirect=/account" className="block w-full bg-white text-[#16A34A] px-6 py-3.5 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors shadow-lg">
           Sign In / Create Account
@@ -128,7 +128,7 @@ export default function AccountPage() {
       {/* Header */}
       <header className="bg-[#16A34A] text-white sticky top-0 z-50">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
-          <a href="/" className="font-black text-base tracking-tight">Payroo</a>
+          <a href="/" className="font-black text-base tracking-tight">Gruwcer</a>
           <button onClick={() => { clearAuth(); window.location.href = "/" }} className="text-xs text-white/70 hover:text-white flex items-center gap-1">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
             Logout
@@ -355,7 +355,7 @@ export default function AccountPage() {
             </div>
 
             {/* App version */}
-            <p className="text-center text-[10px] text-gray-300 pt-4">Payroo v1.0 • Made with ❤️ in Cebu</p>
+            <p className="text-center text-[10px] text-gray-300 pt-4">Gruwcer v1.0 • Made with ❤️ in Cebu</p>
           </div>
         )}
       </div>

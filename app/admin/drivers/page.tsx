@@ -32,7 +32,7 @@ export default function AdminDriversPage() {
     if (editing) {
       await fetch(`/api/partners/${editing.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) })
     } else {
-      await fetch("/api/auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "register", ...form, role: "driver", password: "Payroo2024!" }) })
+      await fetch("/api/auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "register", ...form, role: "driver", password: "Gruwcer2024!" }) })
     }
     resetForm()
     await loadDrivers()

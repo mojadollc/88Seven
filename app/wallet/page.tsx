@@ -32,7 +32,7 @@ export default function WalletPage() {
       const { createXenditPayment } = await import("@/lib/xendit")
       const payment = await createXenditPayment({
         amount,
-        description: `Payroo Wallet Top-up`,
+        description: `Gruwcer Wallet Top-up`,
         externalId: `wallet_topup_${user.id}_${Date.now()}`,
         paymentMethods: ["GRABPAY", "MAYA", "SHOPEEPAY", "QRPH", "DD_BPI", "DD_UBP"],
         successRedirectUrl: `${window.location.origin}/wallet?topup=success&amount=${amount}`,
@@ -73,7 +73,7 @@ export default function WalletPage() {
         <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
           <svg className="w-8 h-8 text-[#7C3AED]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
         </div>
-        <h1 className="text-lg font-bold text-gray-800">Payroo Wallet</h1>
+        <h1 className="text-lg font-bold text-gray-800">Gruwcer Wallet</h1>
         <p className="text-sm text-gray-400 mt-1 mb-4">Sign in to access your wallet</p>
         <a href="/auth?redirect=/wallet" className="bg-[#7C3AED] text-white px-6 py-2.5 rounded-lg text-sm font-bold">Sign In</a>
       </div>
@@ -89,7 +89,7 @@ export default function WalletPage() {
             <a href="/account" className="text-white/80 hover:text-white">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </a>
-            <h1 className="text-white font-bold text-lg">Payroo Wallet</h1>
+            <h1 className="text-white font-bold text-lg">Gruwcer Wallet</h1>
             <div className="w-6" />
           </div>
 

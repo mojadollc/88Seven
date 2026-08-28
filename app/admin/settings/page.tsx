@@ -256,7 +256,7 @@ export default function AdminSettingsPage() {
                 <div className="space-y-2">
                   {([
                     { key: "cod" as const, label: "Cash on Delivery", desc: "Customer pays cash to the rider on delivery", icon: "💵", color: "green" },
-                    { key: "wallet" as const, label: "Payroo Wallet", desc: "Deduct from customer's in-app wallet balance", icon: "👛", color: "purple" },
+                    { key: "wallet" as const, label: "Gruwcer Wallet", desc: "Deduct from customer's in-app wallet balance", icon: "👛", color: "purple" },
                     { key: "qrph" as const, label: "QR Ph (InstaPay)", desc: "Scan QR code with any Philippine banking app", icon: "📱", color: "blue" },
                     { key: "ewallet" as const, label: "E-Wallets", desc: "GrabPay, Maya, ShopeePay", icon: "📲", color: "cyan" },
                     { key: "bank" as const, label: "Bank Transfer", desc: "BPI, UnionBank, RCBC — Direct Debit", icon: "🏦", color: "emerald" },

@@ -37,7 +37,7 @@ export default function AdminLogin() {
     <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
         <div className="flex items-center justify-center mb-6">
-          <a href="/" className="font-black text-lg text-[#1F2937] tracking-tight">Payroo</a>
+          <a href="/" className="font-black text-lg text-[#1F2937] tracking-tight">Gruwcer</a>
         </div>
         <h1 className="text-sm text-gray-500 text-center mb-6">Admin Login</h1>
         {error && <p className="text-amber-600 text-sm text-center mb-4">{error}</p>}

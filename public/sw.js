@@ -104,7 +104,7 @@ self.addEventListener("fetch", (event) => {
 
 // Push notifications
 self.addEventListener("push", (event) => {
-  const data = event.data?.json() || { title: "88 Seven", body: "You have a new notification" }
+  const data = event.data?.json() || { title: "Gruwcer", body: "You have a new notification" }
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,

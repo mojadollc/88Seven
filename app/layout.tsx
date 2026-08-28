@@ -7,13 +7,13 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Payroo | Grocery, Laundry & Services",
+  title: "Gruwcer | Grocery, Laundry & Services",
   description: "Your everyday super app. Grocery delivery, laundry pickup, home services — all in one place. Lapu-Lapu City, Cebu.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Payroo",
+    title: "Gruwcer",
     startupImage: [
       { url: "/icons/icon-512.png", media: "(device-width: 375px) and (device-height: 812px)" },
       { url: "/icons/icon-512.png", media: "(device-width: 414px) and (device-height: 896px)" },
@@ -23,8 +23,8 @@ export const metadata: Metadata = {
   other: {
     "mobile-web-app-capable": "yes",
     "apple-mobile-web-app-capable": "yes",
-    "application-name": "Payroo",
-    "apple-mobile-web-app-title": "Payroo",
+    "application-name": "Gruwcer",
+    "apple-mobile-web-app-title": "Gruwcer",
     "msapplication-TileColor": "#16A34A",
     "msapplication-tap-highlight": "no",
     "format-detection": "telephone=no",
