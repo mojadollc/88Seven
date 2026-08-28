@@ -1,24 +1,26 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getAllPartners, updatePartnerStatus, type LaundryPartner } from "@/lib/firebase"
+// All data via Postgres API
+import { ResetPasswordModal } from "@/app/admin/components/ResetPasswordModal"
 
 export default function AdminPartnersPage() {
-  const [partners, setPartners] = useState<LaundryPartner[]>([])
+  const [partners, setPartners] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<"all" | "pending" | "active" | "inactive">("all")
+  const [resetEmail, setResetEmail] = useState<string | null>(null)
 
   useEffect(() => { loadPartners() }, [])
 
   const loadPartners = async () => {
     setLoading(true)
-    const data = await getAllPartners()
+    const data = await fetch("/api/users?role=partner").then(r => r.json())
     setPartners(data)
     setLoading(false)
   }
 
   const handleStatus = async (id: string, status: "pending" | "active" | "inactive") => {
-    await updatePartnerStatus(id, status)
+    await fetch(`/api/partners/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) })
     setPartners((prev) => prev.map((p) => p.id === id ? { ...p, status } : p))
   }
 
@@ -31,8 +33,8 @@ export default function AdminPartnersPage() {
     <>
       <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-20">
         <div className="flex items-center justify-between">
-          <h1 className="text-lg font-bold text-[#1a1a2e]">Partner Management</h1>
-          {pending.length > 0 && <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">{pending.length} pending</span>}
+          <h1 className="text-lg font-bold text-[#1F2937]">Partner Management</h1>
+          {pending.length > 0 && <span className="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">{pending.length} pending</span>}
         </div>
       </header>
 
@@ -52,7 +54,7 @@ export default function AdminPartnersPage() {
             <p className="text-xs text-gray-400">Inactive</p>
           </div>
           <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-            <p className="text-2xl font-bold text-[#1a1a2e]">{partners.length}</p>
+            <p className="text-2xl font-bold text-[#1F2937]">{partners.length}</p>
             <p className="text-xs text-gray-400">Total</p>
           </div>
         </div>
@@ -87,7 +89,7 @@ export default function AdminPartnersPage() {
                     }`}>
                       {partner.status}
                     </span>
-                    <span className="text-xs text-gray-400">{partner.createdAt?.toDate?.()?.toLocaleDateString?.() || ""}</span>
+                    <span className="text-xs text-gray-400">{partner.createdAt?.toLocaleDateString?.() || ""}</span>
                   </div>
                 </div>
 
@@ -103,7 +105,7 @@ export default function AdminPartnersPage() {
                         <span className="text-[9px] text-gray-400">{partner.isOnline !== false ? "Online" : "Offline"}</span>
                       </div>
                       <div className="grid grid-cols-2 gap-2 mt-2 text-xs text-gray-500">
-                        <div><span className="text-gray-400">Owner:</span> {partner.ownerName}</div>
+                        <div><span className="text-gray-400">Owner:</span> {partner.name}</div>
                         <div><span className="text-gray-400">Phone:</span> {partner.phone}</div>
                         <div><span className="text-gray-400">Email:</span> {partner.email}</div>
                         <div><span className="text-gray-400">Address:</span> {partner.address}</div>
@@ -111,10 +113,10 @@ export default function AdminPartnersPage() {
                         {partner.openTime && <div><span className="text-gray-400">Hours:</span> {partner.openTime}–{partner.closeTime}</div>}
                         {partner.openDays && <div className="col-span-2"><span className="text-gray-400">Days:</span> {partner.openDays.join(", ")}</div>}
                       </div>
-                      {partner.services && partner.services.length > 0 && (
+                    {partner.services && Array.isArray(partner.services) && (partner.services as any[]).length > 0 && (
                         <div className="mt-2 flex flex-wrap gap-1">
-                          {partner.services.map((s) => (
-                            <span key={s.id} className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded">{s.name} - ₱{s.price}/{s.unit.split(" ")[1]}</span>
+                          {(partner.services as any[]).map((s: any) => (
+                            <span key={s.id} className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded">{s.name} - ₱{s.price}/{s.unit?.split(" ")[1]}</span>
                           ))}
                         </div>
                       )}
@@ -126,7 +128,7 @@ export default function AdminPartnersPage() {
                     {partner.status === "pending" && (
                       <>
                         <button onClick={() => handleStatus(partner.id, "active")} className="text-xs bg-green-500 text-white px-4 py-2 rounded-lg font-bold hover:bg-green-600">✓ Approve</button>
-                        <button onClick={() => handleStatus(partner.id, "inactive")} className="text-xs border border-red-200 text-red-600 px-4 py-2 rounded-lg font-medium hover:bg-red-50">✕ Reject</button>
+                        <button onClick={() => handleStatus(partner.id, "inactive")} className="text-xs border border-green-200 text-green-700 px-4 py-2 rounded-lg font-medium hover:bg-green-50">✕ Reject</button>
                       </>
                     )}
                     {partner.status === "active" && (
@@ -135,6 +137,7 @@ export default function AdminPartnersPage() {
                     {partner.status === "inactive" && (
                       <button onClick={() => handleStatus(partner.id, "active")} className="text-xs bg-green-500 text-white px-4 py-2 rounded-lg font-bold hover:bg-green-600">Reactivate</button>
                     )}
+                    <button onClick={() => setResetEmail(partner.email)} className="text-xs bg-orange-100 text-orange-700 px-4 py-2 rounded-lg font-medium hover:bg-orange-200">🔑 Reset Password</button>
                   </div>
                 </div>
               </div>
@@ -142,6 +145,8 @@ export default function AdminPartnersPage() {
           </div>
         )}
       </div>
+
+      {resetEmail && <ResetPasswordModal email={resetEmail} onClose={() => setResetEmail(null)} />}
     </>
   )
 }

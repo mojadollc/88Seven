@@ -2,12 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
-import { onAuthStateChanged } from "firebase/auth"
-import { auth, adminLogout, onNotifications, markAllNotificationsRead, type AppNotification } from "@/lib/firebase"
-import { getFirestore, collection, query, where, onSnapshot } from "firebase/firestore"
+import { clearAuth } from "@/lib/auth"
 import Link from "next/link"
-
-const db = getFirestore()
 
 const NAV_ITEMS = [
   { href: "/admin/dashboard", label: "Dashboard", icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" },
@@ -36,48 +32,54 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [pendingPartners, setPendingPartners] = useState(0)
   const [pendingRiders, setPendingRiders] = useState(0)
 
-  // Listen for pending order counts (lightweight - only counts)
+  // Poll pending counts every 10s
   useEffect(() => {
-    const q1 = query(collection(db, "orders"), where("status", "in", ["pending", "confirmed", "preparing", "ready_for_pickup"]))
-    const unsub1 = onSnapshot(q1, (snap) => setPendingGrocery(snap.size), () => {})
-    const q2 = query(collection(db, "laundryOrders"), where("status", "in", ["pending", "accepted", "ready"]))
-    const unsub2 = onSnapshot(q2, (snap) => setPendingLaundry(snap.size), () => {})
-    const q3 = query(collection(db, "partners"), where("status", "==", "pending"))
-    const unsub3 = onSnapshot(q3, (snap) => setPendingPartners(snap.size), () => {})
-    const q4 = query(collection(db, "drivers"), where("profileComplete", "==", true))
-    const unsub4 = onSnapshot(q4, (snap) => {
-      const needsVerification = snap.docs.filter((d) => !d.data().profileVerified).length
-      const pendingStatus = snap.docs.filter((d) => d.data().status === "pending").length
-      setPendingRiders(needsVerification + pendingStatus)
-    }, () => {})
-    return () => { unsub1(); unsub2(); unsub3(); unsub4() }
+    async function fetchCounts() {
+      const [grocery, laundry, partners, riders] = await Promise.all([
+        fetch("/api/counts?type=grocery").then((r) => r.json()),
+        fetch("/api/counts?type=laundry").then((r) => r.json()),
+        fetch("/api/counts?type=partners").then((r) => r.json()),
+        fetch("/api/counts?type=riders").then((r) => r.json()),
+      ])
+      setPendingGrocery(grocery.count || 0)
+      setPendingLaundry(laundry.count || 0)
+      setPendingPartners(partners.count || 0)
+      setPendingRiders(riders.count || 0)
+    }
+    fetchCounts()
+    const interval = setInterval(fetchCounts, 10000)
+    return () => clearInterval(interval)
   }, [])
-  const [notifications, setNotifications] = useState<AppNotification[]>([])
+  const [notifications, setNotifications] = useState<{id:string;title:string;message:string;read:boolean}[]>([])
   const [showNotifs, setShowNotifs] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
 
-  // Listen for admin notifications
+  // Poll notifications every 15s
   useEffect(() => {
     if (!authenticated) return
-    const unsub = onNotifications("admin", undefined, setNotifications)
-    return () => unsub()
+    async function fetchNotifs() {
+      const res = await fetch("/api/notifications?recipientType=admin")
+      if (res.ok) setNotifications(await res.json())
+    }
+    fetchNotifs()
+    const interval = setInterval(fetchNotifs, 15000)
+    return () => clearInterval(interval)
   }, [authenticated])
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => {
-      if (!user && pathname !== "/admin/login") {
-        router.push("/admin/login")
-      } else {
-        setAuthenticated(true)
-      }
-      setChecking(false)
-    })
-    return () => unsub()
+    const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null
+    if (!token && pathname !== "/admin/login") {
+      router.push("/admin/login")
+    } else {
+      setAuthenticated(true)
+    }
+    setChecking(false)
   }, [router, pathname])
 
-  async function handleLogout() {
-    await adminLogout()
+  function handleLogout() {
+    clearAuth()
+    localStorage.removeItem("admin_token")
     router.push("/admin/login")
   }
 
@@ -87,12 +89,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!authenticated) return null
 
   return (
-    <div className="min-h-screen bg-[#f0f2f5] flex">
+    <div className="min-h-screen bg-[#F4F5F7] flex">
       {/* SIDEBAR */}
       <aside className="hidden md:flex flex-col w-[240px] bg-white border-r border-gray-200 fixed h-full z-30">
         <div className="p-5 border-b border-gray-100">
           <a href="/" className="flex items-center gap-2">
-            <span className="font-black text-sm text-[#1a1a2e]">88 Seven</span>
+            <span className="font-black text-sm text-[#1F2937] tracking-tight">Payroo</span>
             <span className="text-[10px] text-gray-400">Admin</span>
           </a>
         </div>
@@ -108,7 +110,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 key={item.href}
                 href={item.href}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm mt-1 transition-colors ${
-                  active ? "bg-[#D62828]/10 text-[#D62828] font-medium" : "text-gray-600 hover:bg-gray-50"
+                  active ? "bg-[#16A34A]/10 text-[#16A34A] font-medium" : "text-gray-600 hover:bg-gray-50"
                 }`}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -116,14 +118,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </svg>
                 <span className="flex-1">{item.label}</span>
                 {badge > 0 && (
-                  <span className="bg-red-500 text-white text-[9px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1 animate-pulse">{badge}</span>
+                  <span className="bg-green-500 text-white text-[9px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1 animate-pulse">{badge}</span>
                 )}
               </Link>
             )
           })}
         </nav>
         <div className="p-3 border-t border-gray-100">
-          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-red-50 hover:text-[#D62828] text-sm transition-colors">
+          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-green-50 hover:text-[#16A34A] text-sm transition-colors">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
             Logout
           </button>
@@ -132,8 +134,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* MOBILE HEADER */}
       <div className="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-30 px-4 py-3 flex items-center justify-between">
-        <a href="/" className="font-black text-sm text-[#1a1a2e]">88 Seven</a>
-        <button onClick={handleLogout} className="text-xs text-gray-500 hover:text-[#D62828]">Logout</button>
+        <a href="/" className="font-black text-sm text-[#1F2937] tracking-tight">Payroo</a>
+        <button onClick={handleLogout} className="text-xs text-gray-500 hover:text-[#16A34A]">Logout</button>
       </div>
 
       {/* MOBILE BOTTOM NAV */}
@@ -142,13 +144,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           const active = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href)) || (item.href === "/admin" && pathname === "/admin")
           const badge = item.href === "/admin/orders" ? pendingGrocery : item.href === "/admin/laundry" ? pendingLaundry : item.href === "/admin/partners" ? pendingPartners : item.href === "/admin/drivers" ? pendingRiders : 0
           return (
-            <Link key={item.href} href={item.href} className={`flex-1 flex flex-col items-center py-2 relative ${active ? "text-[#D62828]" : "text-gray-400"}`}>
+            <Link key={item.href} href={item.href} className={`flex-1 flex flex-col items-center py-2 relative ${active ? "text-[#16A34A]" : "text-gray-400"}`}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
               </svg>
               <span className="text-[9px] mt-0.5">{item.label}</span>
               {badge > 0 && (
-                <span className="absolute top-1 right-1/4 bg-red-500 text-white text-[8px] font-bold min-w-[14px] h-[14px] rounded-full flex items-center justify-center px-0.5">{badge}</span>
+                <span className="absolute top-1 right-1/4 bg-green-500 text-white text-[8px] font-bold min-w-[14px] h-[14px] rounded-full flex items-center justify-center px-0.5">{badge}</span>
               )}
             </Link>
           )
@@ -160,10 +162,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Admin Notification Bar */}
         <div className="hidden md:flex items-center justify-end px-6 py-2 bg-white border-b border-gray-100">
           <div className="relative">
-            <button onClick={() => setShowNotifs(!showNotifs)} className="relative p-2 text-gray-500 hover:text-[#D62828] transition-colors">
+            <button onClick={() => setShowNotifs(!showNotifs)} className="relative p-2 text-gray-500 hover:text-[#16A34A] transition-colors">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
               {notifications.filter((n) => !n.read).length > 0 && (
-                <span className="absolute top-1 right-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">{notifications.filter((n) => !n.read).length}</span>
+                <span className="absolute top-1 right-1 bg-green-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">{notifications.filter((n) => !n.read).length}</span>
               )}
             </button>
             {showNotifs && (
@@ -171,7 +173,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <div className="px-4 py-2.5 border-b flex items-center justify-between bg-gray-50">
                   <span className="text-sm font-bold text-gray-800">Notifications</span>
                   {notifications.filter((n) => !n.read).length > 0 && (
-                    <button onClick={() => markAllNotificationsRead("admin")} className="text-[10px] text-[#D62828] font-medium">Mark all read</button>
+                    <button onClick={() => fetch("/api/notifications", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ action: "markAllRead", recipientType: "admin" }) }).then(() => setNotifications(n => n.map(x => ({...x, read: true}))))} className="text-[10px] text-[#16A34A] font-medium">Mark all read</button>
                   )}
                 </div>
                 <div className="max-h-72 overflow-y-auto">

@@ -1,11 +1,10 @@
 "use client"
 
 import { useEffect, useState, useRef } from "react"
-import { onCustomerAuthChange, getPartnerProfile, getDeliverySettings, customerLogout, uploadPartnerLogo, getPartnerWalletBalance, getListingMode, type LaundryPartner, type DeliverySettings } from "@/lib/firebase"
-import { getFirestore, collection, query, where, orderBy, onSnapshot, updateDoc, doc, serverTimestamp, addDoc } from "firebase/firestore"
-import type { User } from "firebase/auth"
+// Firebase auth removed
 
-const db = getFirestore()
+import { useNotificationSound } from "@/app/components/useNotificationSound"
+
 
 type LaundryOrder = {
   id: string
@@ -38,13 +37,14 @@ const STATUS_COLORS: Record<string, string> = {
 const ALL_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
 export default function PartnerPage() {
-  const [user, setUser] = useState<User | null>(null)
-  const [partner, setPartner] = useState<LaundryPartner | null>(null)
+  const [user, setUser] = useState<any>(null)
+  const [partner, setPartner] = useState<any>(null)
   const [orders, setOrders] = useState<LaundryOrder[]>([])
   const [loading, setLoading] = useState(true)
   const [commissionPercent, setCommissionPercent] = useState(15)
   const [walletBalance, setWalletBalance] = useState(0)
   const [listingMode, setListingMode] = useState<"free" | "wallet_required">("free")
+  const [minBalance, setMinBalance] = useState(100)
   const [tab, setTab] = useState<"orders" | "services" | "promos" | "shop">("orders")
   // Promos
   const [promos, setPromos] = useState<{ id: string; title: string; description: string; promoCode: string; discountPercent: number; minOrder: number; validUntil: string; active: boolean }[]>([])
@@ -70,43 +70,48 @@ export default function PartnerPage() {
   const [detectingLoc, setDetectingLoc] = useState(false)
   const [savingShop, setSavingShop] = useState(false)
   const [successMsg, setSuccessMsg] = useState("")
+  const playSound = useNotificationSound()
+  const prevOrderStatuses = useRef<Record<string, string>>({})
 
   useEffect(() => {
-    const unsub = onCustomerAuthChange(async (u) => {
-      setUser(u)
-      if (u) {
-        const p = await getPartnerProfile(u.uid)
+    const u = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "null") : null
+    if (!u) { setLoading(false); return }
+    setUser(u)
+    const token = localStorage.getItem("token")
+    fetch("/api/users/me", { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then(async (p: any) => {
+        if (!p) { setLoading(false); return }
         setPartner(p)
-        if (p?.services) setServices(p.services)
-        if (p?.logoUrl) setLogoUrl(p.logoUrl)
-        if (p?.isOnline !== undefined) setIsOnline(p.isOnline)
-        if (p?.openTime) setOpenTime(p.openTime)
-        if (p?.closeTime) setCloseTime(p.closeTime)
-        if (p?.openDays) setOpenDays(p.openDays)
-        if (p?.landmark) setLandmark(p.landmark)
-        if (p?.address) setAddress(p.address)
-        if (p?.lat) setShopLat(p.lat)
-        if (p?.lng) setShopLng(p.lng)
-        setWalletBalance(p?.walletBalance || 0)
-        const [s, lm] = await Promise.all([getDeliverySettings(), getListingMode()])
+        if (p.services) setServices(p.services)
+        if (p.logoUrl) setLogoUrl(p.logoUrl)
+        if (p.isOnline !== undefined) setIsOnline(p.isOnline)
+        if (p.openTime) setOpenTime(p.openTime)
+        if (p.closeTime) setCloseTime(p.closeTime)
+        if (p.openDays) setOpenDays(p.openDays)
+        if (p.landmark) setLandmark(p.landmark)
+        if (p.address) setAddress(p.address)
+        if (p.lat) setShopLat(p.lat)
+        if (p.lng) setShopLng(p.lng)
+        setWalletBalance(p.walletBalance || 0)
+        const s = await fetch("/api/delivery-settings").then(r => r.json())
         setCommissionPercent(s.partnerCommissionPercent || 15)
-        setListingMode(lm)
-      }
-      setLoading(false)
-    })
-    return () => unsub()
+        setListingMode(p.listingMode || "free")
+        setMinBalance(p.minimumBalance ?? 100)
+        setLoading(false)
+      })
+    // no unsub
   }, [])
 
   // Load partner promos
   useEffect(() => {
     if (!partner) return
-    const q = query(collection(db, "partnerPromos"), where("partnerId", "==", partner.id))
-    const unsub = onSnapshot(q, (snap) => {
-      const data = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as any)
-      data.sort((a: any, b: any) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
-      setPromos(data)
-    }, (err) => { console.error("Promo load error:", err) })
-    return () => unsub()
+    const iv = setInterval(async () => {
+      const r = await fetch(`/api/promos?partnerId=${partner.id}`)
+      if (r.ok) setPromos(await r.json())
+    }, 10000)
+    fetch(`/api/promos?partnerId=${partner.id}`).then(r => r.json()).then(setPromos)
+    return () => clearInterval(iv)
   }, [partner])
 
   const showSuccess = (msg: string) => {
@@ -116,72 +121,52 @@ export default function PartnerPage() {
 
   const addPromo = async () => {
     if (!partner || !promoForm.title || !promoForm.discountPercent) return
-    await addDoc(collection(db, "partnerPromos"), {
-      partnerId: partner.id,
-      partnerName: partner.shopName,
-      ...promoForm,
-      active: true,
-      createdAt: serverTimestamp(),
-    })
+    await fetch("/api/promos", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ partnerId: partner.id, partnerName: partner.shopName, ...promoForm, active: true }) })
     setPromoForm({ title: "", description: "", promoCode: "", discountPercent: 10, minOrder: 0, validUntil: "" })
     setShowAddPromo(false)
     showSuccess("Promo created successfully!")
   }
 
   const togglePromo = async (promoId: string, active: boolean) => {
-    await updateDoc(doc(db, "partnerPromos", promoId), { active })
+    await fetch(`/api/promos/${promoId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ active }) })
     showSuccess(active ? "Promo activated!" : "Promo deactivated")
   }
 
   const deletePromo = async (promoId: string) => {
-    const { deleteDoc: delDoc } = await import("firebase/firestore")
-    await delDoc(doc(db, "partnerPromos", promoId))
+    await fetch(`/api/promos/${promoId}`, { method: "DELETE" })
     showSuccess("Promo deleted")
   }
 
   useEffect(() => {
     if (!partner || partner.status !== "active") return
-    const q = query(collection(db, "laundryOrders"), where("partnerId", "==", partner.id), orderBy("createdAt", "desc"))
-    let prevPendingCount = 0
-    const unsub = onSnapshot(q, (snap) => {
-      const allOrders = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as LaundryOrder)
-      setOrders(allOrders)
-
-      // Play notification sound when new pending order arrives
-      const currentPending = allOrders.filter((o) => o.status === "pending").length
-      if (currentPending > prevPendingCount && prevPendingCount >= 0) {
-        try {
-          const audio = new Audio("data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgipqWgGtcYHqPlpKAb2RibHuHi4V8dnR0eX6Bg4OBf3x7e3x+gIGBgH9+fX19fn+AgIB/fn5+fn5/gICAf39+fn5+f4CAgH9/fn5+fn+AgIB/f35+fn5/gICAgH9+fn5/f4CAgIB/fn5+f3+AgICAgH5+fn9/gICAgIB+fn5/f4CAgICAfn5+f3+AgICAgH9+fn9/gICAgIB/fn5/f4CAgICAgH5+f3+AgICAgIB+fn9/f4CAgICAf35+f3+AgICAgIB+fn9/gICAgICAf35/f4CAgICAgH9+f3+AgICAgICAfn9/f4CAgICAf35/f3+AgICAgIB+f39/gICAgICAfn9/f4CAgICAgH5/f3+AgICAgIB/f39/gICAgICAfn9/f4CAgA==")
-          audio.volume = 0.5
-          audio.play().catch(() => {})
-        } catch {}
-      }
-      prevPendingCount = currentPending
-
-      // Auto-cancel COD pending orders older than 5 minutes (not accepted by partner)
-      allOrders.forEach(async (order) => {
-        if (order.status === "pending" && order.createdAt?.toDate) {
-          const created = order.createdAt.toDate()
-          const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000)
-          if (created < fiveMinAgo) {
-            await updateDoc(doc(db, "laundryOrders", order.id), { status: "cancelled", cancelReason: "Partner did not respond in time", updatedAt: serverTimestamp() })
-          }
-        }
+    const iv = setInterval(async () => {
+      const r = await fetch(`/api/laundry-orders?partnerId=${partner.id}`)
+      if (!r.ok) return
+      const allOrders = await r.json()
+      let shouldNotify = false
+      allOrders.forEach((order: any) => {
+        const prev = prevOrderStatuses.current[order.id]
+        if (!prev && order.status === "pending") shouldNotify = true
+        else if (prev && prev !== order.status) { shouldNotify = true; showSuccess(`Order #${order.id.slice(0, 6)} → ${order.status.replace(/_/g, " ")}`) }
       })
-    }, () => {})
-    return () => unsub()
-  }, [partner])
+      if (shouldNotify && Object.keys(prevOrderStatuses.current).length > 0) playSound()
+      const newStatuses: Record<string, string> = {}
+      allOrders.forEach((o: any) => { newStatuses[o.id] = o.status })
+      prevOrderStatuses.current = newStatuses
+      setOrders(allOrders)
+    }, 5000)
+    return () => clearInterval(iv)
+  }, [partner, playSound])
 
   const handleStatus = async (orderId: string, status: string) => {
-    await updateDoc(doc(db, "laundryOrders", orderId), { status, updatedAt: serverTimestamp() })
+    await fetch(`/api/laundry-orders/${orderId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) })
   }
 
-  // Toggle online/offline
   const handleToggleOnline = async () => {
     if (!partner) return
     const next = !isOnline
     setIsOnline(next)
-    await updateDoc(doc(db, "partners", partner.id), { isOnline: next })
+    await fetch(`/api/partners/${partner.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isOnline: next }) })
     showSuccess(next ? "Shop is now OPEN" : "Shop is now CLOSED")
   }
 
@@ -192,7 +177,7 @@ export default function PartnerPage() {
     const update: any = { openTime, closeTime, openDays, landmark, address }
     if (shopLat) update.lat = shopLat
     if (shopLng) update.lng = shopLng
-    await updateDoc(doc(db, "partners", partner.id), update)
+    await fetch(`/api/partners/${partner.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(update) })
     setSavingShop(false)
     showSuccess("Shop settings saved successfully!")
   }
@@ -226,7 +211,7 @@ export default function PartnerPage() {
     setServices(updated)
     setServiceForm({ name: "", price: 0, unit: "per kg" })
     setShowAddService(false)
-    await updateDoc(doc(db, "partners", partner.id), { services: updated })
+    await fetch(`/api/partners/${partner.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ services: updated }) })
     showSuccess("Service added successfully!")
   }
 
@@ -234,14 +219,14 @@ export default function PartnerPage() {
     if (!partner) return
     const updated = services.filter((s) => s.id !== id)
     setServices(updated)
-    await updateDoc(doc(db, "partners", partner.id), { services: updated })
+    await fetch(`/api/partners/${partner.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ services: updated }) })
     showSuccess("Service removed")
   }
 
   const saveServices = async () => {
     if (!partner) return
     setSavingServices(true)
-    await updateDoc(doc(db, "partners", partner.id), { services })
+    await fetch(`/api/partners/${partner.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ services }) })
     setSavingServices(false)
     showSuccess("Services saved successfully!")
   }
@@ -267,7 +252,7 @@ export default function PartnerPage() {
       <div className="text-center">
         <p className="text-gray-500 text-sm">No partner profile found for this account.</p>
         <a href="/auth?tab=partner" className="inline-block mt-3 text-blue-600 text-sm font-bold">Register as Partner</a>
-        <button onClick={() => customerLogout()} className="block mx-auto mt-2 text-xs text-gray-400">Logout</button>
+        <button onClick={() => { localStorage.removeItem("token"); localStorage.removeItem("user"); window.location.href = "/auth" }} className="block mx-auto mt-2 text-xs text-gray-400">Logout</button>
       </div>
     </div>
   )
@@ -287,7 +272,7 @@ export default function PartnerPage() {
           </div>
           <p className="text-sm text-gray-500 mb-2">Your application is being reviewed by our team.</p>
           <p className="text-xs text-gray-400">Within <span className="font-bold text-gray-600">24 hours</span> you will receive confirmation.</p>
-          <button onClick={() => customerLogout()} className="mt-5 text-xs text-gray-400 hover:text-gray-600">Logout</button>
+          <button onClick={() => { localStorage.removeItem("token"); localStorage.removeItem("user"); window.location.href = "/auth" }} className="mt-5 text-xs text-gray-400 hover:text-gray-600">Logout</button>
         </div>
       </div>
     </main>
@@ -323,14 +308,14 @@ export default function PartnerPage() {
           </div>
           <div className="flex items-center gap-3">
             {/* Online/Offline Toggle */}
-            <button onClick={handleToggleOnline} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${isOnline ? "bg-green-500" : "bg-red-500/80"}`}>
+            <button onClick={handleToggleOnline} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${isOnline ? "bg-green-500" : "bg-green-500/80"}`}>
               <span className={`w-2 h-2 rounded-full ${isOnline ? "bg-white animate-pulse" : "bg-white/60"}`} />
               {isOnline ? "OPEN" : "CLOSED"}
             </button>
             <a href="/partner/wallet" className="text-white/70 hover:text-white">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
             </a>
-            <button onClick={() => customerLogout()} className="text-white/70 hover:text-white text-xs">Logout</button>
+            <button onClick={() => { localStorage.removeItem("token"); localStorage.removeItem("user"); window.location.href = "/auth" }} className="text-white/70 hover:text-white text-xs">Logout</button>
           </div>
         </div>
       </header>
@@ -355,20 +340,20 @@ export default function PartnerPage() {
             <p className="text-[9px] text-gray-400">Earned</p>
           </div>
           <a href="/partner/wallet" className="bg-white rounded-xl p-3 border border-gray-100 text-center">
-            <p className={`text-lg font-bold ${walletBalance >= 100 ? "text-blue-600" : "text-red-500"}`}>₱{walletBalance.toFixed(0)}</p>
+            <p className={`text-lg font-bold ${walletBalance >= 100 ? "text-blue-600" : "text-green-500"}`}>₱{walletBalance.toFixed(0)}</p>
             <p className="text-[9px] text-gray-400">Wallet</p>
           </a>
         </div>
 
         {/* Low Wallet Warning */}
-        {listingMode === "wallet_required" && walletBalance < 100 && (
-          <div className="mx-4 mb-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+        {listingMode === "wallet_required" && walletBalance < minBalance && (
+          <div className="mx-4 mb-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
             <div className="flex items-start gap-3">
               <span className="text-lg">⚠️</span>
               <div>
-                <p className="text-xs font-bold text-red-700">Wallet balance too low!</p>
-                <p className="text-[10px] text-red-600 mt-0.5">You need at least ₱100 to accept bookings. Please top up your wallet.</p>
-                <a href="/partner/wallet" className="inline-block mt-2 text-[10px] bg-red-600 text-white px-3 py-1.5 rounded-lg font-bold">Top Up Now</a>
+                <p className="text-xs font-bold text-green-800">Wallet balance too low!</p>
+                <p className="text-[10px] text-green-700 mt-0.5">You need at least ₱{minBalance} to accept bookings. Please top up your wallet.</p>
+                <a href="/partner/wallet" className="inline-block mt-2 text-[10px] bg-green-700 text-white px-3 py-1.5 rounded-lg font-bold">Top Up Now</a>
               </div>
             </div>
           </div>
@@ -417,14 +402,14 @@ export default function PartnerPage() {
                     {order.notes && <p className="text-xs text-gray-500 bg-yellow-50 rounded px-2 py-1 mt-2">📝 {order.notes}</p>}
                     <div className="bg-green-50 rounded-lg p-3 mt-3 space-y-1">
                       <div className="flex justify-between text-xs"><span className="text-gray-600">Service Fee</span><span>₱{order.price}</span></div>
-                      <div className="flex justify-between text-xs"><span className="text-red-500">Commission ({commissionPercent}%)</span><span className="text-red-500">-₱{Math.round(order.price * commissionPercent / 100)}</span></div>
+                      <div className="flex justify-between text-xs"><span className="text-green-500">Commission ({commissionPercent}%)</span><span className="text-green-500">-₱{Math.round(order.price * commissionPercent / 100)}</span></div>
                       <div className="border-t border-green-200 pt-1 flex justify-between"><span className="text-xs font-bold text-green-700">Your Earnings</span><span className="text-sm font-bold text-green-700">₱{Math.round(order.price * (100 - commissionPercent) / 100)}</span></div>
                     </div>
                     <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
                       {order.status === "pending" && (
                         <div className="flex gap-2 w-full">
-                          <button onClick={() => handleStatus(order.id, "cancelled")} className="flex-1 border border-red-200 text-red-600 py-2.5 rounded-lg text-xs font-bold">Reject</button>
-                          {listingMode === "free" || walletBalance >= 100 ? (
+                          <button onClick={() => handleStatus(order.id, "cancelled")} className="flex-1 border border-green-200 text-green-700 py-2.5 rounded-lg text-xs font-bold">Reject</button>
+                          {listingMode === "free" || walletBalance >= minBalance ? (
                             <button onClick={() => handleStatus(order.id, "accepted")} className="flex-1 bg-blue-600 text-white py-2.5 rounded-lg text-xs font-bold">Accept</button>
                           ) : (
                             <a href="/partner/wallet" className="flex-1 bg-gray-300 text-gray-600 py-2.5 rounded-lg text-xs font-bold text-center">Top Up to Accept</a>
@@ -486,7 +471,7 @@ export default function PartnerPage() {
                           <button onClick={() => togglePromo(promo.id, !promo.active)} className={`w-10 h-5 rounded-full relative transition-colors ${promo.active ? "bg-green-500" : "bg-gray-300"}`}>
                             <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${promo.active ? "translate-x-5" : ""}`} />
                           </button>
-                          <button onClick={() => deletePromo(promo.id)} className="text-red-400 hover:text-red-600">
+                          <button onClick={() => deletePromo(promo.id)} className="text-green-400 hover:text-green-700">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                           </button>
                         </div>
@@ -522,7 +507,7 @@ export default function PartnerPage() {
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-sm font-bold text-blue-600">₱{s.price}</span>
-                        <button onClick={() => removeService(s.id)} className="text-red-400 hover:text-red-600">
+                        <button onClick={() => removeService(s.id)} className="text-green-400 hover:text-green-700">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                         </button>
                       </div>
@@ -553,8 +538,8 @@ export default function PartnerPage() {
                   <span className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${isOnline ? "translate-x-7" : ""}`} />
                 </button>
               </div>
-              <div className={`mt-3 rounded-lg px-3 py-2 ${isOnline ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"}`}>
-                <p className={`text-xs font-bold ${isOnline ? "text-green-700" : "text-red-700"}`}>
+              <div className={`mt-3 rounded-lg px-3 py-2 ${isOnline ? "bg-green-50 border border-green-200" : "bg-green-50 border border-green-200"}`}>
+                <p className={`text-xs font-bold ${isOnline ? "text-green-700" : "text-green-800"}`}>
                   {isOnline ? "🟢 Your shop is OPEN and accepting orders" : "🔴 Your shop is CLOSED — not visible to customers"}
                 </p>
               </div>
@@ -610,7 +595,7 @@ export default function PartnerPage() {
                   const file = e.target.files?.[0]
                   if (!file || !partner) return
                   setUploadingLogo(true)
-                  try { const url = await uploadPartnerLogo(partner.id, file); setLogoUrl(url) } catch {} finally { setUploadingLogo(false) }
+                  try { const fd = new FormData(); fd.append("file", file); fd.append("folder", "partners"); const uploadRes = await fetch("/api/upload", { method: "POST", body: fd }); const { url } = await uploadRes.json(); await fetch(`/api/partners/${partner.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ logoUrl: url }) }); setLogoUrl(url) } catch {} finally { setUploadingLogo(false) }
                 }} />
                 <div>
                   <p className="text-xs text-gray-700 font-medium">Upload your shop logo</p>

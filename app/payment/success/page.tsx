@@ -30,7 +30,7 @@ function SuccessContent() {
         {orderId && (
           <a
             href={`/order?id=${orderId}`}
-            className="inline-block bg-[#D62828] text-white px-6 py-3 rounded-xl font-bold text-sm"
+            className="inline-block bg-[#16A34A] text-white px-6 py-3 rounded-xl font-bold text-sm"
           >
             Track My Order
           </a>
@@ -42,7 +42,7 @@ function SuccessContent() {
 
 export default function PaymentSuccess() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-10 h-10 border-4 border-[#D62828] border-t-transparent rounded-full animate-spin" /></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-10 h-10 border-4 border-[#16A34A] border-t-transparent rounded-full animate-spin" /></div>}>
       <SuccessContent />
     </Suspense>
   )

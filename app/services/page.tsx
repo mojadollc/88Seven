@@ -1,11 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { onCustomerAuthChange, getCustomerProfile, getCustomerWalletBalance, deductCustomerWallet, getPaymentMethodsConfig, type CustomerProfile, type PaymentMethodsConfig } from "@/lib/firebase"
-import { getFirestore, collection, addDoc, serverTimestamp, query, where, orderBy, onSnapshot, updateDoc, doc } from "firebase/firestore"
-import type { User } from "firebase/auth"
+// Firebase auth removed
 
-const db = getFirestore()
 
 const SERVICE_CATEGORIES = [
   {
@@ -79,14 +76,14 @@ const STATUS_COLORS: Record<string, string> = {
   confirmed: "bg-blue-100 text-blue-800",
   in_progress: "bg-purple-100 text-purple-800",
   completed: "bg-green-100 text-green-800",
-  cancelled: "bg-red-100 text-red-800",
+  cancelled: "bg-green-100 text-green-900",
 }
 
 export default function ServicesPage() {
-  const [user, setUser] = useState<User | null>(null)
-  const [profile, setProfile] = useState<CustomerProfile | null>(null)
+  const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
   const [walletBalance, setWalletBalance] = useState(0)
-  const [pmConfig, setPmConfig] = useState<PaymentMethodsConfig>({ cod: true, wallet: true, qrph: true, ewallet: true, bank: true, xendit: true })
+  const [pmConfig, setPmConfig] = useState<any>({ cod: true, wallet: true, qrph: true, ewallet: true, bank: true, xendit: true })
   const [bookings, setBookings] = useState<ServiceBooking[]>([])
   const [selectedCategory, setSelectedCategory] = useState<typeof SERVICE_CATEGORIES[0] | null>(null)
   const [showBooking, setShowBooking] = useState(false)
@@ -96,36 +93,38 @@ export default function ServicesPage() {
   const [tab, setTab] = useState<"browse" | "bookings">("browse")
 
   useEffect(() => {
-    const unsub = onCustomerAuthChange(async (u) => {
-      setUser(u)
-      if (u) {
-        const p = await getCustomerProfile(u.uid)
+    const u = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "null") : null
+    if (!u) return
+    setUser(u)
+    const token = localStorage.getItem("token")
+    fetch("/api/users/me", { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then((p: any) => {
+        if (!p) return
         setProfile(p)
-        getCustomerWalletBalance(u.uid).then(setWalletBalance)
-        getPaymentMethodsConfig().then(setPmConfig)
-        if (p) setForm((f) => ({ ...f, address: p.address || "", phone: p.phone || "" }))
-      }
-    })
-    return () => unsub()
+        setWalletBalance(p.walletBalance || 0)
+        fetch("/api/settings/payment-methods").then(r => r.ok ? r.json() : {}).then((pm: any) => setPmConfig((prev: any) => ({ ...prev, ...pm })))
+        setForm((f: any) => ({ ...f, address: p.address || "", phone: p.phone || "" }))
+      })
   }, [])
 
   useEffect(() => {
     if (!user) return
-    const q = query(collection(db, "serviceBookings"), where("customerId", "==", user.uid), orderBy("createdAt", "desc"))
-    const unsub = onSnapshot(q, (snap) => {
-      const allBookings = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as ServiceBooking)
-      setBookings(allBookings)
-      // Auto-cancel expired awaiting_payment bookings
-      allBookings.forEach(async (b) => {
-        if (b.status === "awaiting_payment" && (b as any).paymentExpiresAt) {
-          const expiresAt = (b as any).paymentExpiresAt?.toDate ? (b as any).paymentExpiresAt.toDate() : new Date((b as any).paymentExpiresAt)
-          if (new Date() > expiresAt) {
-            await updateDoc(doc(db, "serviceBookings", b.id), { status: "cancelled", cancelReason: "Payment expired", updatedAt: serverTimestamp() })
+    const iv = setInterval(async () => {
+      const r = await fetch(`/api/service-bookings?customerId=${user.uid}`)
+      if (r.ok) {
+        const allBookings = await r.json()
+        setBookings(allBookings)
+        allBookings.forEach(async (b: any) => {
+          if (b.status === "awaiting_payment" && b.paymentExpiresAt) {
+            if (new Date() > new Date(b.paymentExpiresAt)) {
+              await fetch(`/api/service-bookings/${b.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "cancelled" }) })
+            }
           }
-        }
-      })
-    }, () => {})
-    return () => unsub()
+        })
+      }
+    }, 5000)
+    return () => clearInterval(iv)
   }, [user])
 
   // Auto-detect location
@@ -140,7 +139,7 @@ export default function ServicesPage() {
   const handleBook = async () => {
     if (!user || !selectedService || !form.address || !form.phone || !form.date) return
     setSubmitting(true)
-    const docRef = await addDoc(collection(db, "serviceBookings"), {
+    const bookingData = {
       categoryId: selectedCategory!.id,
       categoryName: selectedCategory!.name,
       serviceId: selectedService.id,
@@ -156,12 +155,13 @@ export default function ServicesPage() {
       customerId: user.uid,
       customerName: profile?.name || "",
       paymentMethod: form.paymentMethod,
-      createdAt: serverTimestamp(),
-    })
+    }
+    const res = await fetch("/api/service-bookings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(bookingData) })
+    const docRef = await res.json()
 
     if (form.paymentMethod === "wallet") {
-      await deductCustomerWallet(user.uid, selectedService.price, docRef.id, `Service - ${selectedService.name}`)
-      setWalletBalance((prev) => prev - selectedService.price)
+      await fetch("/api/wallet", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ownerId: user.id, ownerType: "customer", type: "deduction", amount: -selectedService.price, orderId: docRef.id, note: `Service - ${selectedService.name}` }) })
+      setWalletBalance((prev: number) => prev - selectedService.price)
       setShowBooking(false)
       setSubmitting(false)
       return
@@ -273,7 +273,7 @@ export default function ServicesPage() {
                   <p>📅 {b.scheduledDate} at {b.scheduledTime}</p>
                   <p>📍 {b.address}</p>
                 </div>
-                <p className="text-[10px] text-gray-300 mt-2">{b.createdAt?.toDate?.()?.toLocaleDateString?.() || ""}</p>
+                <p className="text-[10px] text-gray-300 mt-2">{b.createdAt?.toLocaleDateString?.() || ""}</p>
                 {/* Awaiting payment */}
                 {b.status === "awaiting_payment" && (
                   <div className="mt-3 space-y-2">
@@ -283,9 +283,9 @@ export default function ServicesPage() {
                     <div className="flex gap-2">
                       <button
                         onClick={async () => {
-                          await updateDoc(doc(db, "serviceBookings", b.id), { status: "cancelled", cancelReason: "Cancelled by customer", updatedAt: serverTimestamp() })
+                          await fetch(`/api/service-bookings/b.id`, { method: "PATCH", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ status: "cancelled" }) })
                         }}
-                        className="flex-1 border border-red-200 text-red-600 py-2.5 rounded-lg text-xs font-bold hover:bg-red-50"
+                        className="flex-1 border border-green-200 text-green-700 py-2.5 rounded-lg text-xs font-bold hover:bg-green-50"
                       >
                         Cancel
                       </button>
@@ -313,9 +313,9 @@ export default function ServicesPage() {
                   <button
                     onClick={async () => {
                       if (!confirm("Cancel this booking?")) return
-                      await updateDoc(doc(db, "serviceBookings", b.id), { status: "cancelled", updatedAt: serverTimestamp() })
+                      await fetch(`/api/service-bookings/b.id`, { method: "PATCH", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ status: "cancelled" }) })
                     }}
-                    className="w-full mt-3 border border-red-200 text-red-600 py-2 rounded-lg text-xs font-bold hover:bg-red-50"
+                    className="w-full mt-3 border border-green-200 text-green-700 py-2 rounded-lg text-xs font-bold hover:bg-green-50"
                   >
                     Cancel Booking
                   </button>
@@ -394,8 +394,8 @@ export default function ServicesPage() {
                 <div className="mt-2 space-y-2">
                   {/* COD */}
                   {pmConfig.cod && (
-                  <label className={`flex items-center gap-3 border-2 rounded-xl px-4 py-3 cursor-pointer transition-colors ${form.paymentMethod === "cod" ? "border-[#D62828] bg-red-50" : "border-gray-200 hover:border-gray-300"}`}>
-                    <input type="radio" name="spay" value="cod" checked={form.paymentMethod === "cod"} onChange={() => setForm({ ...form, paymentMethod: "cod" })} className="accent-[#D62828]" />
+                  <label className={`flex items-center gap-3 border-2 rounded-xl px-4 py-3 cursor-pointer transition-colors ${form.paymentMethod === "cod" ? "border-[#16A34A] bg-green-50" : "border-gray-200 hover:border-gray-300"}`}>
+                    <input type="radio" name="spay" value="cod" checked={form.paymentMethod === "cod"} onChange={() => setForm({ ...form, paymentMethod: "cod" })} className="accent-[#16A34A]" />
                     <span className="text-2xl">💵</span>
                     <div>
                       <p className="text-sm font-bold text-gray-800">Cash on Delivery</p>
@@ -413,9 +413,9 @@ export default function ServicesPage() {
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-bold text-gray-800">Payroo Wallet</p>
-                        <p className="text-[11px] text-gray-400">Balance: <span className={`font-bold ${walletBalance >= selectedService.price ? "text-green-600" : "text-red-500"}`}>₱{walletBalance.toFixed(2)}</span></p>
+                        <p className="text-[11px] text-gray-400">Balance: <span className={`font-bold ${walletBalance >= selectedService.price ? "text-green-600" : "text-green-500"}`}>₱{walletBalance.toFixed(2)}</span></p>
                       </div>
-                      {walletBalance < selectedService.price && <span className="text-[9px] bg-red-100 text-red-600 font-bold px-2 py-0.5 rounded-full">LOW</span>}
+                      {walletBalance < selectedService.price && <span className="text-[9px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full">LOW</span>}
                     </label>
                   )}
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { adminLogin } from "@/lib/firebase"
+import { setAuth } from "@/lib/auth"
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("")
@@ -13,13 +13,21 @@ export default function AdminLogin() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setError("")
-    setLoading(true)
+    setError(""); setLoading(true)
     try {
-      await adminLogin(email, password)
+      const res = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "login", email, password }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Invalid credentials")
+      if (data.user.role !== "admin") throw new Error("Not authorized")
+      setAuth(data.token, data.user)
+      localStorage.setItem("admin_token", data.token)
       router.push("/admin")
-    } catch {
-      setError("Invalid email or password")
+    } catch (e: any) {
+      setError(e.message)
     } finally {
       setLoading(false)
     }
@@ -29,31 +37,16 @@ export default function AdminLogin() {
     <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
         <div className="flex items-center justify-center mb-6">
-          <a href="/" className="font-black text-lg text-[#1a1a2e]">88 Seven</a>
+          <a href="/" className="font-black text-lg text-[#1F2937] tracking-tight">Payroo</a>
         </div>
         <h1 className="text-sm text-gray-500 text-center mb-6">Admin Login</h1>
-        {error && <p className="text-red-500 text-sm text-center mb-4">{error}</p>}
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3 outline-none focus:border-[#D62828]"
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-4 outline-none focus:border-[#D62828]"
-          required
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-[#D62828] text-white font-bold py-2.5 rounded text-sm hover:bg-[#b71c1c] transition-colors disabled:opacity-50"
-        >
+        {error && <p className="text-amber-600 text-sm text-center mb-4">{error}</p>}
+        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)}
+          className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3 outline-none focus:border-[#16A34A]" required />
+        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)}
+          className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-4 outline-none focus:border-[#16A34A]" required />
+        <button type="submit" disabled={loading}
+          className="w-full bg-[#16A34A] text-white font-bold py-2.5 rounded text-sm hover:bg-[#15803d] transition-colors disabled:opacity-50">
           {loading ? "Logging in..." : "Log In"}
         </button>
       </form>

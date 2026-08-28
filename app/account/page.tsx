@@ -1,11 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { onCustomerAuthChange, getCustomerProfile, getCustomerOrders, getPartnerProfile, getDrivers, customerLogout, getCustomerWalletBalance, type Order, type CustomerProfile } from "@/lib/firebase"
-import { getFirestore, collection, query, where, orderBy, onSnapshot } from "firebase/firestore"
-import type { User } from "firebase/auth"
+import { useEffect, useState, useRef } from "react"
+import { getUser, clearAuth, getToken } from "@/lib/auth"
+import { useNotificationSound } from "@/app/components/useNotificationSound"
 
-const db = getFirestore()
 
 type LaundryOrder = {
   id: string
@@ -28,8 +26,8 @@ const STATUS_COLORS: Record<string, string> = {
   rider_picked_up: "bg-indigo-100 text-indigo-800",
   out_for_delivery: "bg-indigo-100 text-indigo-800",
   delivered: "bg-green-100 text-green-800",
-  cancelled: "bg-red-100 text-red-800",
-  rejected: "bg-red-100 text-red-800",
+  cancelled: "bg-green-100 text-green-900",
+  rejected: "bg-green-100 text-green-900",
   accepted: "bg-blue-100 text-blue-800",
   at_laundromat: "bg-purple-100 text-purple-800",
   washing: "bg-indigo-100 text-indigo-800",
@@ -39,59 +37,68 @@ const STATUS_COLORS: Record<string, string> = {
 }
 
 export default function AccountPage() {
-  const [user, setUser] = useState<User | null>(null)
-  const [profile, setProfile] = useState<CustomerProfile | null>(null)
-  const [groceryOrders, setGroceryOrders] = useState<Order[]>([])
+  const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
+  const [groceryOrders, setGroceryOrders] = useState<any[]>([])
   const [laundryOrders, setLaundryOrders] = useState<LaundryOrder[]>([])
   const [walletBalance, setWalletBalance] = useState(0)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<"orders" | "profile">("orders")
   const [orderFilter, setOrderFilter] = useState<"active" | "completed" | "all">("active")
+  const playSound = useNotificationSound()
+  const prevLaundryStatuses = useRef<Record<string, string>>({})
 
   useEffect(() => {
-    const unsub = onCustomerAuthChange(async (u) => {
-      setUser(u)
-      if (u) {
-        const partnerProfile = await getPartnerProfile(u.uid)
-        if (partnerProfile) { window.location.href = "/partner"; return }
-        const allDrivers = await getDrivers()
-        const riderProfile = allDrivers.find((d) => (d as any).uid === u.uid || d.email === u.email)
-        if (riderProfile) { window.location.href = "/driver"; return }
-        const p = await getCustomerProfile(u.uid)
-        setProfile(p)
-        const o = await getCustomerOrders(u.uid)
-        setGroceryOrders(o)
-        getCustomerWalletBalance(u.uid).then(setWalletBalance)
-      }
-      setLoading(false)
-    })
-    return () => unsub()
+    const u = getUser()
+    if (!u) { setLoading(false); return }
+    if (u.role === "partner") { window.location.href = "/partner"; return }
+    if (u.role === "driver") { window.location.href = "/driver"; return }
+    if (u.role === "provider") { window.location.href = "/provider"; return }
+    setUser(u)
+    const token = getToken()
+    fetch("/api/users/me", { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : null).then(p => { if (p) { setProfile(p); setWalletBalance(p.walletBalance || 0) } })
+    fetch(`/api/orders?customerId=${u.id}`)
+      .then(r => r.ok ? r.json() : []).then(setGroceryOrders)
+    setLoading(false)
   }, [])
 
   useEffect(() => {
     if (!user) return
-    const q = query(collection(db, "laundryOrders"), where("customerId", "==", user.uid), orderBy("createdAt", "desc"))
-    const unsub = onSnapshot(q, (snap) => {
-      setLaundryOrders(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as LaundryOrder))
-    })
-    return () => unsub()
-  }, [user])
+    const iv = setInterval(async () => {
+      const r = await fetch(`/api/laundry-orders?customerId=${user.id}`)
+      if (r.ok) {
+        const orders = await r.json()
+        let changed = false
+        orders.forEach((o: any) => {
+          const prev = prevLaundryStatuses.current[o.id]
+          if (prev && prev !== o.status) changed = true
+        })
+        if (changed && Object.keys(prevLaundryStatuses.current).length > 0) playSound()
+        const newStatuses: Record<string, string> = {}
+        orders.forEach((o: any) => { newStatuses[o.id] = o.status })
+        prevLaundryStatuses.current = newStatuses
+        setLaundryOrders(orders)
+      }
+    }, 5000)
+    return () => clearInterval(iv)
+  }, [user, playSound])
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-10 h-10 border-4 border-[#D62828] border-t-transparent rounded-full animate-spin" />
+      <div className="w-10 h-10 border-4 border-[#16A34A] border-t-transparent rounded-full animate-spin" />
     </div>
   )
 
   if (!user) return (
-    <div className="min-h-screen bg-gradient-to-b from-[#D62828] to-[#8B0000] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-b from-[#16A34A] to-[#15803d] flex items-center justify-center p-4">
       <div className="text-center w-full max-w-sm">
         <div className="w-20 h-20 bg-white/10 backdrop-blur rounded-full flex items-center justify-center mx-auto mb-6">
           <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
         </div>
-        <h2 className="font-bold text-2xl text-white mb-2">Welcome to 88 Seven</h2>
+        <h2 className="font-bold text-2xl text-white mb-2">Welcome to Payroo</h2>
         <p className="text-white/60 text-sm mb-8">Sign in to manage orders, wallet & more</p>
-        <a href="/auth?redirect=/account" className="block w-full bg-white text-[#D62828] px-6 py-3.5 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors shadow-lg">
+        <a href="/auth?redirect=/account" className="block w-full bg-white text-[#16A34A] px-6 py-3.5 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors shadow-lg">
           Sign In / Create Account
         </a>
         <a href="/" className="block mt-4 text-white/50 text-xs hover:text-white">← Back to Home</a>
@@ -109,7 +116,7 @@ export default function AccountPage() {
     const allOrders = [
       ...groceryOrders.map((o) => ({ ...o, type: "grocery" as const, amount: o.total })),
       ...laundryOrders.map((o) => ({ ...o, type: "laundry" as const, amount: o.totalPrice, total: o.totalPrice, items: [] as any[] })),
-    ].sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
+    ].sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
 
     if (orderFilter === "active") return allOrders.filter((o) => !["delivered", "cancelled", "rejected"].includes(o.status))
     if (orderFilter === "completed") return allOrders.filter((o) => ["delivered", "cancelled", "rejected"].includes(o.status))
@@ -117,12 +124,12 @@ export default function AccountPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
-      <header className="bg-[#D62828] text-white sticky top-0 z-50">
+      <header className="bg-[#16A34A] text-white sticky top-0 z-50">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
-          <a href="/" className="font-black text-base">88 Seven</a>
-          <button onClick={() => customerLogout()} className="text-xs text-white/70 hover:text-white flex items-center gap-1">
+          <a href="/" className="font-black text-base tracking-tight">Payroo</a>
+          <button onClick={() => { clearAuth(); window.location.href = "/" }} className="text-xs text-white/70 hover:text-white flex items-center gap-1">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
             Logout
           </button>
@@ -132,7 +139,7 @@ export default function AccountPage() {
       <div className="max-w-lg mx-auto">
         {/* Profile Card */}
         <div className="bg-white mx-4 mt-4 rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="bg-gradient-to-r from-[#D62828] to-[#FF4444] px-5 pt-6 pb-10">
+          <div className="bg-gradient-to-r from-[#16A34A] to-[#16A34A] px-5 pt-6 pb-10">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-full flex items-center justify-center border-2 border-white/30">
                 <span className="text-2xl font-black text-white">{(profile?.name || "U").charAt(0).toUpperCase()}</span>
@@ -147,7 +154,7 @@ export default function AccountPage() {
           <div className="mx-4 -mt-6 relative">
             <div className="bg-white rounded-xl shadow-md border border-gray-100 grid grid-cols-3 divide-x divide-gray-100">
               <div className="p-3 text-center">
-                <p className="text-lg font-bold text-[#D62828]">{totalActive}</p>
+                <p className="text-lg font-bold text-[#16A34A]">{totalActive}</p>
                 <p className="text-[9px] text-gray-400 uppercase font-semibold">Active</p>
               </div>
               <div className="p-3 text-center">
@@ -184,13 +191,13 @@ export default function AccountPage() {
         {/* Quick Menu */}
         <div className="mx-4 mt-4 grid grid-cols-4 gap-2">
           {[
-            { href: "/grocery", icon: "🛒", label: "Grocery" },
-            { href: "/laundry", icon: "🧺", label: "Laundry" },
-            { href: "/home-services", icon: "🔧", label: "Services" },
-            { href: "/account/wallet", icon: "💳", label: "Wallet" },
+            { href: "/grocery", icon: "https://img.icons8.com/3d-fluency/94/shopping-cart.png", label: "Grocery" },
+            { href: "/laundry", icon: "https://img.icons8.com/3d-fluency/94/washing-machine.png", label: "Laundry" },
+            { href: "/home-services", icon: "https://img.icons8.com/3d-fluency/94/maintenance.png", label: "Services" },
+            { href: "/account/wallet", icon: "https://img.icons8.com/3d-fluency/94/wallet.png", label: "Wallet" },
           ].map((item) => (
             <a key={item.href} href={item.href} className="bg-white rounded-xl p-3 border border-gray-100 text-center hover:shadow-sm transition-shadow">
-              <span className="text-xl block">{item.icon}</span>
+              <img src={item.icon} alt={item.label} className="w-8 h-8 mx-auto object-contain" />
               <span className="text-[10px] text-gray-600 font-medium mt-1 block">{item.label}</span>
             </a>
           ))}
@@ -212,7 +219,7 @@ export default function AccountPage() {
             {/* Order filter */}
             <div className="flex gap-2 mb-4">
               {(["active", "completed", "all"] as const).map((f) => (
-                <button key={f} onClick={() => setOrderFilter(f)} className={`px-3 py-1.5 text-[11px] rounded-lg font-medium capitalize transition-colors ${orderFilter === f ? "bg-[#D62828] text-white" : "bg-white border border-gray-200 text-gray-500"}`}>
+                <button key={f} onClick={() => setOrderFilter(f)} className={`px-3 py-1.5 text-[11px] rounded-lg font-medium capitalize transition-colors ${orderFilter === f ? "bg-[#16A34A] text-white" : "bg-white border border-gray-200 text-gray-500"}`}>
                   {f} {f === "active" && totalActive > 0 ? `(${totalActive})` : ""}
                 </button>
               ))}
@@ -222,11 +229,11 @@ export default function AccountPage() {
             <div className="space-y-3">
               {getFilteredOrders().length === 0 ? (
                 <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
-                  <span className="text-4xl block mb-3">{orderFilter === "active" ? "🎉" : "📋"}</span>
+                  <img src={orderFilter === "active" ? "https://img.icons8.com/3d-fluency/94/confetti.png" : "https://img.icons8.com/3d-fluency/94/clipboard.png"} alt="" className="w-14 h-14 mx-auto mb-3 object-contain" />
                   <p className="text-gray-500 text-sm font-medium">{orderFilter === "active" ? "No active orders" : "No orders yet"}</p>
                   <p className="text-gray-300 text-xs mt-1">{orderFilter === "active" ? "You're all caught up!" : "Start shopping to see orders here"}</p>
                   <div className="flex gap-3 justify-center mt-5">
-                    <a href="/grocery" className="text-xs bg-[#D62828] text-white px-4 py-2.5 rounded-lg font-bold">Shop Grocery</a>
+                    <a href="/grocery" className="text-xs bg-[#16A34A] text-white px-4 py-2.5 rounded-lg font-bold">Shop Grocery</a>
                     <a href="/laundry" className="text-xs bg-blue-600 text-white px-4 py-2.5 rounded-lg font-bold">Book Laundry</a>
                   </div>
                 </div>
@@ -237,9 +244,9 @@ export default function AccountPage() {
                   return (
                     <a key={`${order.type}-${order.id}`} href={href} className="block bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
                       <div className="p-4 flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isGrocery ? "bg-red-50" : "bg-blue-50"}`}>
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isGrocery ? "bg-green-50" : "bg-blue-50"}`}>
                           {isGrocery ? (
-                            <svg className="w-5 h-5 text-[#D62828]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" /></svg>
+                            <svg className="w-5 h-5 text-[#16A34A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" /></svg>
                           ) : (
                             <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6z" /><circle cx="12" cy="14" r="4" strokeWidth={2} /></svg>
                           )}
@@ -253,11 +260,11 @@ export default function AccountPage() {
                           </div>
                           <p className="text-xs text-gray-500 mt-0.5 truncate">
                             {isGrocery ? `${(order as any).items?.length || 0} items` : `${(order as any).serviceName || "Laundry"} • ${(order as any).weight || 0}kg`}
-                            {" • "}{order.createdAt?.toDate?.()?.toLocaleDateString?.(undefined, { month: "short", day: "numeric" }) || ""}
+                            {" • "}{order.createdAt?.toLocaleDateString?.(undefined, { month: "short", day: "numeric" }) || ""}
                           </p>
                         </div>
                         <div className="text-right shrink-0">
-                          <p className={`text-sm font-bold ${isGrocery ? "text-[#D62828]" : "text-blue-600"}`}>₱{order.amount}</p>
+                          <p className={`text-sm font-bold ${isGrocery ? "text-[#16A34A]" : "text-blue-600"}`}>₱{order.amount}</p>
                           <svg className="w-4 h-4 text-gray-300 ml-auto mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                         </div>
                       </div>
@@ -309,13 +316,13 @@ export default function AccountPage() {
               </div>
               <div className="divide-y divide-gray-50">
                 {[
-                  { href: "/account/wallet", icon: "💳", label: "My Wallet", desc: `Balance: ₱${walletBalance.toFixed(0)}` },
-                  { href: "/grocery", icon: "🛒", label: "Shop Grocery", desc: "Browse & order products" },
-                  { href: "/laundry", icon: "🧺", label: "Laundry Service", desc: "Book pickup & delivery" },
-                  { href: "/home-services", icon: "🔧", label: "Home Services", desc: "Aircon, plumbing & more" },
+                  { href: "/account/wallet", icon: "https://img.icons8.com/3d-fluency/94/wallet.png", label: "My Wallet", desc: `Balance: ₱${walletBalance.toFixed(0)}` },
+                  { href: "/grocery", icon: "https://img.icons8.com/3d-fluency/94/shopping-cart.png", label: "Shop Grocery", desc: "Browse & order products" },
+                  { href: "/laundry", icon: "https://img.icons8.com/3d-fluency/94/washing-machine.png", label: "Laundry Service", desc: "Book pickup & delivery" },
+                  { href: "/home-services", icon: "https://img.icons8.com/3d-fluency/94/maintenance.png", label: "Home Services", desc: "Aircon, plumbing & more" },
                 ].map((item) => (
                   <a key={item.href} href={item.href} className="px-5 py-3.5 flex items-center gap-4 hover:bg-gray-50 transition-colors">
-                    <span className="text-xl">{item.icon}</span>
+                    <img src={item.icon} alt={item.label} className="w-8 h-8 object-contain shrink-0" />
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-800">{item.label}</p>
                       <p className="text-[11px] text-gray-400">{item.desc}</p>
@@ -330,17 +337,17 @@ export default function AccountPage() {
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="divide-y divide-gray-50">
                 <a href="/auth" className="px-5 py-3.5 flex items-center gap-4 hover:bg-gray-50 transition-colors">
-                  <span className="text-xl">🔒</span>
+                  <img src="https://img.icons8.com/3d-fluency/94/lock.png" alt="Security" className="w-8 h-8 object-contain shrink-0" />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-800">Security & Login</p>
                     <p className="text-[11px] text-gray-400">Change password, manage sessions</p>
                   </div>
                   <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                 </a>
-                <button onClick={() => customerLogout()} className="w-full px-5 py-3.5 flex items-center gap-4 hover:bg-red-50 transition-colors text-left">
-                  <span className="text-xl">🚪</span>
+                <button onClick={() => { clearAuth(); window.location.href = "/" }} className="w-full px-5 py-3.5 flex items-center gap-4 hover:bg-green-50 transition-colors text-left">
+                  <img src="https://img.icons8.com/3d-fluency/94/exit.png" alt="Logout" className="w-8 h-8 object-contain shrink-0" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-red-600">Logout</p>
+                    <p className="text-sm font-medium text-green-700">Logout</p>
                     <p className="text-[11px] text-gray-400">Sign out of your account</p>
                   </div>
                 </button>
@@ -348,10 +355,32 @@ export default function AccountPage() {
             </div>
 
             {/* App version */}
-            <p className="text-center text-[10px] text-gray-300 pt-4">88 Seven v1.0 • Made with ❤️ in Cebu</p>
+            <p className="text-center text-[10px] text-gray-300 pt-4">Payroo v1.0 • Made with ❤️ in Cebu</p>
           </div>
         )}
       </div>
+
+      {/* Bottom Nav */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-bottom">
+        <div className="max-w-lg mx-auto grid grid-cols-4 py-1.5">
+          <a href="/" className="flex flex-col items-center gap-0.5 py-1 text-gray-400">
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span className="text-[10px] font-medium">Home</span>
+          </a>
+          <a href="/grocery" className="flex flex-col items-center gap-0.5 py-1 text-gray-400">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" /></svg>
+            <span className="text-[10px] font-medium">Grocery</span>
+          </a>
+          <a href="/laundry" className="flex flex-col items-center gap-0.5 py-1 text-gray-400">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+            <span className="text-[10px] font-medium">Laundry</span>
+          </a>
+          <a href="/account" className="flex flex-col items-center gap-0.5 py-1 text-[#16A34A]">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+            <span className="text-[10px] font-bold">Account</span>
+          </a>
+        </div>
+      </nav>
     </main>
   )
 }

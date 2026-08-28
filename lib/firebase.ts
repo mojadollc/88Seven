@@ -8,6 +8,7 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
+  setDoc,
   query,
   where,
   orderBy,
@@ -138,13 +139,13 @@ export interface Order {
   driverName?: string
   driverLat?: number
   driverLng?: number
-  createdAt: Timestamp | null
-  updatedAt: Timestamp | null
-  confirmedAt?: Timestamp | null
-  preparingAt?: Timestamp | null
-  readyAt?: Timestamp | null
-  pickedUpAt?: Timestamp | null
-  deliveredAt?: Timestamp | null
+  createdAt: Date | null
+  updatedAt: Date | null
+  confirmedAt?: Date | null
+  preparingAt?: Date | null
+  readyAt?: Date | null
+  pickedUpAt?: Date | null
+  deliveredAt?: Date | null
   estimatedDeliveryMinutes?: number
   notes?: string
   riderRating?: number
@@ -168,6 +169,18 @@ export async function getProducts(): Promise<Product[]> {
 export async function getAllProducts(): Promise<Product[]> {
   const snap = await getDocs(collection(db, "products"))
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Product)
+}
+
+export async function createProduct(data: Omit<Product, "id">) {
+  return addDoc(collection(db, "products"), data)
+}
+
+export async function updateProduct(id: string, data: Partial<Omit<Product, "id">>) {
+  await updateDoc(doc(db, "products", id), data as any)
+}
+
+export async function deleteProduct(id: string) {
+  await deleteDoc(doc(db, "products", id))
 }
 
 export async function toggleProductVisibility(productId: string, show: boolean) {
@@ -436,7 +449,7 @@ export interface Driver {
   vehicleType?: string
   plateNumber?: string
   walletBalance?: number
-  createdAt?: Timestamp | null
+  createdAt?: Date | null
 }
 
 export async function getDrivers(): Promise<Driver[]> {
@@ -513,7 +526,7 @@ export interface WalletTransaction {
   orderId?: string
   note?: string
   status: string
-  createdAt: Timestamp | null
+  createdAt: Date | null
 }
 
 export async function getWalletTransactions(driverId?: string): Promise<WalletTransaction[]> {
@@ -550,7 +563,7 @@ export interface WalletEntry {
   orderId?: string
   service: "grocery" | "laundry"
   note: string
-  createdAt: Timestamp | null
+  createdAt: Date | null
 }
 
 export async function addWalletEntry(data: Omit<WalletEntry, "id" | "createdAt">) {
@@ -626,7 +639,9 @@ export interface LaundryPartner {
   status: "pending" | "active" | "inactive"
   services?: { id: string; name: string; price: number; unit: string }[]
   walletBalance?: number
-  createdAt?: Timestamp | null
+  listingMode?: "free" | "wallet_required"
+  minimumBalance?: number
+  createdAt?: Date | null
 }
 
 export async function uploadPartnerLogo(partnerId: string, file: File): Promise<string> {
@@ -693,7 +708,7 @@ export interface PartnerWalletTransaction {
   transactionId?: string
   orderId?: string
   note?: string
-  createdAt: Timestamp | null
+  createdAt: Date | null
 }
 
 export async function getPartnerWalletTransactions(partnerId?: string): Promise<PartnerWalletTransaction[]> {
@@ -757,7 +772,7 @@ export interface ChatMessage {
   senderName: string
   senderRole: "customer" | "driver" | "admin"
   message: string
-  createdAt: Timestamp | null
+  createdAt: Date | null
 }
 
 export async function sendChatMessage(orderId: string, senderId: string, senderName: string, senderRole: "customer" | "driver" | "admin", message: string) {
@@ -790,7 +805,7 @@ export interface Report {
   subject: string
   description: string
   status: "pending" | "reviewed" | "resolved"
-  createdAt: Timestamp | null
+  createdAt: Date | null
 }
 
 export async function submitReport(data: Omit<Report, "id" | "createdAt" | "status">) {
@@ -830,7 +845,7 @@ export interface CustomerProfile {
   address?: string
   savedAddresses?: SavedAddress[]
   walletBalance?: number
-  createdAt?: Timestamp | null
+  createdAt?: Date | null
 }
 
 export async function getAllCustomers(): Promise<CustomerProfile[]> {
@@ -938,7 +953,7 @@ export interface AppNotification {
   message: string
   orderId?: string
   read: boolean
-  createdAt: Timestamp | null
+  createdAt: Date | null
 }
 
 export async function createNotification(notification: Omit<AppNotification, "id" | "createdAt">) {
@@ -1082,7 +1097,7 @@ export interface CustomerWalletTransaction {
   transactionId?: string
   orderId?: string
   note?: string
-  createdAt: Timestamp | null
+  createdAt: Date | null
 }
 
 export async function getCustomerWalletTransactions(customerId?: string): Promise<CustomerWalletTransaction[]> {
@@ -1095,11 +1110,204 @@ export async function getCustomerWalletTransactions(customerId?: string): Promis
 
 // ═══ LISTING MODE ═══
 
-export async function getListingMode(): Promise<"free" | "wallet_required"> {
+export interface ListingModeConfig {
+  defaultMode: "free" | "wallet_required"
+  defaultMinBalance: number
+}
+
+export async function getListingModeConfig(): Promise<ListingModeConfig> {
   const ref = doc(db, "appSettings", "listingMode")
   const snap = await getDoc(ref)
-  if (snap.exists()) return snap.data().mode || "free"
-  return "free"
+  if (snap.exists()) return { defaultMode: "free", defaultMinBalance: 100, ...snap.data() } as ListingModeConfig
+  return { defaultMode: "free", defaultMinBalance: 100 }
+}
+
+export async function updateListingModeConfig(config: ListingModeConfig) {
+  const ref = doc(db, "appSettings", "listingMode")
+  await setDoc(ref, config)
+}
+
+// Per-partner listing override (stored on partner doc)
+export async function updatePartnerListingMode(partnerId: string, listingMode: "free" | "wallet_required", minimumBalance: number) {
+  const ref = doc(db, "partners", partnerId)
+  await updateDoc(ref, { listingMode, minimumBalance })
+}
+
+export function isPartnerVisible(partner: LaundryPartner, config: ListingModeConfig): boolean {
+  const mode = partner.listingMode || config.defaultMode
+  if (mode === "free") return true
+  const minBal = partner.minimumBalance ?? config.defaultMinBalance
+  return (partner.walletBalance || 0) >= minBal
+}
+
+// ═══ HOME SERVICE PROVIDERS ═══
+
+export interface HomeServiceProvider {
+  id: string
+  uid: string
+  shopName: string
+  ownerName: string
+  email: string
+  phone: string
+  address: string
+  landmark?: string
+  lat?: number
+  lng?: number
+  logoUrl?: string
+  isOnline?: boolean
+  openTime?: string
+  closeTime?: string
+  openDays?: string[]
+  status: "pending" | "active" | "inactive"
+  skills?: string[]
+  services?: { id: string; name: string; price: number; unit: string }[]
+  walletBalance?: number
+  listingMode?: "free" | "wallet_required"
+  minimumBalance?: number
+  rating?: number
+  completedJobs?: number
+  createdAt?: Date | null
+}
+
+export async function registerHomeServiceProvider(email: string, password: string, data: { shopName: string; ownerName: string; phone: string; address: string; skills?: string[]; landmark?: string; lat?: number; lng?: number }): Promise<User> {
+  const cred = await createUserWithEmailAndPassword(auth, email, password)
+  const providerData: any = {
+    uid: cred.user.uid,
+    shopName: data.shopName,
+    ownerName: data.ownerName,
+    email,
+    phone: data.phone,
+    address: data.address,
+    skills: data.skills || [],
+    status: "pending",
+    isOnline: true,
+    openTime: "08:00",
+    closeTime: "18:00",
+    openDays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    walletBalance: 0,
+    createdAt: serverTimestamp(),
+  }
+  if (data.landmark) providerData.landmark = data.landmark
+  if (data.lat) providerData.lat = data.lat
+  if (data.lng) providerData.lng = data.lng
+  await addDoc(collection(db, "homeServiceProviders"), providerData)
+  return cred.user
+}
+
+export async function getHomeServiceProviderProfile(uid: string): Promise<HomeServiceProvider | null> {
+  const q = query(collection(db, "homeServiceProviders"), where("uid", "==", uid))
+  const snap = await getDocs(q)
+  if (snap.docs.length > 0) return { id: snap.docs[0].id, ...snap.docs[0].data() } as HomeServiceProvider
+  return null
+}
+
+export async function getAllHomeServiceProviders(): Promise<HomeServiceProvider[]> {
+  const snap = await getDocs(collection(db, "homeServiceProviders"))
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as HomeServiceProvider)
+}
+
+export async function updateHomeServiceProvider(id: string, data: Partial<Omit<HomeServiceProvider, "id">>) {
+  const ref = doc(db, "homeServiceProviders", id)
+  await updateDoc(ref, data as any)
+}
+
+export async function updateHomeServiceProviderListingMode(providerId: string, listingMode: "free" | "wallet_required", minimumBalance: number) {
+  const ref = doc(db, "homeServiceProviders", providerId)
+  await updateDoc(ref, { listingMode, minimumBalance })
+}
+
+export async function uploadHomeServiceProviderLogo(providerId: string, file: File): Promise<string> {
+  const storageRef = ref(storage, `homeServiceProviders/${providerId}/logo`)
+  await uploadBytes(storageRef, file)
+  const url = await getDownloadURL(storageRef)
+  await updateDoc(doc(db, "homeServiceProviders", providerId), { logoUrl: url })
+  return url
+}
+
+export async function getHomeServiceProviderWalletBalance(providerId: string): Promise<number> {
+  const ref = doc(db, "homeServiceProviders", providerId)
+  const snap = await getDoc(ref)
+  return snap.exists() ? (snap.data().walletBalance || 0) : 0
+}
+
+export interface ProviderWalletTransaction {
+  id: string
+  providerId: string
+  type: "topup" | "earning" | "commission" | "deduction"
+  amount: number
+  transactionId?: string
+  jobId?: string
+  note?: string
+  createdAt: Date | null
+}
+
+export async function getProviderWalletTransactions(providerId: string): Promise<ProviderWalletTransaction[]> {
+  const q = query(collection(db, "providerWalletTransactions"), where("providerId", "==", providerId), orderBy("createdAt", "desc"))
+  const snap = await getDocs(q)
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as ProviderWalletTransaction)
+}
+
+export async function topUpProviderWallet(providerId: string, amount: number, transactionId: string) {
+  const ref = doc(db, "homeServiceProviders", providerId)
+  const snap = await getDoc(ref)
+  const current = snap.exists() ? (snap.data().walletBalance || 0) : 0
+  await updateDoc(ref, { walletBalance: current + amount })
+  await addDoc(collection(db, "providerWalletTransactions"), {
+    providerId, type: "topup", amount, transactionId, note: "Wallet top-up", createdAt: serverTimestamp(),
+  })
+}
+
+export async function addProviderEarning(providerId: string, amount: number, commission: number, jobId: string, note: string) {
+  const ref = doc(db, "homeServiceProviders", providerId)
+  const snap = await getDoc(ref)
+  const current = snap.exists() ? (snap.data().walletBalance || 0) : 0
+  const net = amount - commission
+  await updateDoc(ref, { walletBalance: current + net })
+  await addDoc(collection(db, "providerWalletTransactions"), {
+    providerId, type: "earning", amount: net, jobId, note, createdAt: serverTimestamp(),
+  })
+  await addDoc(collection(db, "providerWalletTransactions"), {
+    providerId, type: "commission", amount: -commission, jobId, note: `Platform commission`, createdAt: serverTimestamp(),
+  })
+}
+
+// ═══ AUTO COMMISSION DEDUCTION ON DELIVERY ═══
+
+export async function deductRiderCommissionOnDelivery(driverId: string, orderId: string, deliveryFee: number) {
+  const settings = await getDeliverySettings()
+  const percent = settings.riderCommissionPercent || 20
+  const commission = Math.round(deliveryFee * percent / 100)
+  if (commission <= 0) return
+  await deductRiderWallet(driverId, commission, orderId, `${percent}% commission on ₱${deliveryFee} delivery fee`)
+}
+
+export async function deductPartnerCommissionOnDelivery(partnerId: string, orderId: string, serviceTotal: number) {
+  const settings = await getDeliverySettings()
+  const percent = settings.partnerCommissionPercent || 15
+  const commission = Math.round(serviceTotal * percent / 100)
+  if (commission <= 0) return
+  await deductPartnerWallet(partnerId, commission, orderId, `${percent}% commission on ₱${serviceTotal} service`)
+}
+
+export async function deductProviderCommissionOnCompletion(providerId: string, jobId: string, jobTotal: number) {
+  const settings = await getDeliverySettings()
+  const percent = settings.partnerCommissionPercent || 15
+  const commission = Math.round(jobTotal * percent / 100)
+  if (commission <= 0) return
+  const ref = doc(db, "homeServiceProviders", providerId)
+  const snap = await getDoc(ref)
+  const current = snap.exists() ? (snap.data().walletBalance || 0) : 0
+  await updateDoc(ref, { walletBalance: current - commission })
+  await addDoc(collection(db, "providerWalletTransactions"), {
+    providerId, type: "commission", amount: -commission, jobId, note: `${percent}% platform commission on ₱${jobTotal}`, createdAt: serverTimestamp(),
+  })
+}
+
+export function isHomeServiceProviderVisible(provider: HomeServiceProvider, config: ListingModeConfig): boolean {
+  const mode = provider.listingMode || config.defaultMode
+  if (mode === "free") return true
+  const minBal = provider.minimumBalance ?? config.defaultMinBalance
+  return (provider.walletBalance || 0) >= minBal
 }
 
 // ═══ PAYMENT METHODS CONFIG ═══
@@ -1118,6 +1326,73 @@ export async function getPaymentMethodsConfig(): Promise<PaymentMethodsConfig> {
   const snap = await getDoc(ref)
   if (snap.exists()) return { cod: true, wallet: true, qrph: true, ewallet: true, bank: true, xendit: true, ...snap.data() } as PaymentMethodsConfig
   return { cod: true, wallet: true, qrph: true, ewallet: true, bank: true, xendit: true }
+}
+
+// ═══ HOME SERVICE JOBS ═══
+
+export interface ServiceJob {
+  id: string
+  customerId: string
+  customerName: string
+  customerPhone: string
+  providerId?: string
+  providerName?: string
+  serviceName: string
+  description: string
+  address: string
+  lat?: number
+  lng?: number
+  scheduledDate: string
+  scheduledTime: string
+  estimatedDuration: string
+  budget?: number
+  status: "pending" | "accepted" | "in_progress" | "completed" | "cancelled"
+  rating?: number
+  review?: string
+  createdAt?: Date | null
+  updatedAt?: Date | null
+}
+
+export async function createServiceJob(job: Omit<ServiceJob, "id" | "createdAt" | "updatedAt">): Promise<string> {
+  const docRef = await addDoc(collection(db, "serviceJobs"), {
+    ...job,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  })
+  return docRef.id
+}
+
+export async function getServiceJob(jobId: string): Promise<ServiceJob | null> {
+  const ref = doc(db, "serviceJobs", jobId)
+  const snap = await getDoc(ref)
+  if (!snap.exists()) return null
+  return { id: snap.id, ...snap.data() } as ServiceJob
+}
+
+export async function getProviderPendingJobs(providerId: string): Promise<ServiceJob[]> {
+  const q = query(collection(db, "serviceJobs"), where("status", "==", "pending"), orderBy("createdAt", "desc"))
+  const snap = await getDocs(q)
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as ServiceJob)
+}
+
+export async function getProviderJobs(providerId: string): Promise<ServiceJob[]> {
+  const q = query(collection(db, "serviceJobs"), where("providerId", "==", providerId), orderBy("createdAt", "desc"))
+  const snap = await getDocs(q)
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as ServiceJob)
+}
+
+export function onProviderJobsUpdate(providerId: string, callback: (jobs: ServiceJob[]) => void) {
+  const q = query(collection(db, "serviceJobs"), where("providerId", "==", providerId), orderBy("createdAt", "desc"))
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as ServiceJob))
+  }, () => callback([]))
+}
+
+export async function updateServiceJobStatus(jobId: string, status: string, providerId?: string) {
+  const ref = doc(db, "serviceJobs", jobId)
+  const update: any = { status, updatedAt: serverTimestamp() }
+  if (providerId) update.providerId = providerId
+  await updateDoc(ref, update)
 }
 
 export { db, auth }

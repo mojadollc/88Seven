@@ -1,4 +1,4 @@
-const CACHE_NAME = "88seven-v4"
+const CACHE_NAME = "88seven-v5"
 const OFFLINE_URL = "/offline.html"
 const STATIC_ASSETS = [
   "/icons/icon.svg",
@@ -33,10 +33,24 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET") return
   if (url.pathname.startsWith("/api/")) return
   if (url.hostname !== self.location.hostname) return
-  if (url.pathname.includes("__next")) return
 
-  // Navigation requests — network first, fallback to offline page
-  if (request.mode === "navigate") {
+  // Next.js build assets — cache first (immutable)
+  if (url.pathname.startsWith("/_next/static/")) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) return cached
+        return fetch(request).then((res) => {
+          const clone = res.clone()
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
+          return res
+        })
+      })
+    )
+    return
+  }
+
+  // Next.js data/RSC requests — network first
+  if (url.pathname.startsWith("/_next/")) {
     event.respondWith(
       fetch(request)
         .then((res) => {
@@ -44,7 +58,16 @@ self.addEventListener("fetch", (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
           return res
         })
-        .catch(() => caches.match(request).then((r) => r || caches.match(OFFLINE_URL)))
+        .catch(() => caches.match(request))
+    )
+    return
+  }
+
+  // Navigation requests — network only, fallback to offline page
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request)
+        .catch(() => caches.match(OFFLINE_URL))
     )
     return
   }

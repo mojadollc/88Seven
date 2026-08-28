@@ -1,14 +1,13 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { type SavedAddress } from "@/lib/firebase"
 
 type Props = {
   open: boolean
   onClose: () => void
   onSelect: (address: string, lat: number, lng: number) => void
-  savedAddresses: SavedAddress[]
-  onSaveAddress: (addr: SavedAddress) => void
+  savedAddresses: any[]
+  onSaveAddress: (addr: any) => void
   onDeleteAddress: (id: string) => void
 }
 
@@ -87,7 +86,7 @@ export default function AddressPicker({ open, onClose, onSelect, savedAddresses,
     onClose()
   }
 
-  const handleSelectSaved = (addr: SavedAddress) => {
+  const handleSelectSaved = (addr: any) => {
     onSelect(addr.address, addr.lat, addr.lng)
     onClose()
   }
@@ -177,7 +176,7 @@ export default function AddressPicker({ open, onClose, onSelect, savedAddresses,
                       <p className="text-[11px] text-gray-400 truncate">{addr.address}</p>
                     </div>
                   </button>
-                  <button onClick={() => onDeleteAddress(addr.id)} className="text-gray-300 hover:text-red-500 p-1 ml-2">
+                  <button onClick={() => onDeleteAddress(addr.id)} className="text-gray-300 hover:text-green-500 p-1 ml-2">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
                 </div>

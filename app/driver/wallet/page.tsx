@@ -1,11 +1,10 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getDrivers, getWalletTransactions, topUpRiderWallet, type Driver, type WalletTransaction } from "@/lib/firebase"
 
 export default function DriverWalletPage() {
-  const [driver, setDriver] = useState<Driver | null>(null)
-  const [transactions, setTransactions] = useState<WalletTransaction[]>([])
+  const [driver, setDriver] = useState<any>(null)
+  const [transactions, setTransactions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [topUpAmount, setTopUpAmount] = useState(100)
   const [processing, setProcessing] = useState(false)
@@ -16,11 +15,11 @@ export default function DriverWalletPage() {
     if (!saved) { window.location.href = "/driver"; return }
     const session = JSON.parse(saved)
     async function load() {
-      const all = await getDrivers()
+      const all: any[] = await fetch("/api/users?role=driver").then(r => r.json())
       const found = all.find((d) => d.id === session.id)
       if (found) {
         setDriver(found)
-        const txns = await getWalletTransactions(found.id)
+        const txns = await fetch(`/api/wallet?ownerId=${found.id}`).then(r => r.json())
         setTransactions(txns)
       }
       setLoading(false)
@@ -53,13 +52,13 @@ export default function DriverWalletPage() {
     }
   }
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="w-10 h-10 border-4 border-[#D62828] border-t-transparent rounded-full animate-spin" /></div>
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="w-10 h-10 border-4 border-[#16A34A] border-t-transparent rounded-full animate-spin" /></div>
 
   const balance = driver?.walletBalance || 0
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <header className="bg-[#D62828] text-white px-4 py-3 sticky top-0 z-50">
+      <header className="bg-[#16A34A] text-white px-4 py-3 sticky top-0 z-50">
         <div className="max-w-lg mx-auto flex items-center justify-between">
           <a href="/driver" className="flex items-center gap-2">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
@@ -108,13 +107,13 @@ export default function DriverWalletPage() {
               {transactions.map((txn) => (
                 <div key={txn.id} className="px-4 py-3 flex items-center justify-between">
                   <div>
-                    <p className={`text-xs font-medium ${txn.type === "topup" ? "text-green-700" : "text-red-600"}`}>
+                    <p className={`text-xs font-medium ${txn.type === "topup" ? "text-green-700" : "text-green-700"}`}>
                       {txn.type === "topup" ? "Wallet Top-Up" : "Commission Deduction"}
                     </p>
                     <p className="text-[10px] text-gray-400">{txn.note || txn.transactionId || ""}</p>
-                    <p className="text-[10px] text-gray-300">{txn.createdAt?.toDate?.()?.toLocaleString?.() || "Just now"}</p>
+                    <p className="text-[10px] text-gray-300">{txn.createdAt?.toLocaleString?.() || "Just now"}</p>
                   </div>
-                  <span className={`text-sm font-bold ${txn.amount >= 0 ? "text-green-600" : "text-red-500"}`}>
+                  <span className={`text-sm font-bold ${txn.amount >= 0 ? "text-green-600" : "text-green-500"}`}>
                     {txn.amount >= 0 ? "+" : ""}₱{Math.abs(txn.amount)}
                   </span>
                 </div>

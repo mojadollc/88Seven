@@ -7,13 +7,13 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "88 Seven | Grocery, Laundry & Services",
+  title: "Payroo | Grocery, Laundry & Services",
   description: "Your everyday super app. Grocery delivery, laundry pickup, home services — all in one place. Lapu-Lapu City, Cebu.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "88 Seven",
+    title: "Payroo",
     startupImage: [
       { url: "/icons/icon-512.png", media: "(device-width: 375px) and (device-height: 812px)" },
       { url: "/icons/icon-512.png", media: "(device-width: 414px) and (device-height: 896px)" },
@@ -23,9 +23,9 @@ export const metadata: Metadata = {
   other: {
     "mobile-web-app-capable": "yes",
     "apple-mobile-web-app-capable": "yes",
-    "application-name": "88 Seven",
-    "apple-mobile-web-app-title": "88 Seven",
-    "msapplication-TileColor": "#D62828",
+    "application-name": "Payroo",
+    "apple-mobile-web-app-title": "Payroo",
+    "msapplication-TileColor": "#16A34A",
     "msapplication-tap-highlight": "no",
     "format-detection": "telephone=no",
   },
@@ -37,8 +37,8 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#D62828" },
-    { media: "(prefers-color-scheme: dark)", color: "#D62828" },
+    { media: "(prefers-color-scheme: light)", color: "#16A34A" },
+    { media: "(prefers-color-scheme: dark)", color: "#16A34A" },
   ],
   viewportFit: "cover",
 }
@@ -50,20 +50,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192.png" />
         <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
         <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-192.png" />
-        <meta name="theme-color" content="#D62828" />
+        <meta name="theme-color" content="#16A34A" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="mobile-web-app-capable" content="yes" />
         {/* TWA: Digital Asset Links verification */}
         <link rel="assetlinks.json" href="/.well-known/assetlinks.json" />
       </head>
-      <body className={`${inter.className} bg-[#fafafa] antialiased`} suppressHydrationWarning>
+      <body className={`${inter.className} bg-[#F4F5F7] antialiased`} suppressHydrationWarning>
         <PullToRefresh>
           {children}
         </PullToRefresh>
         <Script id="sw-register" strategy="afterInteractive">
           {`
-            if('serviceWorker' in navigator){
+            if('serviceWorker' in navigator && window.location.hostname !== 'localhost'){
               window.addEventListener('load',()=>{
                 navigator.serviceWorker.register('/sw.js').then(reg=>{
                   reg.addEventListener('updatefound',()=>{

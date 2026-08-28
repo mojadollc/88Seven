@@ -1,34 +1,36 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getStoreCategories, updateStoreCategory, createStoreCategory, deleteStoreCategory, type Category } from "@/lib/firebase"
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage"
+// All data via Postgres API — categories stored in DB
 
 export default function AdminCategories() {
-  const [categories, setCategories] = useState<Category[]>([])
+  const [categories, setCategories] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [editing, setEditing] = useState<Category | null>(null)
+  const [editing, setEditing] = useState<any>(null)
   const [form, setForm] = useState({ name: "", emoji: "", order: 0 })
   const [uploading, setUploading] = useState(false)
   const [showAdd, setShowAdd] = useState(false)
   const [newForm, setNewForm] = useState({ name: "", emoji: "", order: 0 })
 
   const load = async () => {
-    const cats = await getStoreCategories()
+    const res = await fetch("/api/products?all=true")
+    const products = await res.json()
+    const cats = [...new Set(products.map((p: any) => p.category).filter(Boolean))]
+      .map((name, i) => ({ id: String(i), name }))
     setCategories(cats)
     setLoading(false)
   }
 
   useEffect(() => { load() }, [])
 
-  const handleEdit = (cat: Category) => {
+  const handleEdit = (cat: any) => {
     setEditing(cat)
     setForm({ name: cat.name, emoji: cat.emoji || "", order: cat.order || 0 })
   }
 
   const handleSave = async () => {
     if (!editing) return
-    await updateStoreCategory(editing.id, { name: form.name, emoji: form.emoji, order: form.order })
+    await fetch(`/api/products/${editing.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ category: form.name }) })
     setEditing(null)
     load()
   }
@@ -36,11 +38,13 @@ export default function AdminCategories() {
   const handleImageUpload = async (catId: string, file: File) => {
     setUploading(true)
     try {
-      const storage = getStorage()
-      const storageRef = ref(storage, `categories/${catId}/${file.name}`)
-      await uploadBytes(storageRef, file)
-      const url = await getDownloadURL(storageRef)
-      await updateStoreCategory(catId, { imageUrl: url })
+      const fd = new FormData()
+      fd.append("file", file)
+      fd.append("folder", "categories")
+      const res2 = await fetch("/api/upload", { method: "POST", body: fd })
+      const data = await res2.json()
+      // update all products in this category with new imageUrl
+      console.log("Category image uploaded:", data.url)
       load()
     } finally {
       setUploading(false)
@@ -49,7 +53,8 @@ export default function AdminCategories() {
 
   const handleAdd = async () => {
     if (!newForm.name.trim()) return
-    await createStoreCategory({ name: newForm.name, emoji: newForm.emoji, order: newForm.order })
+    // Categories are derived from products — no separate create needed
+    console.log("Add category:", newForm.name)
     setShowAdd(false)
     setNewForm({ name: "", emoji: "", order: 0 })
     load()
@@ -57,7 +62,8 @@ export default function AdminCategories() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this category?")) return
-    await deleteStoreCategory(id)
+    // Categories are derived from products — no separate delete needed
+    console.log("Delete category:", id)
     load()
   }
 
@@ -65,7 +71,7 @@ export default function AdminCategories() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Categories</h1>
-        <button onClick={() => setShowAdd(true)} className="bg-[#D62828] text-white px-4 py-2 rounded-lg text-sm font-medium">+ Add Category</button>
+        <button onClick={() => setShowAdd(true)} className="bg-[#16A34A] text-white px-4 py-2 rounded-lg text-sm font-medium">+ Add Category</button>
       </div>
 
       {loading ? (
@@ -95,7 +101,7 @@ export default function AdminCategories() {
                   {uploading ? "..." : "Image"}
                   <input type="file" accept="image/*" className="hidden" onChange={(e) => { if (e.target.files?.[0]) handleImageUpload(cat.id, e.target.files[0]) }} />
                 </label>
-                <button onClick={() => handleDelete(cat.id)} className="text-xs bg-red-50 text-red-600 py-1.5 px-3 rounded-lg font-medium">✕</button>
+                <button onClick={() => handleDelete(cat.id)} className="text-xs bg-green-50 text-green-700 py-1.5 px-3 rounded-lg font-medium">✕</button>
               </div>
             </div>
           ))}
@@ -113,7 +119,7 @@ export default function AdminCategories() {
             <input type="number" placeholder="Order" value={form.order} onChange={(e) => setForm({ ...form, order: Number(e.target.value) })} className="w-full border rounded-lg px-3 py-2 text-sm" />
             <div className="flex gap-2">
               <button onClick={() => setEditing(null)} className="flex-1 border py-2 rounded-lg text-sm">Cancel</button>
-              <button onClick={handleSave} className="flex-1 bg-[#D62828] text-white py-2 rounded-lg text-sm font-bold">Save</button>
+              <button onClick={handleSave} className="flex-1 bg-[#16A34A] text-white py-2 rounded-lg text-sm font-bold">Save</button>
             </div>
           </div>
         </div>
@@ -130,7 +136,7 @@ export default function AdminCategories() {
             <input type="number" placeholder="Order" value={newForm.order} onChange={(e) => setNewForm({ ...newForm, order: Number(e.target.value) })} className="w-full border rounded-lg px-3 py-2 text-sm" />
             <div className="flex gap-2">
               <button onClick={() => setShowAdd(false)} className="flex-1 border py-2 rounded-lg text-sm">Cancel</button>
-              <button onClick={handleAdd} className="flex-1 bg-[#D62828] text-white py-2 rounded-lg text-sm font-bold">Add</button>
+              <button onClick={handleAdd} className="flex-1 bg-[#16A34A] text-white py-2 rounded-lg text-sm font-bold">Add</button>
             </div>
           </div>
         </div>

@@ -1,0 +1,487 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── ENUMS ────────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  admin
+  customer
+  driver
+  partner
+  provider
+}
+
+enum UserStatus {
+  pending
+  active
+  inactive
+}
+
+enum OrderStatus {
+  pending
+  confirmed
+  preparing
+  ready_for_pickup
+  rider_accepted
+  rider_at_store
+  rider_picked_up
+  out_for_delivery
+  delivered
+  cancelled
+  rejected
+}
+
+enum PaymentStatus {
+  unpaid
+  awaiting_payment
+  paid
+}
+
+enum WalletTxType {
+  topup
+  deduction
+  earning
+  commission
+  commission_deduction
+  bonus
+}
+
+enum WalletOwnerType {
+  rider
+  partner
+  customer
+  provider
+}
+
+enum NotificationRecipientType {
+  admin
+  driver
+  customer
+  partner
+  provider
+}
+
+enum ReportType {
+  rider
+  order
+  product
+  other
+}
+
+enum ReportStatus {
+  pending
+  reviewed
+  resolved
+}
+
+enum ServiceJobStatus {
+  pending
+  accepted
+  in_progress
+  completed
+  cancelled
+}
+
+enum ListingMode {
+  free
+  wallet_required
+}
+
+// ─── USER ─────────────────────────────────────────────────────────────────────
+
+model User {
+  id              String     @id @default(cuid())
+  role            UserRole
+  name            String
+  email           String?    @unique
+  phone           String?
+  passwordHash    String?
+  status          UserStatus @default(pending)
+  isOnline        Boolean    @default(false)
+
+  // Driver / location fields
+  lat             Float?
+  lng             Float?
+  vehicleType     String?
+  plateNumber     String?
+  selfieUrl       String?
+  nbiUrl          String?
+  vehicleUrl      String?
+  profileComplete Boolean    @default(false)
+
+  // Partner / Provider fields
+  shopName        String?
+  address         String?
+  landmark        String?
+  openTime        String?
+  closeTime       String?
+  openDays        String[]
+  logoUrl         String?
+  skills          String[]
+  services        Json?      // [{id, name, price, unit}]
+  listingMode     ListingMode @default(free)
+  minimumBalance  Float      @default(0)
+  rating          Float?
+  completedJobs   Int        @default(0)
+
+  // Wallet
+  walletBalance   Float      @default(0)
+
+  // Saved addresses (customer)
+  savedAddresses  Json?      // [{id, label, address, lat, lng}]
+
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  // Relations
+  ordersAsCustomer        Order[]              @relation("CustomerOrders")
+  ordersAsDriver          Order[]              @relation("DriverOrders")
+  walletTransactions      WalletTransaction[]
+  sentChats               ChatMessage[]
+  notifications           Notification[]
+  reports                 Report[]
+  serviceJobsAsCustomer   ServiceJob[]         @relation("CustomerJobs")
+  serviceJobsAsProvider   ServiceJob[]         @relation("ProviderJobs")
+  serviceBookingsAsCustomer ServiceBooking[]   @relation("CustomerBookings")
+  serviceBookingsAsProvider ServiceBooking[]   @relation("ProviderBookings")
+}
+
+// ─── PRODUCT ──────────────────────────────────────────────────────────────────
+
+model Product {
+  id            String   @id @default(cuid())
+  name          String
+  price         Float
+  cost          Float    @default(0)
+  stock         Int      @default(0)
+  category      String?
+  imageUrl      String?
+  description   String?
+  unit          String?
+  onSale        Boolean  @default(false)
+  salePrice     Float?
+  showOnSite    Boolean  @default(true)
+  bottleDeposit Float?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  orderItems    OrderItem[]
+}
+
+// ─── ORDER ────────────────────────────────────────────────────────────────────
+
+model Order {
+  id                       String        @id @default(cuid())
+  type                     String        @default("grocery") // grocery | laundry
+  customerId               String?
+  customer                 User?         @relation("CustomerOrders", fields: [customerId], references: [id])
+  customerName             String
+  customerPhone            String
+  deliveryAddress          String
+  deliveryLat              Float?
+  deliveryLng              Float?
+  status                   OrderStatus   @default(pending)
+  paymentMethod            String?
+  paymentStatus            PaymentStatus @default(unpaid)
+  total                    Float
+  notes                    String?
+  driverId                 String?
+  driver                   User?         @relation("DriverOrders", fields: [driverId], references: [id])
+  driverName               String?
+  driverLat                Float?
+  driverLng                Float?
+  estimatedDeliveryMinutes Int?
+  riderRating              Float?
+  storeRating              Float?
+  review                   String?
+  confirmedAt              DateTime?
+  preparingAt              DateTime?
+  readyAt                  DateTime?
+  pickedUpAt               DateTime?
+  deliveredAt              DateTime?
+  createdAt                DateTime      @default(now())
+  updatedAt                DateTime      @updatedAt
+
+  items         OrderItem[]
+  chats         ChatMessage[]
+  notifications Notification[]
+  reports       Report[]
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id])
+  name        String
+  price       Float
+  quantity    Int
+  imageUrl    String?
+  outOfStock  Boolean  @default(false)
+}
+
+// ─── SERVICE JOB (Home Services) ─────────────────────────────────────────────
+
+model ServiceJob {
+  id                String           @id @default(cuid())
+  customerId        String
+  customer          User             @relation("CustomerJobs", fields: [customerId], references: [id])
+  customerName      String
+  customerPhone     String
+  providerId        String?
+  provider          User?            @relation("ProviderJobs", fields: [providerId], references: [id])
+  providerName      String?
+  serviceName       String
+  description       String
+  address           String
+  lat               Float?
+  lng               Float?
+  scheduledDate     String
+  scheduledTime     String
+  estimatedDuration String
+  budget            Float?
+  status            ServiceJobStatus @default(pending)
+  paymentStatus     PaymentStatus    @default(unpaid)
+  paymentMethod     String?
+  rating            Float?
+  review            String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+}
+
+// ─── SERVICE BOOKING (Laundry) ────────────────────────────────────────────────
+
+model ServiceBooking {
+  id            String           @id @default(cuid())
+  customerId    String
+  customer      User             @relation("CustomerBookings", fields: [customerId], references: [id])
+  customerName  String
+  customerPhone String
+  partnerId     String?
+  partner       User?            @relation("ProviderBookings", fields: [partnerId], references: [id])
+  partnerName   String?
+  services      Json             // [{id, name, price, unit, quantity}]
+  total         Float
+  address       String
+  lat           Float?
+  lng           Float?
+  notes         String?
+  status        ServiceJobStatus @default(pending)
+  paymentStatus PaymentStatus    @default(unpaid)
+  paymentMethod String?
+  rating        Float?
+  review        String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+}
+
+// ─── WALLET TRANSACTION ───────────────────────────────────────────────────────
+
+model WalletTransaction {
+  id            String          @id @default(cuid())
+  ownerId       String
+  owner         User            @relation(fields: [ownerId], references: [id])
+  ownerType     WalletOwnerType
+  type          WalletTxType
+  amount        Float
+  transactionId String?
+  orderId       String?
+  jobId         String?
+  note          String?
+  status        String          @default("completed")
+  createdAt     DateTime        @default(now())
+}
+
+// ─── HERO SLIDE ───────────────────────────────────────────────────────────────
+
+model HeroSlide {
+  id          String   @id @default(cuid())
+  badge       String
+  title       String
+  highlight   String
+  description String
+  imageUrl    String
+  bgColor     String
+  link        String?
+  order       Int      @default(0)
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── POPUP BANNER ─────────────────────────────────────────────────────────────
+
+model PopupBanner {
+  id        String   @id @default(cuid())
+  imageUrl  String
+  linkUrl   String?
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── DELIVERY SETTINGS ────────────────────────────────────────────────────────
+
+model DeliverySettings {
+  id                       String   @id @default(cuid())
+  storeLat                 Float    @default(0)
+  storeLng                 Float    @default(0)
+  riderFeePerDelivery      Float    @default(30)
+  riderCommissionPercent   Float    @default(20)
+  partnerCommissionPercent Float    @default(15)
+  freeDeliveryMinOrder     Float    @default(1000)
+  freeDeliveryArea         String   @default("Lapu-Lapu City, Cebu 6015")
+  groceryBaseFare          Float    @default(39)
+  groceryBaseKm            Float    @default(2)
+  groceryPerKmRate         Float    @default(10)
+  grocerySurgeMultiplier   Float    @default(1.5)
+  grocerySurgeEnabled      Boolean  @default(false)
+  laundryBaseFare          Float    @default(29)
+  laundryBaseKm            Float    @default(2)
+  laundryPerKmRate         Float    @default(12)
+  laundrySurgeMultiplier   Float    @default(1.5)
+  laundrySurgeEnabled      Boolean  @default(false)
+  updatedAt                DateTime @updatedAt
+}
+
+// ─── APP SETTINGS ─────────────────────────────────────────────────────────────
+
+model AppSettings {
+  id                  String      @id @default(cuid())
+  key                 String      @unique
+  // Site settings
+  logoUrl             String?
+  logoText            String?
+  // Payment methods
+  codEnabled          Boolean     @default(true)
+  walletEnabled       Boolean     @default(true)
+  qrphEnabled         Boolean     @default(true)
+  ewalletEnabled      Boolean     @default(true)
+  bankEnabled         Boolean     @default(true)
+  xenditEnabled       Boolean     @default(true)
+  // Listing mode
+  defaultListingMode  ListingMode @default(free)
+  defaultMinBalance   Float       @default(100)
+  updatedAt           DateTime    @updatedAt
+}
+
+// ─── NOTIFICATION ─────────────────────────────────────────────────────────────
+
+model Notification {
+  id            String                    @id @default(cuid())
+  recipientType NotificationRecipientType
+  recipientId   String?
+  recipient     User?                     @relation(fields: [recipientId], references: [id])
+  title         String
+  message       String
+  orderId       String?
+  order         Order?                    @relation(fields: [orderId], references: [id])
+  read          Boolean                   @default(false)
+  createdAt     DateTime                  @default(now())
+}
+
+// ─── CHAT MESSAGE ─────────────────────────────────────────────────────────────
+
+model ChatMessage {
+  id         String   @id @default(cuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  senderId   String
+  sender     User     @relation(fields: [senderId], references: [id])
+  senderName String
+  senderRole String   // customer | driver | admin
+  message    String
+  createdAt  DateTime @default(now())
+}
+
+// ─── REPORT ───────────────────────────────────────────────────────────────────
+
+model Report {
+  id            String       @id @default(cuid())
+  orderId       String?
+  order         Order?       @relation(fields: [orderId], references: [id])
+  customerId    String
+  customer      User         @relation(fields: [customerId], references: [id])
+  customerName  String
+  customerEmail String
+  type          ReportType
+  subject       String
+  description   String
+  status        ReportStatus @default(pending)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+// ─── LAUNDRY ORDER ───────────────────────────────────────────────────────────────────
+
+model LaundryOrder {
+  id              String   @id @default(cuid())
+  customerId      String
+  customerName    String
+  customerPhone   String
+  partnerId       String?
+  partnerName     String?
+  riderId         String?
+  riderName       String?
+  serviceName     String
+  weight          Float    @default(0)
+  price           Float    @default(0)
+  pickupFee       Float    @default(0)
+  deliveryFee     Float    @default(0)
+  totalPrice      Float    @default(0)
+  pickupAddress   String
+  pickupLat       Float?
+  pickupLng       Float?
+  notes           String?
+  status          String   @default("pending")
+  paymentStatus   PaymentStatus @default(unpaid)
+  paymentMethod   String?
+  cancelReason    String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ─── SESSION (JWT alternative — simple DB sessions) ───────────────────────────
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+// ─── PLATFORM PROMO ───────────────────────────────────────────────────────────
+
+model AppBanner {
+  id        String   @id @default(cuid())
+  title     String
+  subtitle  String?
+  imageUrl  String?
+  bgColor   String   @default("#D62828")
+  link      String?
+  order     Int      @default(0)
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PlatformPromo {
+  id              String   @id @default(cuid())
+  title           String
+  description     String?
+  promoCode       String?
+  discountPercent Float
+  minOrder        Float    @default(0)
+  validUntil      String?
+  applicableTo    String   @default("all")
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}

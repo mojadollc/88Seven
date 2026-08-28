@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getAllReports, updateReportStatus, type Report } from "@/lib/firebase"
+// All data via Postgres API
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -10,7 +10,7 @@ const STATUS_COLORS: Record<string, string> = {
 }
 
 export default function AdminReportsPage() {
-  const [reports, setReports] = useState<Report[]>([])
+  const [reports, setReports] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<"all" | "pending" | "reviewed" | "resolved">("all")
 
@@ -18,13 +18,14 @@ export default function AdminReportsPage() {
 
   const loadReports = async () => {
     setLoading(true)
-    const data = await getAllReports()
+    const res = await fetch("/api/admin/reports")
+    const data = res.ok ? await res.json() : []
     setReports(data)
     setLoading(false)
   }
 
   const handleStatus = async (id: string, status: "pending" | "reviewed" | "resolved") => {
-    await updateReportStatus(id, status)
+    await fetch("/api/admin/reports", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, status }) })
     setReports((prev) => prev.map((r) => r.id === id ? { ...r, status } : r))
   }
 
@@ -34,7 +35,7 @@ export default function AdminReportsPage() {
     <>
       <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-20">
         <div className="flex items-center justify-between">
-          <h1 className="text-lg font-bold text-[#1a1a2e]">Customer Reports</h1>
+          <h1 className="text-lg font-bold text-[#1F2937]">Customer Reports</h1>
           <button onClick={loadReports} className="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg font-medium">↻ Refresh</button>
         </div>
       </header>
@@ -63,7 +64,7 @@ export default function AdminReportsPage() {
               key={s}
               onClick={() => setFilter(s)}
               className={`px-4 py-2 text-xs rounded-lg capitalize font-medium transition-colors ${
-                filter === s ? "bg-[#D62828] text-white" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
+                filter === s ? "bg-[#16A34A] text-white" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
               }`}
             >
               {s}
@@ -96,7 +97,7 @@ export default function AdminReportsPage() {
                       {report.type}
                     </span>
                   </div>
-                  <span className="text-[10px] text-gray-400">{report.createdAt?.toDate?.()?.toLocaleDateString?.() || ""}</span>
+                  <span className="text-[10px] text-gray-400">{report.createdAt?.toLocaleDateString?.() || ""}</span>
                 </div>
                 <div className="p-5">
                   <h3 className="font-bold text-sm text-gray-800 mb-1">{report.subject}</h3>

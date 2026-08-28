@@ -1,13 +1,13 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getAllPopupBanners, createPopupBanner, updatePopupBanner, deletePopupBanner, type PopupBanner } from "@/lib/firebase"
+// All data via Postgres API
 
 export default function AdminPopupPage() {
-  const [banners, setBanners] = useState<PopupBanner[]>([])
+  const [banners, setBanners] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
-  const [editing, setEditing] = useState<PopupBanner | null>(null)
+  const [editing, setEditing] = useState<any>(null)
   const [form, setForm] = useState({ imageUrl: "", linkUrl: "", enabled: true })
   const [saving, setSaving] = useState(false)
 
@@ -15,7 +15,7 @@ export default function AdminPopupPage() {
 
   async function loadBanners() {
     setLoading(true)
-    const data = await getAllPopupBanners()
+    const data = await fetch("/api/popup").then(r => r.json())
     setBanners(data)
     setLoading(false)
   }
@@ -26,7 +26,7 @@ export default function AdminPopupPage() {
     setShowForm(true)
   }
 
-  function handleEdit(banner: PopupBanner) {
+  function handleEdit(banner: any) {
     setEditing(banner)
     setForm({ imageUrl: banner.imageUrl, linkUrl: banner.linkUrl || "", enabled: banner.enabled })
     setShowForm(true)
@@ -36,9 +36,9 @@ export default function AdminPopupPage() {
     if (!form.imageUrl.trim()) return
     setSaving(true)
     if (editing) {
-      await updatePopupBanner(editing.id, form)
+      await fetch("/api/popup", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: editing.id, ...form }) })
     } else {
-      await createPopupBanner(form)
+      await fetch("/api/popup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) })
     }
     await loadBanners()
     setShowForm(false)
@@ -48,12 +48,12 @@ export default function AdminPopupPage() {
 
   async function handleDelete(id: string) {
     if (!confirm("Delete this popup banner?")) return
-    await deletePopupBanner(id)
+    await fetch(`/api/popup?id=${id}`, { method: "DELETE" })
     await loadBanners()
   }
 
-  async function handleToggle(banner: PopupBanner) {
-    await updatePopupBanner(banner.id, { enabled: !banner.enabled })
+  async function handleToggle(banner: any) {
+    await fetch("/api/popup", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: banner.id, enabled: !banner.enabled }) })
     setBanners((prev) => prev.map((b) => b.id === banner.id ? { ...b, enabled: !b.enabled } : b))
   }
 
@@ -62,10 +62,10 @@ export default function AdminPopupPage() {
       <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-20">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold text-[#1a1a2e]">Popup Banner</h1>
+            <h1 className="text-lg font-bold text-[#1F2937]">Popup Banner</h1>
             <p className="text-xs text-gray-400">Promote products or sales with a popup image on the website</p>
           </div>
-          <button onClick={handleNew} className="bg-[#D62828] text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-[#b71c1c] transition-colors">+ Add Banner</button>
+          <button onClick={handleNew} className="bg-[#16A34A] text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-[#15803d] transition-colors">+ Add Banner</button>
         </div>
       </header>
 
@@ -92,7 +92,7 @@ export default function AdminPopupPage() {
                     value={form.imageUrl}
                     onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
                     placeholder="https://example.com/promo-banner.jpg"
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#D62828]"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#16A34A]"
                   />
                   <p className="text-[10px] text-gray-400 mt-1">Recommended: 600×800px or 800×600px (JPG/PNG/WebP)</p>
                 </div>
@@ -104,7 +104,7 @@ export default function AdminPopupPage() {
                     value={form.linkUrl}
                     onChange={(e) => setForm({ ...form, linkUrl: e.target.value })}
                     placeholder="https://example.com/sale or leave empty"
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#D62828]"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#16A34A]"
                   />
                   <p className="text-[10px] text-gray-400 mt-1">Where to go when user taps the banner</p>
                 </div>
@@ -121,7 +121,7 @@ export default function AdminPopupPage() {
               </div>
               <div className="p-6 border-t border-gray-100 flex justify-end gap-3">
                 <button onClick={() => { setShowForm(false); setEditing(null) }} className="px-4 py-2 text-sm text-gray-600">Cancel</button>
-                <button onClick={handleSave} disabled={saving || !form.imageUrl.trim()} className="bg-[#D62828] text-white text-sm font-medium px-5 py-2 rounded-lg hover:bg-[#b71c1c] disabled:opacity-50">
+                <button onClick={handleSave} disabled={saving || !form.imageUrl.trim()} className="bg-[#16A34A] text-white text-sm font-medium px-5 py-2 rounded-lg hover:bg-[#15803d] disabled:opacity-50">
                   {saving ? "Saving..." : editing ? "Update" : "Create"}
                 </button>
               </div>
@@ -155,10 +155,10 @@ export default function AdminPopupPage() {
                     <button onClick={() => handleToggle(banner)} className={`relative w-10 h-5 rounded-full transition-colors ${banner.enabled ? "bg-green-500" : "bg-gray-300"}`}>
                       <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${banner.enabled ? "translate-x-5" : ""}`} />
                     </button>
-                    <button onClick={() => handleEdit(banner)} className="p-1.5 text-gray-400 hover:text-[#D62828] rounded">
+                    <button onClick={() => handleEdit(banner)} className="p-1.5 text-gray-400 hover:text-[#16A34A] rounded">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                     </button>
-                    <button onClick={() => handleDelete(banner.id)} className="p-1.5 text-gray-400 hover:text-red-600 rounded">
+                    <button onClick={() => handleDelete(banner.id)} className="p-1.5 text-gray-400 hover:text-green-700 rounded">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                     </button>
                   </div>

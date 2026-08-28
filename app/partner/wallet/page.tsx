@@ -1,16 +1,14 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { onCustomerAuthChange, getPartnerProfile, getPartnerWalletTransactions, type LaundryPartner, type PartnerWalletTransaction } from "@/lib/firebase"
-import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, serverTimestamp } from "firebase/firestore"
+import { getUser, getToken } from "@/lib/auth"
 import type { User } from "firebase/auth"
 
-const db = getFirestore()
 
 export default function PartnerWalletPage() {
-  const [user, setUser] = useState<User | null>(null)
-  const [partner, setPartner] = useState<LaundryPartner | null>(null)
-  const [entries, setEntries] = useState<PartnerWalletTransaction[]>([])
+  const [user, setUser] = useState<any>(null)
+  const [partner, setPartner] = useState<any>(null)
+  const [entries, setEntries] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showTopUp, setShowTopUp] = useState(false)
   const [showWithdraw, setShowWithdraw] = useState(false)
@@ -20,21 +18,20 @@ export default function PartnerWalletPage() {
   const [balance, setBalance] = useState(0)
 
   useEffect(() => {
-    const unsub = onCustomerAuthChange(async (u) => {
-      setUser(u)
-      if (u) {
-        const p = await getPartnerProfile(u.uid)
-        setPartner(p)
+    const u = getUser()
+    if (!u) { setLoading(false); return }
+    setUser(u)
+    const token = getToken()
+    fetch("/api/users/me", { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then(p => {
         if (p) {
-          const snap = await getDoc(doc(db, "partners", p.id))
-          setBalance(snap.data()?.walletBalance || 0)
-          const txns = await getPartnerWalletTransactions(p.id)
-          setEntries(txns)
+          setPartner(p)
+          setBalance(p.walletBalance || 0)
+          fetch(`/api/wallet?ownerId=${p.id}`).then(r => r.json()).then(setEntries)
         }
-      }
-      setLoading(false)
-    })
-    return () => unsub()
+        setLoading(false)
+      })
   }, [])
 
   const handleTopUp = async () => {
@@ -61,19 +58,8 @@ export default function PartnerWalletPage() {
   const handleWithdraw = async () => {
     if (!partner || withdrawAmount < 100 || withdrawAmount > balance) return
     setProcessing(true)
-    const ref = doc(db, "partners", partner.id)
-    const snap = await getDoc(ref)
-    const current = snap.data()?.walletBalance || 0
-    if (withdrawAmount > current) { alert("Insufficient balance"); setProcessing(false); return }
-    await updateDoc(ref, { walletBalance: current - withdrawAmount })
-    await addDoc(collection(db, "partnerWalletTransactions"), {
-      partnerId: partner.id,
-      type: "withdrawal",
-      amount: -withdrawAmount,
-      note: "Wallet withdrawal",
-      createdAt: serverTimestamp(),
-    })
-    setBalance(current - withdrawAmount)
+    await fetch("/api/wallet", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ownerId: partner.id, ownerType: "partner", type: "deduction", amount: -withdrawAmount, note: "Wallet withdrawal" }) })
+    setBalance(b => b - withdrawAmount)
     setShowWithdraw(false)
     setWithdrawAmount(0)
     setProcessing(false)
@@ -155,13 +141,13 @@ export default function PartnerWalletPage() {
               {entries.map((txn) => (
                 <div key={txn.id} className="px-4 py-3 flex items-center justify-between">
                   <div>
-                    <p className={`text-xs font-medium ${txn.type === "topup" ? "text-green-700" : "text-red-600"}`}>
+                    <p className={`text-xs font-medium ${txn.type === "topup" ? "text-green-700" : "text-green-700"}`}>
                       {txn.type === "topup" ? "Wallet Top-Up" : "Deduction"}
                     </p>
                     <p className="text-[10px] text-gray-400">{txn.note}</p>
-                    <p className="text-[10px] text-gray-300">{txn.createdAt?.toDate?.()?.toLocaleString?.() || ""}</p>
+                    <p className="text-[10px] text-gray-300">{txn.createdAt?.toLocaleString?.() || ""}</p>
                   </div>
-                  <span className={`text-sm font-bold ${txn.amount >= 0 ? "text-green-600" : "text-red-500"}`}>
+                  <span className={`text-sm font-bold ${txn.amount >= 0 ? "text-green-600" : "text-green-500"}`}>
                     {txn.amount >= 0 ? "+" : ""}₱{Math.abs(txn.amount)}
                   </span>
                 </div>

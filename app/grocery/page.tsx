@@ -1,18 +1,18 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { getProducts, getCategories, getStoreCategories, getHeroSlides, createOrder, getDeliverySettings, customerLogout, getCustomerProfile, onCustomerAuthChange, setupRecaptcha, sendOTP, verifyOTP, ensureCustomerProfile, notifyOrderPlaced, onNotifications, markAllNotificationsRead, getPopupBanner, getCustomerWalletBalance, deductCustomerWallet, getPaymentMethodsConfig, type Product, type HeroSlide, type CartItem, type OrderItem, type DeliverySettings, type CustomerProfile, type AppNotification, type PopupBanner, type PaymentMethodsConfig, type Category } from "@/lib/firebase"
-import type { User, ConfirmationResult } from "firebase/auth"
+import { useEffect, useState, useLayoutEffect } from "react"
+import { createPortal } from "react-dom"
+// Firebase auth types removed - using Postgres auth
 
 export default function Home() {
-  const [products, setProducts] = useState<Product[]>([])
+  const [products, setProducts] = useState<any[]>([])
   const [categories, setCategories] = useState<string[]>([])
-  const [storeCategories, setStoreCategories] = useState<Category[]>([])
+  const [storeCategories, setStoreCategories] = useState<any[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string>("All")
   const [searchQuery, setSearchQuery] = useState("")
   const [loading, setLoading] = useState(true)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [cart, setCart] = useState<CartItem[]>([])
+  const [cart, setCart] = useState<any[]>([])
   const [cartLoaded, setCartLoaded] = useState(false)
 
   // Location
@@ -59,29 +59,25 @@ export default function Home() {
   }
 
   // Auth state
-  const [user, setUser] = useState<User | null>(null)
-  const [profile, setProfile] = useState<CustomerProfile | null>(null)
+  const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
   const [showAuth, setShowAuth] = useState(false)
   const [phoneNumber, setPhoneNumber] = useState("")
   const [otpCode, setOtpCode] = useState("")
   const [otpSent, setOtpSent] = useState(false)
-  const [confirmResult, setConfirmResult] = useState<ConfirmationResult | null>(null)
+  const [confirmResult, setConfirmResult] = useState<any>(null)
   const [authError, setAuthError] = useState("")
   const [authLoading, setAuthLoading] = useState(false)
 
   useEffect(() => {
-    const unsub = onCustomerAuthChange(async (u) => {
+    const u = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "null") : null
+    if (u) {
       setUser(u)
-      if (u) {
-        const p = await getCustomerProfile(u.uid)
-        setProfile(p)
-        getCustomerWalletBalance(u.uid).then(setWalletBalance)
-      } else {
-        setProfile(null)
-        setWalletBalance(0)
-      }
-    })
-    return () => unsub()
+      const token = localStorage.getItem("token")
+      fetch("/api/users/me", { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.ok ? r.json() : null)
+        .then(p => { if (p) { setProfile(p); setWalletBalance(p.walletBalance || 0) } })
+    }
   }, [])
 
   useEffect(() => {
@@ -98,48 +94,53 @@ export default function Home() {
   const [checkoutForm, setCheckoutForm] = useState({ name: "", phone: "", address: "", landmark: "", notes: "", lat: 0, lng: 0, paymentMethod: "cod" })
   const [submitting, setSubmitting] = useState(false)
   const [locating, setLocating] = useState(false)
-  const [deliverySettings, setDeliverySettings] = useState<DeliverySettings | null>(null)
+  const [deliverySettings, setDeliverySettings] = useState<any>(null)
   const [deliveryFee, setDeliveryFee] = useState(0)
   const [walletBalance, setWalletBalance] = useState(0)
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodsConfig>({ cod: true, wallet: true, qrph: true, ewallet: true, bank: true, xendit: true })
-  const [addedProduct, setAddedProduct] = useState<{ product: Product; quantity: number } | null>(null)
-  const [popupBanner, setPopupBanner] = useState<PopupBanner | null>(null)
+  const [paymentMethods, setPaymentMethods] = useState<any>({ cod: true, wallet: true, qrph: true, ewallet: true, bank: true, xendit: true })
+  const [addedProduct, setAddedProduct] = useState<any>(null)
+  const [popupBanners, setPopupBanners] = useState<any[]>([])
   const [showPopup, setShowPopup] = useState(false)
 
-  // Load popup banner on every page load
+  // Load popup banners on every page load - pick random one if multiple
   useEffect(() => {
-    getPopupBanner().then((banner) => {
-      console.log("Popup banner:", banner)
-      if (banner && banner.imageUrl) { setPopupBanner(banner); setShowPopup(true) }
-    }).catch((e) => console.error("Popup error:", e))
+    fetch("/api/popup").then(r => r.json()).then((banners: any[]) => {
+      const enabled = banners.filter(b => b.enabled && b.imageUrl)
+      if (enabled.length > 0) {
+        setPopupBanners([enabled[Math.floor(Math.random() * enabled.length)]])
+        setShowPopup(true)
+      }
+    }).catch(() => {})
   }, [])
-  const [notifications, setNotifications] = useState<AppNotification[]>([])
+  const [notifications, setNotifications] = useState<any[]>([])
   const [showNotifications, setShowNotifications] = useState(false)
 
   // Listen for customer notifications
   useEffect(() => {
     if (!user) { setNotifications([]); return }
-    const unsub = onNotifications("customer", user.uid, setNotifications)
-    return () => unsub()
+    const poll = () => fetch(`/api/notifications?recipientType=customer&recipientId=${user.id}`).then(r => r.json()).then(setNotifications).catch(() => {})
+    poll()
+    const iv = setInterval(poll, 15000)
+    return () => clearInterval(iv)
   }, [user])
 
   useEffect(() => {
-    getDeliverySettings().then(setDeliverySettings)
-    getPaymentMethodsConfig().then(setPaymentMethods)
+    fetch("/api/delivery-settings").then(r => r.json()).then(setDeliverySettings)
+    fetch("/api/settings/payment-methods").then(r => r.ok ? r.json() : {}).then(pm => setPaymentMethods((prev: any) => ({ ...prev, ...pm })))
   }, [])
 
 
-  const addToCart = (product: Product) => {
-    let newQty = 1
+  const addToCart = (product: any) => {
     setCart((prev) => {
       const existing = prev.find((i) => i.product.id === product.id)
       if (existing) {
-        newQty = existing.quantity + 1
-        return prev.map((i) => i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i)
+        const newQty = existing.quantity + 1
+        setAddedProduct({ product, quantity: newQty })
+        return prev.map((i) => i.product.id === product.id ? { ...i, quantity: newQty } : i)
       }
+      setAddedProduct({ product, quantity: 1 })
       return [...prev, { product, quantity: 1 }]
     })
-    setAddedProduct({ product, quantity: newQty })
   }
 
   const updateQuantity = (productId: string, delta: number) => {
@@ -211,7 +212,7 @@ export default function Home() {
     if (!checkoutForm.name || !checkoutForm.phone || !checkoutForm.address) return
     setSubmitting(true)
     try {
-      const items: OrderItem[] = cart.map((i) => ({
+      const items: any[] = cart.map((i) => ({
         productId: i.product.id,
         name: i.product.name,
         price: i.product.onSale && i.product.salePrice ? i.product.salePrice : i.product.price,
@@ -232,8 +233,10 @@ export default function Home() {
       }
       if (checkoutForm.lat) orderData.deliveryLat = checkoutForm.lat
       if (checkoutForm.lng) orderData.deliveryLng = checkoutForm.lng
-      const orderId = await createOrder(orderData as any)
-      await notifyOrderPlaced(orderId, checkoutForm.name)
+      const res = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...orderData, customerId: user?.id || null, items: cart.map((i: any) => ({ name: i.product.name, price: i.product.price, quantity: i.quantity, productId: i.product.id, imageUrl: i.product.imageUrl })) }) })
+      const order = await res.json()
+      const orderId = order.id
+      await fetch("/api/notifications", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ recipientType: "admin", title: "New Order!", message: `${checkoutForm.name} placed a new order`, orderId }) })
       setCart([])
       setShowCheckout(false)
       setShowCart(false)
@@ -241,8 +244,8 @@ export default function Home() {
       // Payroo Wallet payment
       if (checkoutForm.paymentMethod === "wallet") {
         const total = cartTotal + cartDeposit + deliveryFee
-        await deductCustomerWallet(user.uid, total, orderId, `Grocery order #${orderId.slice(-6).toUpperCase()}`)
-        setWalletBalance((prev) => prev - total)
+        await fetch("/api/wallet", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ownerId: user.id, ownerType: "customer", type: "deduction", amount: -(cartTotal + cartDeposit + deliveryFee), orderId, note: `Grocery order #${orderId.slice(-6).toUpperCase()}` }) })
+        setWalletBalance((prev: number) => prev - (cartTotal + cartDeposit + deliveryFee))
         window.location.href = `/order?id=${orderId}`
         return
       }
@@ -258,7 +261,7 @@ export default function Home() {
           ["GRABPAY", "MAYA", "SHOPEEPAY", "QRPH", "DD_BPI", "DD_UBP", "DD_RCBC", "BILLEASE", "CEBUANA", "LBC"]
         const payment = await createXenditPayment({
           amount: total,
-          description: `88 Seven Grocery #${orderId.slice(-6).toUpperCase()}`,
+          description: `Payroo Grocery #${orderId.slice(-6).toUpperCase()}`,
           externalId: `order_${orderId}`,
           paymentMethods,
           successRedirectUrl: `${window.location.origin}/order?id=${orderId}`,
@@ -283,16 +286,9 @@ export default function Home() {
     if (!phoneNumber || phoneNumber.length < 10) { setAuthError("Enter a valid phone number"); return }
     setAuthLoading(true)
     try {
-      const fullNumber = `+63${phoneNumber.replace(/^0/, "")}`
-      const verifier = setupRecaptcha("recaptcha-container")
-      const result = await sendOTP(fullNumber, verifier)
-      setConfirmResult(result)
-      setOtpSent(true)
-    } catch (e: any) {
-      setAuthError(e.message?.replace("Firebase: ", "") || "Failed to send OTP")
-    } finally {
+      setAuthError("Phone OTP login is not available. Please use email/password login.")
       setAuthLoading(false)
-    }
+    } catch {}
   }
 
   const handleVerifyOTP = async () => {
@@ -300,23 +296,15 @@ export default function Home() {
     if (!otpCode || otpCode.length < 6) { setAuthError("Enter the 6-digit code"); return }
     setAuthLoading(true)
     try {
-      const u = await verifyOTP(confirmResult!, otpCode)
-      await ensureCustomerProfile(u)
-      setShowAuth(false)
-      setPhoneNumber("")
-      setOtpCode("")
-      setOtpSent(false)
-      setConfirmResult(null)
-      if (cart.length > 0) { setShowCheckout(true); if (!checkoutForm.lat) detectLocation() }
-    } catch (e: any) {
-      setAuthError(e.message?.replace("Firebase: ", "") || "Invalid OTP code")
-    } finally {
+      setAuthError("Phone OTP login is not available.")
       setAuthLoading(false)
-    }
+    } catch {}
   }
 
-  const handleLogout = async () => {
-    await customerLogout()
+  const handleLogout = () => {
+    localStorage.removeItem("token")
+    localStorage.removeItem("user")
+    setUser(null)
     setProfile(null)
   }
 
@@ -330,15 +318,13 @@ export default function Home() {
   useEffect(() => {
     async function load() {
       try {
-        const [prods, cats, storeCats] = await Promise.all([getProducts(), getCategories(), getStoreCategories()])
-        // Shuffle products randomly on each page load
-        for (let i = prods.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [prods[i], prods[j]] = [prods[j], prods[i]]
-        }
+        const res = await fetch("/api/pos-products")
+        const prods: any[] = await res.json()
+        for (let i = prods.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [prods[i], prods[j]] = [prods[j], prods[i]] }
         setProducts(prods)
-        setCategories(cats)
-        setStoreCategories(storeCats)
+        const cats = [...new Set(prods.map((p: any) => p.category).filter(Boolean))]
+        setCategories(cats as any)
+        setStoreCategories((cats as string[]).map((name: string) => ({ id: name, name })))
       } catch (e) {
         console.error("Failed to load products:", e)
       } finally {
@@ -355,56 +341,37 @@ export default function Home() {
   })
 
   const fallbackCategoryList = [
-    { label: "Beverages", emoji: "🧃" },
-    { label: "Household", emoji: "🧹" },
-    { label: "Condiments", emoji: "🧂" },
-    { label: "Snacks", emoji: "🍪" },
-    { label: "Frozen", emoji: "🧊" },
-    { label: "Personal Care", emoji: "🧴" },
-    { label: "Canned Goods", emoji: "🥫" },
-    { label: "Medicine & Health", emoji: "💊" },
-    { label: "Fruits & Vegetables", emoji: "🥦" },
-    { label: "Dried Foods", emoji: "🌾" },
-    { label: "Dairy & Eggs", emoji: "🥚" },
-    { label: "Biscuits", emoji: "🍘" },
-    { label: "Bread & Pastry", emoji: "🍞" },
-    { label: "Meat & Seafood", emoji: "🥩" },
-    { label: "Rice", emoji: "🍚" },
-    { label: "Others", emoji: "🛒" },
+    { label: "Beverages", icon: "https://img.icons8.com/3d-fluency/94/juice.png" },
+    { label: "Household", icon: "https://img.icons8.com/3d-fluency/94/broom.png" },
+    { label: "Condiments", icon: "https://img.icons8.com/3d-fluency/94/salt.png" },
+    { label: "Snacks", icon: "https://img.icons8.com/3d-fluency/94/cookie.png" },
+    { label: "Frozen", icon: "https://img.icons8.com/3d-fluency/94/ice-cube.png" },
+    { label: "Personal Care", icon: "https://img.icons8.com/3d-fluency/94/shampoo.png" },
+    { label: "Canned Goods", icon: "https://img.icons8.com/3d-fluency/94/canned-food.png" },
+    { label: "Medicine & Health", icon: "https://img.icons8.com/3d-fluency/94/pill.png" },
+    { label: "Fruits & Vegetables", icon: "https://img.icons8.com/3d-fluency/94/broccoli.png" },
+    { label: "Dried Foods", icon: "https://img.icons8.com/3d-fluency/94/wheat.png" },
+    { label: "Dairy & Eggs", icon: "https://img.icons8.com/3d-fluency/94/egg.png" },
+    { label: "Biscuits", icon: "https://img.icons8.com/3d-fluency/94/cookie.png" },
+    { label: "Bread & Pastry", icon: "https://img.icons8.com/3d-fluency/94/bread.png" },
+    { label: "Meat & Seafood", icon: "https://img.icons8.com/3d-fluency/94/steak.png" },
+    { label: "Rice", icon: "https://img.icons8.com/3d-fluency/94/rice-bowl.png" },
+    { label: "Others", icon: "https://img.icons8.com/3d-fluency/94/shopping-cart.png" },
   ]
 
   const categoryList = storeCategories.length > 0
-    ? storeCategories.map((c) => ({ label: c.name, emoji: c.emoji || "📁", imageUrl: c.imageUrl }))
+    ? storeCategories.map((c) => ({ label: c.name, icon: c.imageUrl || "https://img.icons8.com/3d-fluency/94/opened-folder.png", imageUrl: c.imageUrl }))
     : fallbackCategoryList
 
   return (
     <>
-      {/* ═══ POPUP BANNER MODAL ═══ */}
-      {showPopup && popupBanner && popupBanner.imageUrl && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 99999, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
-          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.6)" }} onClick={() => setShowPopup(false)} />
-          <div style={{ position: "relative", maxWidth: "28rem", width: "100%" }}>
-            <button
-              onClick={() => setShowPopup(false)}
-              style={{ position: "absolute", top: "-12px", right: "-12px", width: "32px", height: "32px", background: "#fff", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", fontWeight: "bold", boxShadow: "0 4px 12px rgba(0,0,0,0.15)", border: "none", cursor: "pointer", zIndex: 10 }}
-            >&times;</button>
-            {popupBanner.linkUrl ? (
-              <a href={popupBanner.linkUrl} onClick={() => setShowPopup(false)}>
-                <img src={popupBanner.imageUrl} alt="Promo" referrerPolicy="no-referrer" style={{ width: "100%", height: "auto", maxHeight: "70vh", objectFit: "contain", borderRadius: "12px", boxShadow: "0 25px 50px rgba(0,0,0,0.25)" }} />
-              </a>
-            ) : (
-              <img src={popupBanner.imageUrl} alt="Promo" referrerPolicy="no-referrer" style={{ width: "100%", height: "auto", maxHeight: "70vh", objectFit: "contain", borderRadius: "12px", boxShadow: "0 25px 50px rgba(0,0,0,0.25)" }} />
-            )}
-          </div>
-        </div>
-      )}
-
-      <main className="min-h-screen bg-[#f5f5f5] pb-20">
-      {/* ═══ TOP UTILITY BAR ═══ */}
-      <div className="bg-[#EFBF04] text-[#1a1a2e] text-xs">
+      <main className="min-h-screen bg-[#F4F5F7] pb-20">
+      {/* ═══ TOP UTILITY BAR + HEADER (sticky together) ═══ */}
+      <div className="sticky top-0 z-50">
+      <div className="bg-[#FFD23F] text-[#1F2937] text-xs">
         <div className="max-w-[1200px] mx-auto px-4 flex items-center justify-between h-8">
           <div className="flex items-center gap-3">
-            <button onClick={fetchUserLocation} disabled={detectingLocation} className="flex items-center gap-1 hover:text-[#D62828] transition-colors">
+            <button onClick={fetchUserLocation} disabled={detectingLocation} className="flex items-center gap-1 hover:text-[#16A34A] transition-colors">
               <svg className={`w-3 h-3 ${detectingLocation ? "animate-pulse" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
               <span className="max-w-[200px] truncate">{detectingLocation ? "Detecting..." : userAddress || "Set location"}</span>
             </button>
@@ -412,19 +379,19 @@ export default function Home() {
           <div className="flex items-center gap-4">
             {user ? (
               <>
-                <a href="/account" className="font-medium hover:text-[#D62828] transition-colors flex items-center gap-1">
+                <a href="/account" className="font-medium hover:text-[#16A34A] transition-colors flex items-center gap-1">
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                   {profile?.name || user.email}
                 </a>
-                <span className="text-[#1a1a2e]/30">|</span>
-                <a href="/account" className="hover:text-[#D62828] transition-colors">My Orders</a>
-                <span className="text-[#1a1a2e]/30">|</span>
-                <button onClick={handleLogout} className="hover:text-[#D62828] transition-colors">Logout</button>
+                <span className="text-[#1F2937]/30">|</span>
+                <a href="/account" className="hover:text-[#16A34A] transition-colors">My Orders</a>
+                <span className="text-[#1F2937]/30">|</span>
+                <button onClick={handleLogout} className="hover:text-[#16A34A] transition-colors">Logout</button>
               </>
             ) : (
               <>
-                <button onClick={() => window.location.href = "/auth?redirect=/grocery"} className="hover:text-[#D62828] transition-colors">Sign Up</button>
-                <button onClick={() => window.location.href = "/auth?redirect=/grocery"} className="hover:text-[#D62828] transition-colors">Log In</button>
+                <button onClick={() => window.location.href = "/auth?redirect=/grocery"} className="hover:text-[#16A34A] transition-colors">Sign Up</button>
+                <button onClick={() => window.location.href = "/auth?redirect=/grocery"} className="hover:text-[#16A34A] transition-colors">Log In</button>
               </>
             )}
           </div>
@@ -432,12 +399,12 @@ export default function Home() {
       </div>
 
       {/* ═══ MAIN HEADER WITH SEARCH ═══ */}
-      <header style={{ backgroundColor: "#D62828" }} className="sticky top-0 z-50 shadow-md">
+      <header style={{ backgroundColor: "#16A34A" }} className="shadow-md">
         <div className="max-w-[1200px] mx-auto px-4 py-3">
           <div className="flex items-center gap-4">
             {/* Logo */}
             <a href="/" className="flex-shrink-0">
-              <span className="text-white font-black text-xl">88 Seven</span>
+              <span className="text-white font-black text-xl tracking-tight">88 Seven Store</span>
             </a>
 
             {/* Search Bar */}
@@ -450,7 +417,7 @@ export default function Home() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="flex-1 px-4 py-2.5 rounded-l-sm text-sm outline-none bg-white text-gray-800 placeholder-gray-400"
                 />
-                <button className="bg-[#c0392b] hover:bg-[#a93226] px-5 rounded-r-sm transition-colors">
+                <button className="bg-[#15803d] hover:bg-[#15803d] px-5 rounded-r-sm transition-colors">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
@@ -464,7 +431,7 @@ export default function Home() {
                 <button onClick={() => setShowNotifications(!showNotifications)} className="relative text-white flex-shrink-0">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
                   {notifications.filter((n) => !n.read).length > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-yellow-400 text-[#1a1a2e] text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">{notifications.filter((n) => !n.read).length}</span>
+                    <span className="absolute -top-1 -right-1 bg-yellow-400 text-[#1F2937] text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">{notifications.filter((n) => !n.read).length}</span>
                   )}
                 </button>
                 {showNotifications && (
@@ -472,7 +439,7 @@ export default function Home() {
                     <div className="px-4 py-2 border-b flex items-center justify-between bg-gray-50">
                       <span className="text-sm font-bold text-gray-800">Notifications</span>
                       {notifications.filter((n) => !n.read).length > 0 && (
-                        <button onClick={() => markAllNotificationsRead("customer", user.uid)} className="text-[10px] text-[#D62828] font-medium">Mark all read</button>
+                        <button onClick={() => fetch("/api/notifications", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "markAllRead", recipientType: "customer", recipientId: user.id }) }).then(() => setNotifications((n: any[]) => n.map(x => ({...x, read: true}))))} className="text-[10px] text-[#16A34A] font-medium">Mark all read</button>
                       )}
                     </div>
                     <div className="max-h-64 overflow-y-auto">
@@ -497,7 +464,7 @@ export default function Home() {
               <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
               </svg>
-              <span className="absolute -top-1 -right-1 bg-white text-[#D62828] text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">{cartCount}</span>
+              <span className="absolute -top-1 -right-1 bg-white text-[#16A34A] text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">{cartCount}</span>
             </button>
 
             {/* Mobile hamburger */}
@@ -511,7 +478,7 @@ export default function Home() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-[#e63232] px-4 py-3 space-y-2 border-t border-white/10">
+          <div className="md:hidden bg-[#16A34A] px-4 py-3 space-y-2 border-t border-white/10">
             <a href="#" className="block text-white text-sm py-1">Home</a>
             <a href="#products" className="block text-white text-sm py-1">Products</a>
             <a href="#promos" className="block text-white text-sm py-1">Promos</a>
@@ -519,6 +486,7 @@ export default function Home() {
           </div>
         )}
       </header>
+      </div>
 
       {/* Delivery Type Banner */}
       {(() => {
@@ -526,7 +494,7 @@ export default function Home() {
         const hour = now.getHours()
         const isSameDay = hour < 15 // Before 3PM
         return (
-          <div className={`sticky top-[64px] z-40 px-4 py-1.5 ${isSameDay ? "bg-green-500" : "bg-blue-500"}`}>
+          <div className={`sticky top-[96px] z-40 px-4 py-1.5 ${isSameDay ? "bg-green-500" : "bg-blue-500"}`}>
             <div className="max-w-[1200px] mx-auto flex items-center justify-center gap-2">
               <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               <p className="text-white text-[11px] font-bold">
@@ -547,17 +515,18 @@ export default function Home() {
           <aside className="hidden md:block w-[200px] flex-shrink-0">
             <div className="bg-white rounded-sm shadow-sm">
               <div className="px-3 py-2.5 border-b border-gray-100">
-                <h3 className="font-bold text-sm text-[#1a1a2e]">Categories</h3>
+                <h3 className="font-bold text-sm text-[#1F2937]">Categories</h3>
               </div>
               <ul className="py-1">
                 <li>
                   <button
                     onClick={() => setSelectedCategory("All")}
                     className={`w-full text-left px-3 py-2 text-sm transition-colors flex items-center gap-2 ${
-                      selectedCategory === "All" ? "text-[#D62828] font-semibold bg-red-50" : "text-gray-700 hover:text-[#D62828] hover:bg-gray-50"
+                      selectedCategory === "All" ? "text-[#16A34A] font-semibold bg-green-50" : "text-gray-700 hover:text-[#16A34A] hover:bg-gray-50"
                     }`}
                   >
-                    🏪 All Products
+                    <img src="https://img.icons8.com/3d-fluency/94/shop.png" alt="All" className="w-5 h-5 object-contain" />
+                    All Products
                   </button>
                 </li>
                 {categoryList.map((cat) => (
@@ -565,14 +534,10 @@ export default function Home() {
                     <button
                       onClick={() => setSelectedCategory(cat.label)}
                       className={`w-full text-left px-3 py-2 text-sm transition-colors flex items-center gap-2 ${
-                        selectedCategory === cat.label ? "text-[#D62828] font-semibold bg-red-50" : "text-gray-700 hover:text-[#D62828] hover:bg-gray-50"
+                        selectedCategory === cat.label ? "text-[#16A34A] font-semibold bg-green-50" : "text-gray-700 hover:text-[#16A34A] hover:bg-gray-50"
                       }`}
                     >
-                      {(cat as any).imageUrl ? (
-                        <img src={(cat as any).imageUrl} className="w-5 h-5 object-cover rounded" />
-                      ) : (
-                        <span>{cat.emoji}</span>
-                      )}
+                      <img src={(cat as any).imageUrl || (cat as any).icon} alt={cat.label} className="w-5 h-5 object-contain rounded" />
                       {cat.label}
                     </button>
                   </li>
@@ -590,7 +555,7 @@ export default function Home() {
 
             {/* MOBILE CATEGORIES */}
             <div className="md:hidden mt-4 bg-white rounded-sm shadow-sm p-4">
-              <h3 className="font-bold text-sm text-[#1a1a2e] mb-3">Categories</h3>
+              <h3 className="font-bold text-sm text-[#1F2937] mb-3">Categories</h3>
               <div className="grid grid-cols-4 gap-3">
                 {categoryList.slice(0, 8).map((cat) => (
                   <button
@@ -598,11 +563,7 @@ export default function Home() {
                     onClick={() => setSelectedCategory(cat.label)}
                     className="flex flex-col items-center gap-1"
                   >
-                    {(cat as any).imageUrl ? (
-                      <img src={(cat as any).imageUrl} className="w-8 h-8 object-cover rounded" />
-                    ) : (
-                      <span className="text-2xl">{cat.emoji}</span>
-                    )}
+                    <img src={(cat as any).imageUrl || (cat as any).icon} alt={cat.label} className="w-8 h-8 object-contain" />
                     <span className="text-[10px] text-gray-600 text-center leading-tight">{cat.label}</span>
                   </button>
                 ))}
@@ -613,7 +574,7 @@ export default function Home() {
             <section id="products" className="mt-4">
               <div className="bg-white rounded-sm shadow-sm">
                 <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-                  <h2 className="font-bold text-base text-[#D62828] uppercase">
+                  <h2 className="font-bold text-base text-[#16A34A] uppercase">
                     {selectedCategory === "All" ? "Daily Needs" : selectedCategory}
                   </h2>
                   {/* Category tabs on desktop */}
@@ -621,7 +582,7 @@ export default function Home() {
                     <button
                       onClick={() => setSelectedCategory("All")}
                       className={`px-3 py-1 text-xs rounded-sm transition-colors ${
-                        selectedCategory === "All" ? "bg-[#D62828] text-white" : "text-gray-600 hover:text-[#D62828]"
+                        selectedCategory === "All" ? "bg-[#16A34A] text-white" : "text-gray-600 hover:text-[#16A34A]"
                       }`}
                     >
                       All
@@ -631,7 +592,7 @@ export default function Home() {
                         key={cat}
                         onClick={() => setSelectedCategory(cat)}
                         className={`px-3 py-1 text-xs rounded-sm transition-colors whitespace-nowrap ${
-                          selectedCategory === cat ? "bg-[#D62828] text-white" : "text-gray-600 hover:text-[#D62828]"
+                          selectedCategory === cat ? "bg-[#16A34A] text-white" : "text-gray-600 hover:text-[#16A34A]"
                         }`}
                       >
                         {cat}
@@ -669,78 +630,27 @@ export default function Home() {
 
       {/* ═══ ADDED TO CART MODAL ═══ */}
       {addedProduct && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setAddedProduct(null)} />
-          <div className="relative bg-white rounded-xl w-full max-w-sm p-6 text-center animate-[scaleIn_0.2s_ease-out]">
-            {/* Success checkmark */}
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-9 h-9 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h3 className="font-bold text-lg text-gray-800 mb-1">Added to Cart!</h3>
-            {/* Product info */}
-            <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-3 mt-3">
-              <div className="w-14 h-14 bg-white rounded-lg flex-shrink-0 flex items-center justify-center border">
-                {addedProduct.product.imageUrl ? (
-                  <img src={addedProduct.product.imageUrl} className="w-12 h-12 object-contain" />
-                ) : (
-                  <span className="text-2xl">📦</span>
-                )}
-              </div>
-              <div className="flex-1 text-left min-w-0">
-                <p className="text-sm font-medium text-gray-800 truncate">{addedProduct.product.name}</p>
-                <p className="text-[#D62828] font-bold text-sm">
-                  ₱{((addedProduct.product.onSale && addedProduct.product.salePrice ? addedProduct.product.salePrice : addedProduct.product.price) * addedProduct.quantity).toFixed(2)}
-                </p>
-              </div>
-            </div>
-            {/* Quantity controls */}
-            <div className="flex items-center justify-center gap-4 mt-4">
-              <button
-                onClick={() => {
-                  if (addedProduct.quantity <= 1) {
-                    updateQuantity(addedProduct.product.id, -1)
-                    setAddedProduct(null)
-                  } else {
-                    updateQuantity(addedProduct.product.id, -1)
-                    setAddedProduct({ ...addedProduct, quantity: addedProduct.quantity - 1 })
-                  }
-                }}
-                className="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-lg font-bold text-gray-600 transition-colors"
-              >−</button>
-              <span className="text-lg font-bold w-8 text-center">{addedProduct.quantity}</span>
-              <button
-                onClick={() => {
-                  updateQuantity(addedProduct.product.id, 1)
-                  setAddedProduct({ ...addedProduct, quantity: addedProduct.quantity + 1 })
-                }}
-                className="w-9 h-9 rounded-full bg-[#D62828] hover:bg-[#b71c1c] flex items-center justify-center text-lg font-bold text-white transition-colors"
-              >+</button>
-            </div>
-            {/* Actions */}
-            <div className="flex gap-3 mt-5">
-              <button onClick={() => setAddedProduct(null)} className="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
-                Continue Shopping
-              </button>
-              <button onClick={() => { setAddedProduct(null); setShowCart(true) }} className="flex-1 bg-[#D62828] text-white py-2.5 rounded-lg text-sm font-bold hover:bg-[#b71c1c] transition-colors">
-                View Cart ({cartCount})
-              </button>
-            </div>
-          </div>
-        </div>
+        <AddedToCartModal
+          product={addedProduct.product}
+          quantity={addedProduct.quantity}
+          onClose={() => setAddedProduct(null)}
+          onUpdateQuantity={updateQuantity}
+          cartCount={cartCount}
+          onViewCart={() => { setAddedProduct(null); setShowCart(true) }}
+        />
       )}
 
       {/* ═══ CART DRAWER ═══ */}
       {showCart && (
         <div className="fixed inset-0 z-[100] flex justify-end">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowCart(false)} />
-          <div className="relative w-full max-w-md bg-white h-full overflow-y-auto">
-            <div className="p-4 border-b flex items-center justify-between">
+          <div className="relative w-full max-w-md bg-white h-full flex flex-col">
+            {/* Sticky Header */}
+            <div className="sticky top-0 bg-white z-10 p-4 border-b flex items-center justify-between flex-shrink-0">
               <h2 className="font-bold text-lg">Your Cart ({cartCount})</h2>
               <div className="flex items-center gap-3">
                 {cart.length > 0 && (
-                  <button onClick={() => { if (confirm("Clear all items from cart?")) setCart([]) }} className="text-xs text-red-500 hover:text-red-700 font-medium">Clear All</button>
+                  <button onClick={() => { if (confirm("Clear all items from cart?")) setCart([]) }} className="text-xs text-green-500 hover:text-green-800 font-medium">Clear All</button>
                 )}
                 <button onClick={() => setShowCart(false)} className="text-gray-500 text-2xl leading-none">&times;</button>
               </div>
@@ -749,15 +659,16 @@ export default function Home() {
               <p className="p-8 text-center text-gray-400">Your cart is empty</p>
             ) : (
               <>
-                <div className="p-4 space-y-3">
+                {/* Scrollable Items */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-3">
                   {cart.map((item) => (
                     <div key={item.product.id} className="flex items-center gap-3">
                       <div className="w-12 h-12 bg-gray-100 rounded flex-shrink-0 flex items-center justify-center">
-                        {item.product.imageUrl ? <img src={item.product.imageUrl} className="w-10 h-10 object-contain" /> : <span className="text-lg">📦</span>}
+                        {item.product.imageUrl ? <img src={item.product.imageUrl} className="w-10 h-10 object-contain" /> : <img src="https://img.icons8.com/3d-fluency/94/box.png" className="w-8 h-8 object-contain" />}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm truncate">{item.product.name}</p>
-                        <p className="text-[#D62828] font-bold text-sm">₱{((item.product.onSale && item.product.salePrice ? item.product.salePrice : item.product.price) * item.quantity).toFixed(2)}</p>
+                        <p className="text-[#16A34A] font-bold text-sm">₱{((item.product.onSale && item.product.salePrice ? item.product.salePrice : item.product.price) * item.quantity).toFixed(2)}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <button onClick={() => updateQuantity(item.product.id, -1)} className="w-7 h-7 rounded bg-gray-100 text-lg">-</button>
@@ -767,7 +678,8 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
-                <div className="p-4 border-t">
+                {/* Sticky Footer */}
+                <div className="sticky bottom-0 bg-white border-t p-4 flex-shrink-0">
                   <div className="flex justify-between text-sm mb-1">
                     <span className="text-gray-600">Subtotal</span><span>₱{cartTotal.toFixed(2)}</span>
                   </div>
@@ -777,9 +689,9 @@ export default function Home() {
                     </div>
                   )}
                   <div className="flex justify-between font-bold mb-4">
-                    <span>Total</span><span className="text-[#D62828]">₱{(cartTotal + cartDeposit).toFixed(2)}</span>
+                    <span>Total</span><span className="text-[#16A34A]">₱{(cartTotal + cartDeposit).toFixed(2)}</span>
                   </div>
-                  <button onClick={() => { setShowCart(false); if (!user) { window.location.href = "/auth?redirect=/grocery" } else { setShowCheckout(true); if (!checkoutForm.lat) detectLocation() } }} className="w-full bg-[#D62828] text-white py-3 rounded font-bold">Checkout</button>
+                  <button onClick={() => { setShowCart(false); if (!user) { window.location.href = "/auth?redirect=/grocery" } else { setShowCheckout(true); if (!checkoutForm.lat) detectLocation() } }} className="w-full bg-[#FF8A00] text-white py-3 rounded font-bold hover:bg-[#e07800] transition-colors">Checkout</button>
                 </div>
               </>
             )}
@@ -793,7 +705,7 @@ export default function Home() {
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowCheckout(false)} />
           <div className="relative bg-white rounded-2xl w-full max-w-md overflow-hidden animate-[scaleIn_0.2s_ease-out]">
             {/* Header */}
-            <div className="bg-[#D62828] px-6 py-4 flex items-center justify-between">
+            <div className="bg-[#16A34A] px-6 py-4 flex items-center justify-between">
               <div>
                 <h2 className="font-bold text-lg text-white">Checkout</h2>
                 <p className="text-white/70 text-xs">Complete your delivery details</p>
@@ -808,11 +720,11 @@ export default function Home() {
                 <div className="mt-2 space-y-3">
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">👤</span>
-                    <input placeholder="Full Name" value={checkoutForm.name} onChange={(e) => setCheckoutForm({ ...checkoutForm, name: e.target.value })} className="w-full border border-gray-200 rounded-lg pl-10 pr-3 py-2.5 text-sm focus:border-[#D62828] focus:ring-1 focus:ring-[#D62828] outline-none transition-colors" />
+                    <input placeholder="Full Name" value={checkoutForm.name} onChange={(e) => setCheckoutForm({ ...checkoutForm, name: e.target.value })} className="w-full border border-gray-200 rounded-lg pl-10 pr-3 py-2.5 text-sm focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A] outline-none transition-colors" />
                   </div>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">📱</span>
-                    <input type="tel" inputMode="numeric" placeholder="Phone Number" value={checkoutForm.phone} onChange={(e) => setCheckoutForm({ ...checkoutForm, phone: e.target.value.replace(/[^0-9]/g, "") })} className="w-full border border-gray-200 rounded-lg pl-10 pr-3 py-2.5 text-sm focus:border-[#D62828] focus:ring-1 focus:ring-[#D62828] outline-none transition-colors" />
+                    <input type="tel" inputMode="numeric" placeholder="Phone Number" value={checkoutForm.phone} onChange={(e) => setCheckoutForm({ ...checkoutForm, phone: e.target.value.replace(/[^0-9]/g, "") })} className="w-full border border-gray-200 rounded-lg pl-10 pr-3 py-2.5 text-sm focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A] outline-none transition-colors" />
                   </div>
                 </div>
               </div>
@@ -827,7 +739,7 @@ export default function Home() {
                       placeholder="Street address, barangay, city..."
                       value={checkoutForm.address}
                       onChange={(e) => setCheckoutForm({ ...checkoutForm, address: e.target.value })}
-                      className="w-full border border-gray-200 rounded-lg pl-10 pr-3 py-2.5 text-sm focus:border-[#D62828] focus:ring-1 focus:ring-[#D62828] outline-none transition-colors resize-none"
+                      className="w-full border border-gray-200 rounded-lg pl-10 pr-3 py-2.5 text-sm focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A] outline-none transition-colors resize-none"
                       rows={2}
                     />
                   </div>
@@ -855,8 +767,8 @@ export default function Home() {
                   {/* Landmark (Required) */}
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🏠</span>
-                    <input placeholder="Landmark (required) e.g. near school, beside sari-sari store" value={checkoutForm.landmark} onChange={(e) => setCheckoutForm({ ...checkoutForm, landmark: e.target.value })} className={`w-full border rounded-lg pl-10 pr-3 py-2.5 text-sm focus:border-[#D62828] focus:ring-1 focus:ring-[#D62828] outline-none transition-colors ${!checkoutForm.landmark.trim() ? "border-red-300 bg-red-50/30" : "border-gray-200"}`} />
-                    {!checkoutForm.landmark.trim() && <p className="text-[10px] text-red-500 mt-0.5 ml-1">* Landmark is required for delivery</p>}
+                    <input placeholder="Landmark (required) e.g. near school, beside sari-sari store" value={checkoutForm.landmark} onChange={(e) => setCheckoutForm({ ...checkoutForm, landmark: e.target.value })} className={`w-full border rounded-lg pl-10 pr-3 py-2.5 text-sm focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A] outline-none transition-colors ${!checkoutForm.landmark.trim() ? "border-amber-300 bg-amber-50/30" : "border-gray-200"}`} />
+                    {!checkoutForm.landmark.trim() && <p className="text-[10px] text-green-500 mt-0.5 ml-1">* Landmark is required for delivery</p>}
                   </div>
                 </div>
               </div>
@@ -876,8 +788,8 @@ export default function Home() {
                 <div className="mt-2 space-y-2">
                   {/* COD */}
                   {paymentMethods.cod && (
-                  <label className={`flex items-center gap-3 border-2 rounded-xl px-4 py-3 cursor-pointer transition-colors ${checkoutForm.paymentMethod === "cod" ? "border-[#D62828] bg-red-50" : "border-gray-200 hover:border-gray-300"}`}>
-                    <input type="radio" name="payment" value="cod" checked={checkoutForm.paymentMethod === "cod"} onChange={() => setCheckoutForm({ ...checkoutForm, paymentMethod: "cod" })} className="accent-[#D62828]" />
+                  <label className={`flex items-center gap-3 border-2 rounded-xl px-4 py-3 cursor-pointer transition-colors ${checkoutForm.paymentMethod === "cod" ? "border-[#16A34A] bg-green-50" : "border-gray-200 hover:border-gray-300"}`}>
+                    <input type="radio" name="payment" value="cod" checked={checkoutForm.paymentMethod === "cod"} onChange={() => setCheckoutForm({ ...checkoutForm, paymentMethod: "cod" })} className="accent-[#16A34A]" />
                     <span className="text-2xl">💵</span>
                     <div>
                       <p className="text-sm font-bold text-gray-800">Cash on Delivery</p>
@@ -895,10 +807,10 @@ export default function Home() {
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-bold text-gray-800">Payroo Wallet</p>
-                        <p className="text-[11px] text-gray-400">Balance: <span className={`font-bold ${walletBalance >= (cartTotal + cartDeposit + deliveryFee) ? "text-green-600" : "text-red-500"}`}>₱{walletBalance.toFixed(2)}</span></p>
+                        <p className="text-[11px] text-gray-400">Balance: <span className={`font-bold ${walletBalance >= (cartTotal + cartDeposit + deliveryFee) ? "text-green-600" : "text-green-500"}`}>₱{walletBalance.toFixed(2)}</span></p>
                       </div>
                       {walletBalance < (cartTotal + cartDeposit + deliveryFee) && (
-                        <span className="text-[9px] bg-red-100 text-red-600 font-bold px-2 py-0.5 rounded-full">LOW</span>
+                        <span className="text-[9px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full">LOW</span>
                       )}
                     </label>
                   )}
@@ -969,7 +881,7 @@ export default function Home() {
                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Additional Notes</label>
                 <div className="mt-2 relative">
                   <span className="absolute left-3 top-3 text-gray-400">📝</span>
-                  <textarea placeholder="Special instructions (optional)" value={checkoutForm.notes} onChange={(e) => setCheckoutForm({ ...checkoutForm, notes: e.target.value })} className="w-full border border-gray-200 rounded-lg pl-10 pr-3 py-2.5 text-sm focus:border-[#D62828] focus:ring-1 focus:ring-[#D62828] outline-none transition-colors resize-none" rows={2} />
+                  <textarea placeholder="Special instructions (optional)" value={checkoutForm.notes} onChange={(e) => setCheckoutForm({ ...checkoutForm, notes: e.target.value })} className="w-full border border-gray-200 rounded-lg pl-10 pr-3 py-2.5 text-sm focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A] outline-none transition-colors resize-none" rows={2} />
                 </div>
               </div>
 
@@ -1001,7 +913,7 @@ export default function Home() {
                 )}
                 <div className="border-t border-gray-200 mt-2 pt-2 flex justify-between font-bold">
                   <span>Total</span>
-                  <span className="text-[#D62828] text-lg">₱{(cartTotal + cartDeposit + deliveryFee).toFixed(2)}</span>
+                  <span className="text-[#16A34A] text-lg">₱{(cartTotal + cartDeposit + deliveryFee).toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -1011,7 +923,7 @@ export default function Home() {
               <button
                 onClick={handleCheckout}
                 disabled={submitting || !checkoutForm.name || !checkoutForm.phone || !checkoutForm.address || !checkoutForm.landmark.trim()}
-                className="w-full bg-[#D62828] text-white py-3 rounded-lg font-bold text-sm hover:bg-[#b71c1c] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full bg-[#FF8A00] text-white py-3 rounded-lg font-bold text-sm hover:bg-[#e07800] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {submitting ? (
                   <><svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" /><path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></svg> Placing Order...</>
@@ -1029,12 +941,12 @@ export default function Home() {
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => { setShowAuth(false); setOtpSent(false); setAuthError("") }} />
           <div className="relative bg-white rounded-2xl w-full max-w-sm overflow-hidden animate-[scaleIn_0.2s_ease-out]">
-            <div className="bg-[#D62828] px-6 py-4">
+            <div className="bg-[#16A34A] px-6 py-4">
               <h2 className="font-bold text-lg text-white">{otpSent ? "Enter OTP" : "Login / Sign Up"}</h2>
               <p className="text-white/70 text-xs">{otpSent ? "We sent a code to your phone" : "Enter your details to continue"}</p>
             </div>
             <div className="p-6 space-y-4">
-              {authError && <div className="bg-red-50 border border-red-200 text-red-600 text-xs px-3 py-2 rounded-lg">{authError}</div>}
+              {authError && <div className="bg-amber-50 border border-amber-200 text-amber-700 text-xs px-3 py-2 rounded-lg">{authError}</div>}
 
               {!otpSent ? (
                 <>
@@ -1048,14 +960,14 @@ export default function Home() {
                         placeholder="9XX XXX XXXX"
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value.replace(/[^0-9]/g, "").slice(0, 10))}
-                        className="flex-1 border border-gray-200 rounded-r-lg px-4 py-3 text-sm outline-none focus:border-[#D62828] focus:ring-1 focus:ring-[#D62828]"
+                        className="flex-1 border border-gray-200 rounded-r-lg px-4 py-3 text-sm outline-none focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A]"
                       />
                     </div>
                   </div>
                   <button
                     onClick={handleSendOTP}
                     disabled={authLoading || phoneNumber.length < 10}
-                    className="w-full bg-[#D62828] text-white py-3 rounded-lg font-bold text-sm hover:bg-[#b71c1c] transition-colors disabled:opacity-40"
+                    className="w-full bg-[#16A34A] text-white py-3 rounded-lg font-bold text-sm hover:bg-[#15803d] transition-colors disabled:opacity-40"
                   >
                     {authLoading ? "Sending..." : "Send OTP Code"}
                   </button>
@@ -1072,17 +984,17 @@ export default function Home() {
                       value={otpCode}
                       onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, "").slice(0, 6))}
                       onKeyDown={(e) => e.key === "Enter" && handleVerifyOTP()}
-                      className="w-full border border-gray-200 rounded-lg px-4 py-3 text-center text-lg tracking-[0.5em] font-bold outline-none focus:border-[#D62828] focus:ring-1 focus:ring-[#D62828]"
+                      className="w-full border border-gray-200 rounded-lg px-4 py-3 text-center text-lg tracking-[0.5em] font-bold outline-none focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A]"
                     />
                   </div>
                   <button
                     onClick={handleVerifyOTP}
                     disabled={authLoading || otpCode.length < 6}
-                    className="w-full bg-[#D62828] text-white py-3 rounded-lg font-bold text-sm hover:bg-[#b71c1c] transition-colors disabled:opacity-40"
+                    className="w-full bg-[#16A34A] text-white py-3 rounded-lg font-bold text-sm hover:bg-[#15803d] transition-colors disabled:opacity-40"
                   >
                     {authLoading ? "Verifying..." : "Verify & Login"}
                   </button>
-                  <button onClick={() => { setOtpSent(false); setOtpCode(""); setAuthError("") }} className="w-full text-center text-xs text-gray-500 hover:text-[#D62828]">
+                  <button onClick={() => { setOtpSent(false); setOtpCode(""); setAuthError("") }} className="w-full text-center text-xs text-gray-500 hover:text-[#16A34A]">
                     ← Change number
                   </button>
                 </>
@@ -1097,34 +1009,34 @@ export default function Home() {
 
       {/* ═══ FOOTER ═══ */}
       <InstallPrompt />
-      <footer className="bg-[#EFBF04] text-[#1a1a2e] mt-10 py-8 px-4">
+      <footer className="bg-[#FFD23F] text-[#1F2937] mt-10 py-8 px-4">
         <div className="max-w-[1200px] mx-auto">
           <div className="grid md:grid-cols-3 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <a href="/" className="font-black">88 Seven</a>
+                <a href="/" className="font-black tracking-tight">Payroo</a>
               </div>
-              <p className="text-[#1a1a2e]/70 text-sm">Your neighborhood grocery store. Quality products, everyday low prices.</p>
+              <p className="text-[#1F2937]/70 text-sm">Your neighborhood grocery store. Quality products, everyday low prices.</p>
             </div>
             <div>
-              <h4 className="font-bold text-sm mb-3 text-[#1a1a2e]">Quick Links</h4>
-              <ul className="space-y-2 text-sm text-[#1a1a2e]/70">
-                <li><a href="#" className="hover:text-[#1a1a2e]">Home</a></li>
-                <li><a href="#products" className="hover:text-[#1a1a2e]">Products</a></li>
-                <li><a href="#" className="hover:text-[#1a1a2e]">Promos</a></li>
-                <li><a href="#" className="hover:text-[#1a1a2e]">About Us</a></li>
+              <h4 className="font-bold text-sm mb-3 text-[#1F2937]">Quick Links</h4>
+              <ul className="space-y-2 text-sm text-[#1F2937]/70">
+                <li><a href="#" className="hover:text-[#1F2937]">Home</a></li>
+                <li><a href="#products" className="hover:text-[#1F2937]">Products</a></li>
+                <li><a href="#" className="hover:text-[#1F2937]">Promos</a></li>
+                <li><a href="#" className="hover:text-[#1F2937]">About Us</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-bold text-sm mb-3 text-[#1a1a2e]">Contact</h4>
-              <ul className="space-y-2 text-sm text-[#1a1a2e]/70">
+              <h4 className="font-bold text-sm mb-3 text-[#1F2937]">Contact</h4>
+              <ul className="space-y-2 text-sm text-[#1F2937]/70">
                 <li>📍 Philippines</li>
-                <li>✉️ hello@88seven.com</li>
+                <li>✉️ hello@payroo.com</li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-[#1a1a2e]/10 mt-6 pt-4 text-center">
-            <p className="text-[#1a1a2e]/60 text-xs">© 2024 88 Seven Grocery. All rights reserved.</p>
+          <div className="border-t border-[#1F2937]/10 mt-6 pt-4 text-center">
+            <p className="text-[#1F2937]/60 text-xs">© 2024 Payroo. All rights reserved.</p>
           </div>
         </div>
       </footer>
@@ -1136,13 +1048,13 @@ export default function Home() {
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
             <span className="text-[10px] font-medium">Home</span>
           </a>
-          <a href="/grocery" className="flex flex-col items-center gap-0.5 py-1 text-[#D62828]">
+          <a href="/grocery" className="flex flex-col items-center gap-0.5 py-1 text-[#16A34A]">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" /></svg>
             <span className="text-[10px] font-bold">Grocery</span>
           </a>
-          <a href="/account" className="flex flex-col items-center gap-0.5 py-1 text-gray-400">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-            <span className="text-[10px] font-medium">Orders</span>
+          <a href="/laundry" className="flex flex-col items-center gap-0.5 py-1 text-gray-400">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+            <span className="text-[10px] font-medium">Laundry</span>
           </a>
           <a href="/account" className="flex flex-col items-center gap-0.5 py-1 text-gray-400">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
@@ -1150,12 +1062,161 @@ export default function Home() {
           </a>
         </div>
       </nav>
+
+      {/* ═══ POPUP BANNER MODAL (Shopee-style via Portal) ═══ */}
+      {showPopup && popupBanners.length > 0 && popupBanners[0].imageUrl && typeof document !== 'undefined' && (() => {
+        const popupRoot = document.getElementById('popup-root') || document.body
+        return null
+      })()}
+      {showPopup && popupBanners.length > 0 && popupBanners[0].imageUrl && (
+        <PopupModal banner={popupBanners[0]} onClose={() => setShowPopup(false)} />
+      )}
     </main>
     </>
   )
 }
 
-function ProductCard({ product, onAdd }: { product: Product; onAdd: (p: Product) => void }) {
+function AddedToCartModal({ product, quantity, onClose, onUpdateQuantity, cartCount, onViewCart }: any) {
+  return createPortal(
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        zIndex: 999999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '1rem',
+      }}
+    >
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)' }} onClick={onClose} />
+      <div style={{ position: 'relative', background: '#fff', borderRadius: '12px', width: '100%', maxWidth: '24rem', padding: '1.5rem', textAlign: 'center' }}>
+        {/* Success checkmark */}
+        <div style={{ width: '64px', height: '64px', background: '#dcfce7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
+          <svg style={{ width: '36px', height: '36px', color: '#22c55e' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h3 style={{ fontWeight: 'bold', fontSize: '1.125rem', marginBottom: '0.25rem' }}>Added to Cart!</h3>
+        {/* Product info */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: '#f9fafb', borderRadius: '8px', padding: '0.75rem', marginTop: '0.75rem' }}>
+          <div style={{ width: '56px', height: '56px', background: '#fff', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e5e7eb' }}>
+            {product.imageUrl ? (
+              <img src={product.imageUrl} style={{ width: '48px', height: '48px', objectFit: 'contain' }} />
+            ) : (
+              <span style={{ fontSize: '1.5rem' }}>📦</span>
+            )}
+          </div>
+          <div style={{ flex: 1, textAlign: 'left', minWidth: 0 }}>
+            <p style={{ fontSize: '0.875rem', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{product.name}</p>
+            <p style={{ color: '#16A34A', fontWeight: 'bold', fontSize: '0.875rem' }}>
+              ₱{((product.onSale && product.salePrice ? product.salePrice : product.price) * quantity).toFixed(2)}
+            </p>
+          </div>
+        </div>
+        {/* Quantity controls */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginTop: '1rem' }}>
+          <button
+            onClick={() => {
+              if (quantity <= 1) {
+                onUpdateQuantity(product.id, -1)
+                onClose()
+              } else {
+                onUpdateQuantity(product.id, -1)
+              }
+            }}
+            style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#f3f4f6', border: 'none', fontSize: '1.25rem', fontWeight: 'bold', cursor: 'pointer' }}
+          >−</button>
+          <span style={{ fontSize: '1.125rem', fontWeight: 'bold', width: '32px', textAlign: 'center' }}>{quantity}</span>
+          <button
+            onClick={() => onUpdateQuantity(product.id, 1)}
+            style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#16A34A', color: '#fff', border: 'none', fontSize: '1.25rem', fontWeight: 'bold', cursor: 'pointer' }}
+          >+</button>
+        </div>
+        {/* Actions */}
+        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
+          <button onClick={onClose} style={{ flex: 1, border: '1px solid #d1d5db', background: '#fff', padding: '0.625rem', borderRadius: '8px', fontSize: '0.875rem', fontWeight: 500, cursor: 'pointer' }}>
+            Continue Shopping
+          </button>
+          <button onClick={onViewCart} style={{ flex: 1, background: '#16A34A', color: '#fff', padding: '0.625rem', borderRadius: '8px', fontSize: '0.875rem', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>
+            View Cart ({cartCount})
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  )
+}
+
+function PopupModal({ banner, onClose }: { banner: any; onClose: () => void }) {
+  useLayoutEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [])
+
+  return createPortal(
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        zIndex: 2147483647,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'rgba(0,0,0,0.6)',
+      }}
+      onClick={onClose}
+    >
+      <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
+        <button
+          onClick={onClose}
+          style={{
+            position: 'absolute',
+            top: '-44px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '36px',
+            height: '36px',
+            background: 'transparent',
+            border: '2px solid #fff',
+            borderRadius: '50%',
+            color: '#fff',
+            fontSize: '18px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            lineHeight: 1,
+          }}
+        >✕</button>
+        {banner.linkUrl ? (
+          <a href={banner.linkUrl} onClick={onClose}>
+            <img
+              src={banner.imageUrl}
+              alt="Promo"
+              style={{ maxWidth: 'min(380px, 90vw)', maxHeight: '75vh', width: 'auto', height: 'auto', display: 'block' }}
+            />
+          </a>
+        ) : (
+          <img
+            src={banner.imageUrl}
+            alt="Promo"
+            style={{ maxWidth: 'min(380px, 90vw)', maxHeight: '75vh', width: 'auto', height: 'auto', display: 'block' }}
+          />
+        )}
+      </div>
+    </div>,
+    document.body
+  )
+}
+
+function ProductCard({ product, onAdd }: any) {
   const hasDiscount = product.onSale && product.salePrice
   const displayPrice = hasDiscount ? product.salePrice! : product.price
   const discount = hasDiscount ? Math.round(((product.price - product.salePrice!) / product.price) * 100) : 0
@@ -1170,7 +1231,7 @@ function ProductCard({ product, onAdd }: { product: Product; onAdd: (p: Product)
           <ProductPlaceholder category={product.category} />
         )}
         {hasDiscount && (
-          <span className="absolute top-0 right-0 bg-[#D62828] text-white text-[10px] font-bold px-1.5 py-0.5">
+          <span className="absolute top-0 right-0 bg-[#16A34A] text-white text-[10px] font-bold px-1.5 py-0.5">
             -{discount}%
           </span>
         )}
@@ -1185,7 +1246,7 @@ function ProductCard({ product, onAdd }: { product: Product; onAdd: (p: Product)
       <div className="p-2 border-t border-gray-50">
         <h4 className="text-xs text-gray-800 line-clamp-2 leading-snug min-h-[32px]">{product.name}</h4>
         <div className="flex items-center justify-between mt-1.5">
-          <span className="text-[#D62828] font-bold text-sm">₱{displayPrice.toFixed(2)}</span>
+          <span className="text-[#16A34A] font-bold text-sm">₱{displayPrice.toFixed(2)}</span>
           {hasDiscount && (
             <span className="text-gray-400 text-[10px] line-through">₱{product.price.toFixed(2)}</span>
           )}
@@ -1193,7 +1254,7 @@ function ProductCard({ product, onAdd }: { product: Product; onAdd: (p: Product)
         {product.bottleDeposit ? (
           <p className="text-[10px] text-orange-600 mt-0.5">+ ₱{product.bottleDeposit} pundo/bottle</p>
         ) : null}
-        <button onClick={() => onAdd(product)} className="w-full mt-2 bg-[#D62828] text-white text-xs py-1.5 rounded hover:bg-[#b71c1c] transition-colors">Add to Cart</button>
+        <button onClick={() => onAdd(product)} className="w-full mt-2 bg-[#FF8A00] text-white text-xs py-1.5 rounded hover:bg-[#e07800] transition-colors">Add to Cart</button>
       </div>
     </div>
   )
@@ -1201,19 +1262,19 @@ function ProductCard({ product, onAdd }: { product: Product; onAdd: (p: Product)
 
 function HeroSlider() {
   const [current, setCurrent] = useState(0)
-  const [slides, setSlides] = useState<HeroSlide[]>([])
+  const [slides, setSlides] = useState<any[]>([])
   const [loaded, setLoaded] = useState(false)
 
-  const fallbackSlides: HeroSlide[] = [
-    { id: "1", badge: "Express Delivery", title: "Fast Delivery", highlight: "To Your Doorstep", description: "Fresh groceries delivered in minutes. Free shipping on your first order!", imageUrl: "", bgColor: "#D62828", order: 1, enabled: true },
-    { id: "2", badge: "New Arrivals", title: "Fresh Products", highlight: "Every Single Day", description: "Quality fruits, vegetables, and essentials sourced daily from local farms.", imageUrl: "", bgColor: "#1a1a2e", order: 2, enabled: true },
-    { id: "3", badge: "Member Exclusive", title: "Save Up To", highlight: "50% Off Today", description: "Sign up now and unlock exclusive member deals and discounts!", imageUrl: "", bgColor: "#EFBF04", order: 3, enabled: true },
+  const fallbackSlides: any[] = [
+    { id: "1", badge: "Express Delivery", title: "Fast Delivery", highlight: "To Your Doorstep", description: "Fresh groceries delivered in minutes. Free shipping on your first order!", imageUrl: "", bgColor: "#16A34A", order: 1, enabled: true },
+    { id: "2", badge: "New Arrivals", title: "Fresh Products", highlight: "Every Single Day", description: "Quality fruits, vegetables, and essentials sourced daily from local farms.", imageUrl: "", bgColor: "#1F2937", order: 2, enabled: true },
+    { id: "3", badge: "Member Exclusive", title: "Save Up To", highlight: "50% Off Today", description: "Sign up now and unlock exclusive member deals and discounts!", imageUrl: "", bgColor: "#FFD23F", order: 3, enabled: true },
   ]
 
   useEffect(() => {
     async function load() {
       try {
-        const data = await getHeroSlides()
+        const data = await fetch("/api/hero").then(r => r.json())
         setSlides(data.length > 0 ? data : fallbackSlides)
       } catch {
         setSlides(fallbackSlides)
@@ -1261,11 +1322,11 @@ function HeroSlider() {
         </h1>
         <p className="text-white/80 mt-1.5 text-xs md:text-sm max-w-[260px] drop-shadow line-clamp-2">{slide.description}</p>
         {slide.link ? (
-          <a href={slide.link} className="mt-3 bg-white text-[#D62828] font-bold px-5 py-2 rounded-full text-xs hover:bg-gray-100 transition-colors shadow-md">
+          <a href={slide.link} className="mt-3 bg-white text-[#16A34A] font-bold px-5 py-2 rounded-full text-xs hover:bg-gray-100 transition-colors shadow-md">
             Shop Now →
           </a>
         ) : (
-          <button className="mt-3 bg-white text-[#D62828] font-bold px-5 py-2 rounded-full text-xs hover:bg-gray-100 transition-colors shadow-md">
+          <button className="mt-3 bg-white text-[#16A34A] font-bold px-5 py-2 rounded-full text-xs hover:bg-gray-100 transition-colors shadow-md">
             Shop Now →
           </button>
         )}
@@ -1330,15 +1391,15 @@ function InstallPrompt() {
 
   return (
     <div className="fixed bottom-4 left-4 right-4 z-[90] bg-white rounded-xl shadow-lg border border-gray-200 p-4 flex items-center gap-3 animate-[scaleIn_0.2s_ease-out]">
-      <div className="w-10 h-10 bg-[#D62828] rounded-lg flex items-center justify-center flex-shrink-0">
+      <div className="w-10 h-10 bg-[#16A34A] rounded-lg flex items-center justify-center flex-shrink-0">
         <span className="text-white font-black text-[10px]">88</span>
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-bold text-gray-800">Install 88 Seven</p>
+        <p className="text-sm font-bold text-gray-800">Install Payroo</p>
         <p className="text-xs text-gray-500">{deferredPrompt ? "Add to home screen for quick access" : "Tap Share → Add to Home Screen"}</p>
       </div>
       {deferredPrompt && (
-        <button onClick={handleInstall} className="bg-[#D62828] text-white text-xs font-bold px-3 py-2 rounded-lg flex-shrink-0">Install</button>
+        <button onClick={handleInstall} className="bg-[#16A34A] text-white text-xs font-bold px-3 py-2 rounded-lg flex-shrink-0">Install</button>
       )}
       <button onClick={handleDismiss} className="text-gray-400 text-lg leading-none flex-shrink-0">&times;</button>
     </div>

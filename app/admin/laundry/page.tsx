@@ -1,10 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getDrivers, getAllPartners, findNearestOnlineDriver, type Driver, type LaundryPartner } from "@/lib/firebase"
-import { getFirestore, collection, query, orderBy, onSnapshot, updateDoc, doc, serverTimestamp } from "firebase/firestore"
-
-const db = getFirestore()
 
 type LaundryOrder = {
   id: string
@@ -56,7 +52,7 @@ const STATUS_COLORS: Record<string, string> = {
   rider_return_pickup: "bg-teal-100 text-teal-800",
   rider_returning: "bg-cyan-100 text-cyan-800",
   delivered: "bg-green-100 text-green-800",
-  cancelled: "bg-red-100 text-red-800",
+  cancelled: "bg-green-100 text-green-900",
 }
 
 const ALL_STATUSES = Object.keys(STATUS_LABELS)
@@ -65,35 +61,37 @@ type FilterTab = "needs_action" | "active" | "completed" | "all"
 
 export default function AdminLaundryPage() {
   const [orders, setOrders] = useState<LaundryOrder[]>([])
-  const [drivers, setDrivers] = useState<Driver[]>([])
-  const [partners, setPartners] = useState<LaundryPartner[]>([])
+  const [drivers, setDrivers] = useState<any[]>([])
+  const [partners, setPartners] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<FilterTab>("needs_action")
 
   useEffect(() => {
-    getDrivers().then((d) => setDrivers(d.filter((x) => x.status === "active")))
-    getAllPartners().then((p) => setPartners(p.filter((x) => x.status === "active")))
-    const q = query(collection(db, "laundryOrders"), orderBy("createdAt", "desc"))
-    const unsub = onSnapshot(q, (snap) => {
-      setOrders(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as LaundryOrder))
-      setLoading(false)
-    }, () => setLoading(false))
-    return () => unsub()
+    fetch("/api/users?role=driver").then(r => r.json()).then((d: any[]) => setDrivers(d.filter(x => x.status === "active")))
+    fetch("/api/users?role=partner").then(r => r.json()).then((p: any[]) => setPartners(p.filter(x => x.status === "active")))
+    async function loadOrders() {
+      const res = await fetch("/api/laundry-orders")
+      if (res.ok) { const data = await res.json(); setOrders(data); setLoading(false) }
+    }
+    loadOrders()
+    const interval = setInterval(loadOrders, 5000)
+    return () => clearInterval(interval)
   }, [])
 
   const handleStatus = async (orderId: string, status: string) => {
-    await updateDoc(doc(db, "laundryOrders", orderId), { status, updatedAt: serverTimestamp() })
+    await fetch(`/api/laundry-orders/${orderId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) })
   }
 
   const handleAssignRider = async (orderId: string, driverId: string) => {
     const d = drivers.find((x) => x.id === driverId)
-    await updateDoc(doc(db, "laundryOrders", orderId), { riderId: driverId, riderName: d?.name || "", updatedAt: serverTimestamp() })
+    await fetch(`/api/laundry-orders/${orderId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ riderId: driverId, riderName: d?.name || "" }) })
   }
 
   const handleAutoAssignRider = async (orderId: string, targetLat: number, targetLng: number, nextStatus: string) => {
-    const nearest = await findNearestOnlineDriver(targetLat, targetLng)
+    const drivers: any[] = await fetch("/api/users?role=driver").then(r => r.json())
+    const nearest = drivers.find((d: any) => d.isOnline && d.status === "active") || null
     if (nearest) {
-      await updateDoc(doc(db, "laundryOrders", orderId), { riderId: nearest.id, riderName: nearest.name, status: nextStatus, updatedAt: serverTimestamp() })
+      await fetch(`/api/laundry-orders/${orderId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ riderId: nearest.id, riderName: nearest.name, status: nextStatus }) })
     } else {
       alert("No online riders available nearby. Please assign manually.")
     }
@@ -111,8 +109,8 @@ export default function AdminLaundryPage() {
     <>
       <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-20">
         <div className="flex items-center justify-between">
-          <h1 className="text-lg font-bold text-[#1a1a2e]">Laundry Orders</h1>
-          {needsAction.length > 0 && <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">{needsAction.length} needs action</span>}
+          <h1 className="text-lg font-bold text-[#1F2937]">Laundry Orders</h1>
+          {needsAction.length > 0 && <span className="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">{needsAction.length} needs action</span>}
         </div>
       </header>
 
@@ -132,7 +130,7 @@ export default function AdminLaundryPage() {
             <p className="text-xs text-gray-400">Delivered</p>
           </div>
           <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-            <p className="text-2xl font-bold text-[#D62828]">₱{deliveredOrders.reduce((s, o) => s + (o.totalPrice || 0), 0).toFixed(0)}</p>
+            <p className="text-2xl font-bold text-[#16A34A]">₱{deliveredOrders.reduce((s, o) => s + (o.totalPrice || 0), 0).toFixed(0)}</p>
             <p className="text-xs text-gray-400">Revenue</p>
           </div>
         </div>

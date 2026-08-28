@@ -1,36 +1,34 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { onCustomerAuthChange, getCustomerProfile, updateCustomerProfile, getAllPartners, onNotifications, markAllNotificationsRead, type CustomerProfile, type LaundryPartner, type AppNotification, type SavedAddress } from "@/lib/firebase"
-import { getFirestore, collection, query, where, orderBy, getDocs, onSnapshot } from "firebase/firestore"
-import type { User } from "firebase/auth"
+import { getUser, getToken } from "@/lib/auth"
 
-const db = getFirestore()
 
 const SERVICES = [
-  { id: "grocery", name: "Grocery", icon: "🛒", href: "/grocery", color: "bg-red-50 text-red-600", available: true },
-  { id: "laundry", name: "Laundry", icon: "🧺", href: "/laundry", color: "bg-blue-50 text-blue-600", available: true },
-  { id: "services", name: "Services", icon: "🔧", href: "/home-services", color: "bg-teal-50 text-teal-600", available: true },
-  { id: "travel", name: "Hotel & Flights", icon: "✈️", href: "/travel", color: "bg-sky-50 text-sky-600", available: true },
-  { id: "food", name: "Food", icon: "🍔", href: "#", color: "bg-orange-50 text-orange-600", available: false },
-  { id: "errand", name: "Errands", icon: "📦", href: "#", color: "bg-purple-50 text-purple-600", available: false },
-  { id: "bills", name: "Bills", icon: "🧾", href: "#", color: "bg-green-50 text-green-600", available: false },
-  { id: "more", name: "More", icon: "⋯", href: "#", color: "bg-gray-50 text-gray-600", available: false },
+  { id: "grocery", name: "Grocery", icon: "https://img.icons8.com/3d-fluency/94/shopping-cart.png", href: "/grocery", color: "bg-green-50", available: true },
+  { id: "laundry", name: "Laundry", icon: "https://img.icons8.com/3d-fluency/94/washing-machine.png", href: "/laundry", color: "bg-blue-50", available: true },
+  { id: "services", name: "Services", icon: "https://img.icons8.com/3d-fluency/94/maintenance.png", href: "/home-services", color: "bg-teal-50", available: true },
+  { id: "travel", name: "Hotel & Flights", icon: "https://img.icons8.com/3d-fluency/94/airplane-mode-on.png", href: "/travel", color: "bg-sky-50", available: true },
+  { id: "healthcare", name: "Clinics", icon: "https://img.icons8.com/3d-fluency/94/hospital.png", href: "#", color: "bg-yellow-50", available: false },
+  { id: "food", name: "Food To Go", icon: "https://img.icons8.com/3d-fluency/94/hamburger.png", href: "#", color: "bg-orange-50", available: false },
+  { id: "errand", name: "Errands", icon: "https://img.icons8.com/3d-fluency/94/box.png", href: "#", color: "bg-purple-50", available: false },
+  { id: "bills", name: "Bills", icon: "https://img.icons8.com/3d-fluency/94/bill.png", href: "#", color: "bg-lime-50", available: false },
+  { id: "more", name: "More", icon: "https://img.icons8.com/3d-fluency/94/menu.png", href: "#", color: "bg-gray-50", available: false },
 ]
 
 export default function HomePage() {
-  const [user, setUser] = useState<User | null>(null)
-  const [profile, setProfile] = useState<CustomerProfile | null>(null)
+  const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
   const [banners, setBanners] = useState<{ id: string; title: string; subtitle: string; imageUrl: string; bgColor: string; link: string }[]>([])
   const [currentBanner, setCurrentBanner] = useState(0)
-  const [partners, setPartners] = useState<LaundryPartner[]>([])
+  const [partners, setPartners] = useState<any[]>([])
   const [promos, setPromos] = useState<any[]>([])
-  const [notifications, setNotifications] = useState<AppNotification[]>([])
+  const [notifications, setNotifications] = useState<any[]>([])
   const [showNotifs, setShowNotifs] = useState(false)
   const [address, setAddress] = useState("")
   const [detecting, setDetecting] = useState(false)
   const [showAddressModal, setShowAddressModal] = useState(false)
-  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([])
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([])
   const [addingNew, setAddingNew] = useState(false)
   const [newAddr, setNewAddr] = useState({ label: "Home", address: "", lat: 0, lng: 0 })
   const [savingAddr, setSavingAddr] = useState(false)
@@ -93,62 +91,47 @@ export default function HomePage() {
   }
 
   useEffect(() => {
-    const unsub = onCustomerAuthChange(async (u) => {
-      setUser(u)
-      if (u) {
-        const p = await getCustomerProfile(u.uid)
-        setProfile(p)
-        if (p?.savedAddresses) setSavedAddresses(p.savedAddresses)
-      }
-    })
-    return () => unsub()
+    const u = getUser()
+    if (!u) return
+    setUser(u)
+    fetch("/api/users/me", { headers: { Authorization: `Bearer ${getToken()}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then(p => { if (p) { setProfile(p); if (p.savedAddresses) setSavedAddresses(p.savedAddresses) } })
+    fetch(`/api/notifications?recipientType=customer&recipientId=${u.id}`)
+      .then(r => r.ok ? r.json() : []).then(setNotifications)
   }, [])
 
-  useEffect(() => {
-    if (!user) return
-    const unsub = onNotifications("customer", user.uid, setNotifications)
-    return () => unsub()
-  }, [user])
-
-  // Listen for active orders across all services
+  // Poll active orders every 10s
   useEffect(() => {
     if (!user) { setActiveOrders([]); return }
     const activeStatuses = ["pending", "confirmed", "preparing", "ready_for_pickup", "rider_accepted", "rider_at_store", "rider_picked_up", "out_for_delivery"]
     const laundryActiveStatuses = ["pending", "accepted", "rider_to_customer", "rider_picked_up", "rider_to_laundromat", "at_laundromat", "washing", "ready", "rider_return_pickup", "rider_returning"]
-    const serviceActiveStatuses = ["pending", "confirmed", "in_progress"]
-
-    const q1 = query(collection(db, "orders"), where("customerId", "==", user.uid), where("status", "in", activeStatuses))
-    const q2 = query(collection(db, "laundryOrders"), where("customerId", "==", user.uid), where("status", "in", laundryActiveStatuses))
-    const q3 = query(collection(db, "serviceBookings"), where("customerId", "==", user.uid), where("status", "in", serviceActiveStatuses))
-
-    const unsub1 = onSnapshot(q1, (snap) => {
-      const grocery = snap.docs.map((d) => ({ id: d.id, type: "grocery" as const, status: d.data().status, name: `${d.data().items?.length || 0} items`, total: d.data().total || 0, createdAt: d.data().createdAt }))
-      setActiveOrders((prev) => [...prev.filter((o) => o.type !== "grocery"), ...grocery])
-    }, () => {})
-    const unsub2 = onSnapshot(q2, (snap) => {
-      const laundry = snap.docs.map((d) => ({ id: d.id, type: "laundry" as const, status: d.data().status, name: d.data().serviceName || "Laundry", total: d.data().totalPrice || 0, createdAt: d.data().createdAt }))
-      setActiveOrders((prev) => [...prev.filter((o) => o.type !== "laundry"), ...laundry])
-    }, () => {})
-    const unsub3 = onSnapshot(q3, (snap) => {
-      const services = snap.docs.map((d) => ({ id: d.id, type: "service" as const, status: d.data().status, name: d.data().serviceName || "Service", total: d.data().price || 0, createdAt: d.data().createdAt }))
-      setActiveOrders((prev) => [...prev.filter((o) => o.type !== "service"), ...services])
-    }, () => {})
-    return () => { unsub1(); unsub2(); unsub3() }
+    const poll = async () => {
+      const [gr, la] = await Promise.all([
+        fetch(`/api/orders?customerId=${user.id}`).then(r => r.ok ? r.json() : []),
+        fetch(`/api/laundry-orders?customerId=${user.id}`).then(r => r.ok ? r.json() : []),
+      ])
+      const grocery = gr.filter((o: any) => activeStatuses.includes(o.status))
+        .map((o: any) => ({ id: o.id, type: "grocery" as const, status: o.status, name: `${o.items?.length || 0} items`, total: o.total || 0, createdAt: o.createdAt }))
+      const laundry = la.filter((o: any) => laundryActiveStatuses.includes(o.status))
+        .map((o: any) => ({ id: o.id, type: "laundry" as const, status: o.status, name: o.serviceName || "Laundry", total: o.totalPrice || 0, createdAt: o.createdAt }))
+      setActiveOrders([...grocery, ...laundry])
+    }
+    poll()
+    const iv = setInterval(poll, 10000)
+    return () => clearInterval(iv)
   }, [user])
 
   useEffect(() => {
-    getDocs(query(collection(db, "appBanners"), where("enabled", "==", true), orderBy("order"))).then((snap) => {
-      const data = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as any[]
-      setBanners(data.length > 0 ? data : [
-        { id: "1", title: "Free Delivery", subtitle: "On orders ₱1,000+", imageUrl: "", bgColor: "#D62828", link: "/grocery" },
+    fetch("/api/hero").then(r => r.ok ? r.json() : []).then((data: any[]) => {
+      setBanners(data.length > 0 ? data.map((s: any) => ({ id: s.id, title: s.title || "", subtitle: s.description || s.subtitle || "", imageUrl: s.imageUrl || "", bgColor: s.bgColor || "#16A34A", link: s.link || "/grocery" })) : [
+        { id: "1", title: "Free Delivery", subtitle: "On orders ₱1,000+", imageUrl: "", bgColor: "#16A34A", link: "/grocery" },
         { id: "2", title: "Laundry Pickup", subtitle: "We'll handle the rest", imageUrl: "", bgColor: "#1a56db", link: "/laundry" },
         { id: "3", title: "Home Services", subtitle: "Aircon, plumbing & more", imageUrl: "", bgColor: "#0d9488", link: "/services" },
       ])
-    })
-    getAllPartners().then((p) => setPartners(p.filter((x) => x.status === "active")))
-    getDocs(query(collection(db, "platformPromos"), where("active", "==", true))).then((snap) => {
-      setPromos(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
-    })
+    }).catch(() => {})
+    fetch("/api/promos").then(r => r.ok ? r.json() : []).then(setPromos).catch(() => {})
+    fetch("/api/users?role=partner").then(r => r.ok ? r.json() : []).then((p: any[]) => setPartners(p.filter(x => x.status === "active"))).catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -159,7 +142,13 @@ export default function HomePage() {
 
   const unread = notifications.filter((n) => !n.read).length
 
-  const selectAddress = (addr: SavedAddress) => {
+  const markAllRead = () => {
+    if (!user) return
+    fetch("/api/notifications", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "markAllRead", recipientType: "customer", recipientId: user.id }) })
+      .then(() => setNotifications(n => n.map(x => ({ ...x, read: true }))))
+  }
+
+  const selectAddress = (addr: any) => {
     setAddress(addr.address)
     localStorage.setItem("user_location", JSON.stringify({ address: addr.address, lat: addr.lat, lng: addr.lng }))
     setShowAddressModal(false)
@@ -186,10 +175,10 @@ export default function HomePage() {
   const saveNewAddress = async () => {
     if (!newAddr.address.trim()) return
     setSavingAddr(true)
-    const entry: SavedAddress = { id: Date.now().toString(), label: newAddr.label, address: newAddr.address, lat: newAddr.lat, lng: newAddr.lng }
+    const entry = { id: Date.now().toString(), label: newAddr.label, address: newAddr.address, lat: newAddr.lat, lng: newAddr.lng }
     const updated = [...savedAddresses, entry]
     setSavedAddresses(updated)
-    if (user) await updateCustomerProfile(user.uid, { savedAddresses: updated })
+    if (user) await fetch("/api/users/me", { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` }, body: JSON.stringify({ savedAddresses: updated }) })
     selectAddress(entry)
     setAddingNew(false)
     setNewAddr({ label: "Home", address: "", lat: 0, lng: 0 })
@@ -197,19 +186,19 @@ export default function HomePage() {
   }
 
   const deleteAddress = async (id: string) => {
-    const updated = savedAddresses.filter((a) => a.id !== id)
+    const updated = savedAddresses.filter((a: any) => a.id !== id)
     setSavedAddresses(updated)
-    if (user) await updateCustomerProfile(user.uid, { savedAddresses: updated })
+    if (user) await fetch("/api/users/me", { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` }, body: JSON.stringify({ savedAddresses: updated }) })
   }
 
   return (
-    <main className="min-h-screen bg-[#fafafa]" suppressHydrationWarning>
+    <main className="min-h-screen bg-[#F4F5F7]" suppressHydrationWarning>
       {/* ═══ DESKTOP HEADER ═══ */}
-      <header className="bg-[#D62828] sticky top-0 z-50">
+      <header className="bg-[#16A34A] sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           {/* Desktop top bar */}
           <div className="hidden md:flex items-center justify-between py-4">
-            <a href="/" className="text-white font-black text-xl">88 Seven</a>
+            <a href="/" className="text-white font-black text-2xl tracking-tight">Payroo</a>
             <div className="flex-1 max-w-xl mx-8">
               <a href="/grocery" className="flex items-center gap-2 bg-white rounded-lg px-4 py-2.5">
                 <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
@@ -224,7 +213,7 @@ export default function HomePage() {
               <div className="relative">
                 <button onClick={() => setShowNotifs(!showNotifs)} className="relative text-white">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-                  {mounted && unread > 0 && <span className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 text-[#1a1a2e] text-[9px] font-bold rounded-full flex items-center justify-center">{unread}</span>}
+                  {mounted && unread > 0 && <span className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 text-[#1F2937] text-[9px] font-bold rounded-full flex items-center justify-center">{unread}</span>}
                 </button>
               </div>
               <a href="/account" className="flex items-center gap-2 bg-white/10 hover:bg-white/20 rounded-lg px-3 py-2 text-white text-sm transition-colors">
@@ -248,7 +237,7 @@ export default function HomePage() {
               <div className="flex items-center gap-3 ml-3">
                 <button onClick={() => setShowNotifs(!showNotifs)} className="relative">
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-                  {mounted && unread > 0 && <span className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 text-[#1a1a2e] text-[9px] font-bold rounded-full flex items-center justify-center">{unread}</span>}
+                  {mounted && unread > 0 && <span className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 text-[#1F2937] text-[9px] font-bold rounded-full flex items-center justify-center">{unread}</span>}
                 </button>
                 <a href="/account" className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
@@ -269,12 +258,12 @@ export default function HomePage() {
           <div className="absolute right-4 md:right-auto md:left-1/2 md:-translate-x-1/2 top-full mt-1 w-72 md:w-80 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 overflow-hidden">
             <div className="px-4 py-2 border-b flex items-center justify-between bg-gray-50">
               <span className="text-xs font-bold">Notifications</span>
-              {mounted && unread > 0 && user && <button onClick={() => markAllNotificationsRead("customer", user.uid)} className="text-[10px] text-[#D62828] font-bold">Mark read</button>}
+              {mounted && unread > 0 && user && <button onClick={markAllRead} className="text-[10px] text-[#16A34A] font-bold">Mark read</button>}
             </div>
             <div className="max-h-60 overflow-y-auto">
               {notifications.length === 0 ? <p className="p-4 text-xs text-gray-400 text-center">No notifications</p> : (
                 notifications.slice(0, 8).map((n) => (
-                  <div key={n.id} className={`px-4 py-2.5 border-b border-gray-50 ${!n.read ? "bg-red-50" : ""}`}>
+                  <div key={n.id} className={`px-4 py-2.5 border-b border-gray-50 ${!n.read ? "bg-green-50" : ""}`}>
                     <p className="text-[11px] font-bold text-gray-800">{n.title}</p>
                     <p className="text-[10px] text-gray-500">{n.message}</p>
                   </div>
@@ -294,7 +283,7 @@ export default function HomePage() {
             <div
               className="relative rounded-2xl overflow-hidden shadow-md h-[150px] md:h-[320px]"
               style={{
-                backgroundColor: banners[currentBanner]?.bgColor || "#D62828",
+                backgroundColor: banners[currentBanner]?.bgColor || "#16A34A",
                 backgroundImage: banners[currentBanner]?.imageUrl
                   ? `linear-gradient(to right,rgba(0,0,0,0.6),rgba(0,0,0,0.15)),url(${banners[currentBanner].imageUrl})`
                   : undefined,
@@ -326,13 +315,13 @@ export default function HomePage() {
               <a
                 key={s.id}
                 href={s.available ? s.href : undefined}
-                className={`flex flex-col items-center ${!s.available ? "opacity-40" : "hover:scale-105 transition-transform"}`}
+                className={`relative flex flex-col items-center ${!s.available ? "opacity-60" : "hover:scale-105 transition-transform"}`}
               >
-                <div className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center text-2xl md:text-3xl ${s.color} shadow-sm`}>
-                  {s.icon}
+                {!s.available && <span className="absolute -top-1 left-1/2 -translate-x-1/2 z-10 bg-yellow-400 text-[#1F2937] text-[6px] font-bold px-1 py-[1px] rounded-sm whitespace-nowrap leading-tight">SOON</span>}
+                <div className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center ${s.color} shadow-sm`}>
+                  <img src={s.icon} alt={s.name} className="w-9 h-9 md:w-10 md:h-10 object-contain" />
                 </div>
                 <span className="text-[11px] md:text-xs text-gray-700 font-medium mt-1.5 text-center leading-tight">{s.name}</span>
-                {!s.available && <span className="text-[8px] md:text-[9px] text-gray-400 font-bold">SOON</span>}
               </a>
             ))}
           </div>
@@ -342,7 +331,7 @@ export default function HomePage() {
         <div className="mt-6 md:mt-8">
           <h2 className="hidden md:block font-bold text-lg text-gray-800 mb-4">Quick Order</h2>
           <div className="flex md:grid md:grid-cols-3 gap-3 md:gap-5 overflow-x-auto md:overflow-visible scrollbar-hide pb-1">
-            <a href="/grocery" className="flex-shrink-0 w-[70%] md:w-auto bg-gradient-to-br from-red-500 to-red-600 rounded-2xl p-4 md:p-6 text-white relative overflow-hidden hover:shadow-lg transition-shadow">
+            <a href="/grocery" className="flex-shrink-0 w-[70%] md:w-auto bg-gradient-to-br from-green-500 to-green-700 rounded-2xl p-4 md:p-6 text-white relative overflow-hidden hover:shadow-lg transition-shadow">
               <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-white/10 rounded-full" />
               <p className="text-[10px] md:text-xs font-bold uppercase opacity-70">Same-day delivery</p>
               <p className="text-lg md:text-xl font-black mt-1">Grocery</p>
@@ -378,7 +367,7 @@ export default function HomePage() {
                       <p className="font-bold text-sm text-gray-800">{p.title}</p>
                       {p.description && <p className="text-[10px] md:text-xs text-gray-400 mt-0.5">{p.description}</p>}
                     </div>
-                    <div className="bg-[#D62828] text-white text-lg font-black w-12 h-12 rounded-full flex items-center justify-center">
+                    <div className="bg-[#16A34A] text-white text-lg font-black w-12 h-12 rounded-full flex items-center justify-center">
                       {p.discountPercent}%
                     </div>
                   </div>
@@ -393,7 +382,7 @@ export default function HomePage() {
           <div className="mt-6 md:mt-10">
             <div className="flex items-center justify-between mb-3 md:mb-4">
               <h2 className="font-bold text-sm md:text-lg text-gray-800">🧺 Laundry Partners</h2>
-              <a href="/laundry" className="text-[11px] md:text-sm text-[#D62828] font-bold">See All</a>
+              <a href="/laundry" className="text-[11px] md:text-sm text-[#16A34A] font-bold">See All</a>
             </div>
             <div className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide pb-1">
               {partners.map((p) => (
@@ -412,13 +401,13 @@ export default function HomePage() {
         <div className="mt-8 md:mt-12">
           <h2 className="font-bold text-sm md:text-lg text-gray-800 mb-3 md:mb-5">How it works</h2>
           <div className="grid grid-cols-3 gap-3 md:gap-6">
-            {[
-              { step: "1", title: "Choose", desc: "Pick a service", icon: "👆" },
-              { step: "2", title: "Order", desc: "Add items & pay", icon: "🛒" },
-              { step: "3", title: "Enjoy", desc: "Delivered fast", icon: "🚀" },
+            [
+              { step: "1", title: "Choose", desc: "Pick a service", icon: "https://img.icons8.com/3d-fluency/94/finger.png" },
+              { step: "2", title: "Order", desc: "Add items & pay", icon: "https://img.icons8.com/3d-fluency/94/shopping-cart.png" },
+              { step: "3", title: "Enjoy", desc: "Delivered fast", icon: "https://img.icons8.com/3d-fluency/94/rocket.png" },
             ].map((s) => (
               <div key={s.step} className="bg-white rounded-xl p-3 md:p-6 border border-gray-100 text-center hover:shadow-md transition-shadow">
-                <span className="text-2xl md:text-4xl">{s.icon}</span>
+                <img src={s.icon} alt={s.title} className="w-10 h-10 md:w-14 md:h-14 mx-auto object-contain" />
                 <p className="font-bold text-xs md:text-base text-gray-800 mt-1 md:mt-2">{s.title}</p>
                 <p className="text-[10px] md:text-sm text-gray-400">{s.desc}</p>
               </div>
@@ -431,16 +420,16 @@ export default function HomePage() {
           <div className="bg-white rounded-xl p-4 md:p-8 border border-gray-100">
             <div className="md:flex md:items-center md:justify-between">
               <div className="flex items-center justify-center md:justify-start mb-1 md:mb-0">
-                <a href="/" className="font-black text-sm md:text-lg text-gray-800">88 Seven</a>
+                <a href="/" className="font-black text-sm md:text-lg text-gray-800 tracking-tight">Payroo</a>
               </div>
-              <p className="text-[10px] md:text-sm text-gray-400 text-center md:text-right">Your everyday super app — Lapu-Lapu City, Cebu</p>
+              <p className="text-[10px] md:text-sm text-gray-400 text-center md:text-right">Your everyday super app</p>
             </div>
             <div className="hidden md:flex items-center justify-center gap-8 mt-6 pt-6 border-t border-gray-100">
-              <a href="/grocery" className="text-sm text-gray-500 hover:text-[#D62828] transition-colors">Grocery</a>
-              <a href="/laundry" className="text-sm text-gray-500 hover:text-[#D62828] transition-colors">Laundry</a>
-              <a href="/services" className="text-sm text-gray-500 hover:text-[#D62828] transition-colors">Services</a>
-              <a href="/account" className="text-sm text-gray-500 hover:text-[#D62828] transition-colors">My Account</a>
-              <a href="/auth" className="text-sm text-gray-500 hover:text-[#D62828] transition-colors">Sign In</a>
+              <a href="/grocery" className="text-sm text-gray-500 hover:text-[#16A34A] transition-colors">Grocery</a>
+              <a href="/laundry" className="text-sm text-gray-500 hover:text-[#16A34A] transition-colors">Laundry</a>
+              <a href="/services" className="text-sm text-gray-500 hover:text-[#16A34A] transition-colors">Services</a>
+              <a href="/account" className="text-sm text-gray-500 hover:text-[#16A34A] transition-colors">My Account</a>
+              <a href="/auth" className="text-sm text-gray-500 hover:text-[#16A34A] transition-colors">Sign In</a>
             </div>
           </div>
         </div>
@@ -456,12 +445,12 @@ export default function HomePage() {
               <button onClick={() => { setShowAddressModal(false); setAddingNew(false) }} className="text-gray-400 text-2xl leading-none">&times;</button>
             </div>
             <div className="px-5 py-4 max-h-[75vh] overflow-y-auto space-y-3">
-              <button onClick={() => { detectLocation(); setShowAddressModal(false) }} className="w-full flex items-center gap-3 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
-                <div className="w-9 h-9 bg-[#D62828] rounded-full flex items-center justify-center shrink-0">
+              <button onClick={() => { detectLocation(); setShowAddressModal(false) }} className="w-full flex items-center gap-3 bg-green-50 border border-green-100 rounded-xl px-4 py-3">
+                <div className="w-9 h-9 bg-[#16A34A] rounded-full flex items-center justify-center shrink-0">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 </div>
                 <div className="text-left">
-                  <p className="text-sm font-bold text-[#D62828]">Use current location</p>
+                  <p className="text-sm font-bold text-[#16A34A]">Use current location</p>
                   <p className="text-[11px] text-gray-400">Detect via GPS</p>
                 </div>
               </button>
@@ -471,17 +460,22 @@ export default function HomePage() {
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Saved Addresses</p>
                   <div className="space-y-2">
                     {savedAddresses.map((addr) => {
-                      const icons: Record<string, string> = { Home: "🏠", Office: "🏢", Work: "💼", Other: "📍" }
+                      const icons: Record<string, string> = {
+                        Home: "https://img.icons8.com/3d-fluency/94/home.png",
+                        Office: "https://img.icons8.com/3d-fluency/94/office-building.png",
+                        Work: "https://img.icons8.com/3d-fluency/94/briefcase.png",
+                        Other: "https://img.icons8.com/3d-fluency/94/map-pin.png",
+                      }
                       const active = address === addr.address
                       return (
-                        <div key={addr.id} onClick={() => selectAddress(addr)} className={`flex items-center gap-3 border rounded-xl px-4 py-3 cursor-pointer transition-colors ${active ? "border-[#D62828] bg-red-50" : "border-gray-200"}`}>
-                          <span className="text-xl shrink-0">{icons[addr.label] || "📍"}</span>
+                        <div key={addr.id} onClick={() => selectAddress(addr)} className={`flex items-center gap-3 border rounded-xl px-4 py-3 cursor-pointer transition-colors ${active ? "border-[#16A34A] bg-green-50" : "border-gray-200"}`}>
+                          <img src={icons[addr.label] || icons.Other} alt={addr.label} className="w-7 h-7 shrink-0 object-contain" />
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-bold text-gray-800">{addr.label}</p>
                             <p className="text-[11px] text-gray-500 truncate">{addr.address}</p>
                           </div>
-                          {active && <span className="w-2 h-2 bg-[#D62828] rounded-full shrink-0" />}
-                          <button onClick={(e) => { e.stopPropagation(); deleteAddress(addr.id) }} className="text-gray-300 hover:text-red-400 text-xl leading-none shrink-0">&times;</button>
+                          {active && <span className="w-2 h-2 bg-[#16A34A] rounded-full shrink-0" />}
+                          <button onClick={(e) => { e.stopPropagation(); deleteAddress(addr.id) }} className="text-gray-300 hover:text-green-400 text-xl leading-none shrink-0">&times;</button>
                         </div>
                       )
                     })}
@@ -490,7 +484,7 @@ export default function HomePage() {
               )}
 
               {!addingNew ? (
-                <button onClick={() => setAddingNew(true)} className="w-full flex items-center gap-3 border-2 border-dashed border-gray-200 rounded-xl px-4 py-3 hover:border-[#D62828] transition-colors">
+                <button onClick={() => setAddingNew(true)} className="w-full flex items-center gap-3 border-2 border-dashed border-gray-200 rounded-xl px-4 py-3 hover:border-[#16A34A] transition-colors">
                   <div className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center shrink-0">
                     <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                   </div>
@@ -500,25 +494,33 @@ export default function HomePage() {
                 <div className="border border-gray-200 rounded-xl p-4 space-y-3">
                   <p className="text-xs font-bold text-gray-700">New Address</p>
                   <div className="grid grid-cols-4 gap-2">
-                    {["Home", "Office", "Work", "Other"].map((lbl) => (
-                      <button key={lbl} onClick={() => setNewAddr((p) => ({ ...p, label: lbl }))} className={`py-2 rounded-lg text-xs font-bold border transition-colors ${newAddr.label === lbl ? "bg-[#D62828] text-white border-[#D62828]" : "bg-white text-gray-600 border-gray-200"}`}>
-                        {lbl === "Home" ? "🏠" : lbl === "Office" ? "🏢" : lbl === "Work" ? "💼" : "📍"}<br />{lbl}
+                    {(["Home", "Office", "Work", "Other"] as const).map((lbl) => {
+                      const lblIcons: Record<string, string> = {
+                        Home: "https://img.icons8.com/3d-fluency/94/home.png",
+                        Office: "https://img.icons8.com/3d-fluency/94/office-building.png",
+                        Work: "https://img.icons8.com/3d-fluency/94/briefcase.png",
+                        Other: "https://img.icons8.com/3d-fluency/94/map-pin.png",
+                      }
+                      return (
+                      <button key={lbl} onClick={() => setNewAddr((p) => ({ ...p, label: lbl }))} className={`py-2 rounded-lg text-xs font-bold border transition-colors ${newAddr.label === lbl ? "bg-[#16A34A] text-white border-[#16A34A]" : "bg-white text-gray-600 border-gray-200"}`}>
+                        <img src={lblIcons[lbl]} alt={lbl} className="w-5 h-5 mx-auto mb-0.5 object-contain" />{lbl}
                       </button>
-                    ))}
+                      )
+                    })}
                   </div>
-                  <textarea placeholder="Enter full address..." value={newAddr.address} onChange={(e) => setNewAddr((p) => ({ ...p, address: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#D62828] resize-none" rows={2} />
+                  <textarea placeholder="Enter full address..." value={newAddr.address} onChange={(e) => setNewAddr((p) => ({ ...p, address: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#16A34A] resize-none" rows={2} />
                   <button onClick={detectForNew} disabled={locatingNew} className="w-full flex items-center justify-center gap-2 border border-dashed border-blue-300 bg-blue-50 text-blue-600 rounded-lg py-2 text-xs font-medium">
                     {locatingNew ? <><svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" /><path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></svg> Detecting...</> : "📍 Use current location"}
                   </button>
                   <div className="flex gap-2">
                     <button onClick={() => { setAddingNew(false); setNewAddr({ label: "Home", address: "", lat: 0, lng: 0 }) }} className="flex-1 border border-gray-200 text-gray-600 py-2.5 rounded-lg text-xs font-medium">Cancel</button>
-                    <button onClick={saveNewAddress} disabled={savingAddr || !newAddr.address.trim()} className="flex-1 bg-[#D62828] text-white py-2.5 rounded-lg text-xs font-bold disabled:opacity-40">{savingAddr ? "Saving..." : "Save Address"}</button>
+                    <button onClick={saveNewAddress} disabled={savingAddr || !newAddr.address.trim()} className="flex-1 bg-[#16A34A] text-white py-2.5 rounded-lg text-xs font-bold disabled:opacity-40">{savingAddr ? "Saving..." : "Save Address"}</button>
                   </div>
                 </div>
               )}
 
               {mounted && !user ? (
-                <p className="text-[11px] text-center text-gray-400 pb-2">📝 <a href="/auth" className="text-[#D62828] font-bold">Sign in</a> to save addresses across devices</p>
+                <p className="text-[11px] text-center text-gray-400 pb-2">📝 <a href="/auth" className="text-[#16A34A] font-bold">Sign in</a> to save addresses across devices</p>
               ) : null}
             </div>
           </div>
@@ -550,7 +552,7 @@ export default function HomePage() {
                 <span className="text-sm font-bold block leading-tight text-gray-800">{activeOrders.length} Active Order{activeOrders.length > 1 ? "s" : ""}</span>
                 <span className="text-[10px] text-gray-400">Tap to track</span>
               </div>
-              <div className="w-6 h-6 bg-[#D62828] rounded-full flex items-center justify-center ml-1">
+              <div className="w-6 h-6 bg-[#16A34A] rounded-full flex items-center justify-center ml-1">
                 <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" /></svg>
               </div>
             </button>
@@ -559,7 +561,7 @@ export default function HomePage() {
           {/* Expanded order tracker drawer */}
           {showOrderTracker && (
             <div className="fixed bottom-20 md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:w-96 z-[60] bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden animate-[slideUp_0.25s_ease-out]">
-              <div className="bg-[#D62828] px-4 py-3 flex items-center justify-between">
+              <div className="bg-[#16A34A] px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse" />
                   <span className="text-white font-bold text-sm">{activeOrders.length} Active Order{activeOrders.length > 1 ? "s" : ""}</span>
@@ -570,8 +572,8 @@ export default function HomePage() {
                 {activeOrders.map((order) => {
                   const statusLabel = order.status.replace(/_/g, " ")
                   const href = order.type === "grocery" ? `/order?id=${order.id}` : order.type === "laundry" ? "/laundry" : "/services"
-                  const icon = order.type === "grocery" ? "🛒" : order.type === "laundry" ? "🧳" : "🔧"
-                  const color = order.type === "grocery" ? "bg-red-50 text-red-700" : order.type === "laundry" ? "bg-blue-50 text-blue-700" : "bg-teal-50 text-teal-700"
+                  const icon = order.type === "grocery" ? "https://img.icons8.com/3d-fluency/94/shopping-cart.png" : order.type === "laundry" ? "https://img.icons8.com/3d-fluency/94/washing-machine.png" : "https://img.icons8.com/3d-fluency/94/maintenance.png"
+                  const color = order.type === "grocery" ? "bg-green-50 text-green-800" : order.type === "laundry" ? "bg-blue-50 text-blue-700" : "bg-teal-50 text-teal-700"
                   const progressStatuses: Record<string, number> = {
                     pending: 15, confirmed: 30, accepted: 30, preparing: 45, ready_for_pickup: 60, ready: 60,
                     rider_accepted: 65, rider_at_store: 70, rider_picked_up: 75, rider_to_laundromat: 50,
@@ -582,7 +584,7 @@ export default function HomePage() {
                   return (
                     <a key={`${order.type}-${order.id}`} href={href} className="block px-4 py-3 hover:bg-gray-50 transition-colors">
                       <div className="flex items-center gap-3">
-                        <span className="text-xl">{icon}</span>
+                        <img src={icon} alt={order.type} className="w-8 h-8 object-contain shrink-0" />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <p className="text-sm font-semibold text-gray-800 truncate">{order.name}</p>
@@ -590,7 +592,7 @@ export default function HomePage() {
                           </div>
                           {/* Progress bar */}
                           <div className="mt-1.5 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-[#D62828] rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
+                            <div className="h-full bg-[#16A34A] rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
                           </div>
                           <div className="flex items-center justify-between mt-1">
                             <p className="text-[10px] text-gray-400 capitalize">{order.type}</p>
@@ -604,7 +606,7 @@ export default function HomePage() {
                 })}
               </div>
               <div className="px-4 py-2.5 bg-gray-50 border-t border-gray-100">
-                <a href="/account" className="text-[11px] text-[#D62828] font-bold text-center block">View All Orders →</a>
+                <a href="/account" className="text-[11px] text-[#16A34A] font-bold text-center block">View All Orders →</a>
               </div>
             </div>
           )}
@@ -612,9 +614,9 @@ export default function HomePage() {
       )}
 
       {/* ═══ MOBILE BOTTOM NAV (hidden on desktop) ═══ */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-bottom">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-bottom" suppressHydrationWarning>
         <div className="max-w-lg mx-auto grid grid-cols-4 py-1.5">
-          <a href="/" className="flex flex-col items-center gap-0.5 py-1 text-[#D62828]">
+          <a href="/" className="flex flex-col items-center gap-0.5 py-1 text-[#16A34A]">
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
             <span className="text-[10px] font-bold">Home</span>
           </a>
@@ -622,9 +624,9 @@ export default function HomePage() {
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" /></svg>
             <span className="text-[10px] font-medium">Grocery</span>
           </a>
-          <a href="/account" className="flex flex-col items-center gap-0.5 py-1 text-gray-400">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-            <span className="text-[10px] font-medium">Orders</span>
+          <a href="/laundry" className="flex flex-col items-center gap-0.5 py-1 text-gray-400">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+            <span className="text-[10px] font-medium">Laundry</span>
           </a>
           <a href="/account" className="flex flex-col items-center gap-0.5 py-1 text-gray-400">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
@@ -639,13 +641,13 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => { setShowInstall(false); sessionStorage.setItem("install-dismissed", "1") }} />
           <div className="relative bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl animate-[slideUp_0.3s_ease-out]">
             {/* Header gradient */}
-            <div className="bg-gradient-to-br from-[#D62828] to-[#8B0000] px-6 pt-8 pb-12 text-center relative overflow-hidden">
+            <div className="bg-gradient-to-br from-[#16A34A] to-[#15803d] px-6 pt-8 pb-12 text-center relative overflow-hidden">
               <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/5 rounded-full" />
               <div className="absolute -left-6 -bottom-10 w-28 h-28 bg-white/5 rounded-full" />
               <div className="w-16 h-16 bg-white rounded-2xl shadow-xl flex items-center justify-center mx-auto mb-4 relative">
-                <span className="text-[#D62828] font-black text-lg">88</span>
+                <span className="text-[#16A34A] font-black text-lg tracking-tight">P</span>
               </div>
-              <h2 className="text-white font-black text-xl">Install 88 Seven</h2>
+              <h2 className="text-white font-black text-xl tracking-tight">Install Payroo</h2>
               <p className="text-white/70 text-xs mt-1">Get the full app experience</p>
             </div>
 
@@ -653,13 +655,13 @@ export default function HomePage() {
             <div className="px-6 -mt-6 relative">
               <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-3">
                 {[
-                  { icon: "⚡", text: "Faster loading & instant access" },
-                  { icon: "🔔", text: "Order notifications & updates" },
-                  { icon: "📱", text: "Works offline — like a native app" },
-                  { icon: "🏠", text: "Launch from your home screen" },
+                  { icon: "https://img.icons8.com/3d-fluency/94/lightning-bolt.png", text: "Faster loading & instant access" },
+                  { icon: "https://img.icons8.com/3d-fluency/94/appointment-reminders.png", text: "Order notifications & updates" },
+                  { icon: "https://img.icons8.com/3d-fluency/94/iphone.png", text: "Works offline — like a native app" },
+                  { icon: "https://img.icons8.com/3d-fluency/94/home.png", text: "Launch from your home screen" },
                 ].map((b) => (
                   <div key={b.text} className="flex items-center gap-3">
-                    <span className="text-lg">{b.icon}</span>
+                    <img src={b.icon} alt="" className="w-8 h-8 object-contain shrink-0" />
                     <p className="text-sm text-gray-700">{b.text}</p>
                   </div>
                 ))}
@@ -676,7 +678,7 @@ export default function HomePage() {
                     if (outcome === "accepted") setShowInstall(false)
                     setDeferredPrompt(null)
                   }}
-                  className="w-full bg-[#D62828] text-white py-3.5 rounded-xl font-bold text-sm hover:bg-[#b71c1c] transition-colors shadow-lg shadow-red-200 flex items-center justify-center gap-2"
+                  className="w-full bg-[#FF8A00] text-white py-3.5 rounded-xl font-bold text-sm hover:bg-[#e07800] transition-colors shadow-lg shadow-orange-200 flex items-center justify-center gap-2"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                   Install App

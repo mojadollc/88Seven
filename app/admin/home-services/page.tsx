@@ -1,9 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, orderBy, query } from "firebase/firestore"
+import { ResetPasswordModal } from "@/app/admin/components/ResetPasswordModal"
 
-const db = getFirestore()
 
 type HeroSlide = {
   id: string
@@ -30,7 +29,7 @@ type ServiceProvider = {
 }
 
 export default function AdminHomeServicesPage() {
-  const [tab, setTab] = useState<"sliders" | "providers">("sliders")
+  const [tab, setTab] = useState<"sliders" | "providers" | "registered">("registered")
 
   // Sliders
   const [slides, setSlides] = useState<HeroSlide[]>([])
@@ -45,29 +44,27 @@ export default function AdminHomeServicesPage() {
   const [providerForm, setProviderForm] = useState({ name: "", phone: "", skills: "", bio: "", rating: 0, completedJobs: 0, photoUrl: "", available: true })
 
   const [loading, setLoading] = useState(true)
+  const [resetEmail, setResetEmail] = useState<string | null>(null)
+  const [homeProviders, setHomeProviders] = useState<any[]>([])
 
   useEffect(() => { loadAll() }, [])
 
   const loadAll = async () => {
-    const [slidesSnap, providersSnap] = await Promise.all([
-      getDocs(query(collection(db, "homeServiceSlides"), orderBy("order"))),
-      getDocs(collection(db, "serviceProviders")),
-    ])
-    setSlides(slidesSnap.docs.map((d) => ({ id: d.id, ...d.data() }) as HeroSlide))
-    setProviders(providersSnap.docs.map((d) => ({ id: d.id, ...d.data() }) as ServiceProvider))
+    const hp = await fetch("/api/users?role=provider").then(r => r.json())
+    setSlides([])
+    setProviders([])
+    setHomeProviders(hp)
     setLoading(false)
   }
 
-  // Slide CRUD
   const saveSlide = async () => {
     if (!slideForm.title) return
     if (editingSlide) {
-      await updateDoc(doc(db, "homeServiceSlides", editingSlide.id), slideForm)
+      await fetch(`/api/hero-slides/${editingSlide.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(slideForm) })
     } else {
-      await addDoc(collection(db, "homeServiceSlides"), slideForm)
+      await fetch("/api/hero-slides", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(slideForm) })
     }
-    setShowSlideForm(false)
-    setEditingSlide(null)
+    setShowSlideForm(false); setEditingSlide(null)
     setSlideForm({ title: "", subtitle: "", bg: "from-teal-600 to-emerald-700", cta: "Book Now", ctaLink: "/services", icon: "🛠️", order: 0, enabled: true })
     await loadAll()
   }
@@ -80,26 +77,24 @@ export default function AdminHomeServicesPage() {
 
   const deleteSlide = async (id: string) => {
     if (!confirm("Delete this slide?")) return
-    await deleteDoc(doc(db, "homeServiceSlides", id))
+    await fetch(`/api/hero-slides/${id}`, { method: "DELETE" })
     await loadAll()
   }
 
   const toggleSlide = async (s: HeroSlide) => {
-    await updateDoc(doc(db, "homeServiceSlides", s.id), { enabled: !s.enabled })
+    await fetch(`/api/hero-slides/${s.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled: !s.enabled }) })
     setSlides((prev) => prev.map((x) => x.id === s.id ? { ...x, enabled: !x.enabled } : x))
   }
 
-  // Provider CRUD
   const saveProvider = async () => {
     if (!providerForm.name || !providerForm.phone) return
     const data = { ...providerForm, skills: providerForm.skills.split(",").map((s) => s.trim()).filter(Boolean) }
     if (editingProvider) {
-      await updateDoc(doc(db, "serviceProviders", editingProvider.id), data)
+      await fetch(`/api/providers/${editingProvider.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
     } else {
-      await addDoc(collection(db, "serviceProviders"), data)
+      await fetch("/api/providers", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
     }
-    setShowProviderForm(false)
-    setEditingProvider(null)
+    setShowProviderForm(false); setEditingProvider(null)
     setProviderForm({ name: "", phone: "", skills: "", bio: "", rating: 0, completedJobs: 0, photoUrl: "", available: true })
     await loadAll()
   }
@@ -112,12 +107,12 @@ export default function AdminHomeServicesPage() {
 
   const deleteProvider = async (id: string) => {
     if (!confirm("Delete this provider?")) return
-    await deleteDoc(doc(db, "serviceProviders", id))
+    await fetch(`/api/providers/${id}`, { method: "DELETE" })
     await loadAll()
   }
 
   const toggleProvider = async (p: ServiceProvider) => {
-    await updateDoc(doc(db, "serviceProviders", p.id), { available: !p.available })
+    await fetch(`/api/providers/${p.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ available: !p.available }) })
     setProviders((prev) => prev.map((x) => x.id === p.id ? { ...x, available: !x.available } : x))
   }
 
@@ -125,10 +120,10 @@ export default function AdminHomeServicesPage() {
     <>
       <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-20">
         <div className="flex items-center justify-between">
-          <h1 className="text-lg font-bold text-[#1a1a2e]">Home Services</h1>
+          <h1 className="text-lg font-bold text-[#1F2937]">Home Services</h1>
           <button
             onClick={() => tab === "sliders" ? (() => { setEditingSlide(null); setSlideForm({ title: "", subtitle: "", bg: "from-teal-600 to-emerald-700", cta: "Book Now", ctaLink: "/services", icon: "🛠️", order: slides.length + 1, enabled: true }); setShowSlideForm(true) })() : (() => { setEditingProvider(null); setProviderForm({ name: "", phone: "", skills: "", bio: "", rating: 0, completedJobs: 0, photoUrl: "", available: true }); setShowProviderForm(true) })()}
-            className="text-xs bg-[#D62828] text-white px-4 py-2 rounded-lg font-bold"
+            className="text-xs bg-[#16A34A] text-white px-4 py-2 rounded-lg font-bold"
           >
             + Add {tab === "sliders" ? "Slide" : "Provider"}
           </button>
@@ -138,15 +133,57 @@ export default function AdminHomeServicesPage() {
       <div className="p-6">
         {/* Tabs */}
         <div className="flex gap-2 mb-6">
-          <button onClick={() => setTab("sliders")} className={`px-5 py-2.5 text-sm rounded-lg font-medium transition-colors ${tab === "sliders" ? "bg-[#D62828] text-white" : "bg-white border border-gray-200 text-gray-600"}`}>
+          <button onClick={() => setTab("registered")} className={`px-5 py-2.5 text-sm rounded-lg font-medium transition-colors ${tab === "registered" ? "bg-[#16A34A] text-white" : "bg-white border border-gray-200 text-gray-600"}`}>
+            Registered Providers
+          </button>
+          <button onClick={() => setTab("sliders")} className={`px-5 py-2.5 text-sm rounded-lg font-medium transition-colors ${tab === "sliders" ? "bg-[#16A34A] text-white" : "bg-white border border-gray-200 text-gray-600"}`}>
             Banner Sliders
           </button>
-          <button onClick={() => setTab("providers")} className={`px-5 py-2.5 text-sm rounded-lg font-medium transition-colors ${tab === "providers" ? "bg-[#D62828] text-white" : "bg-white border border-gray-200 text-gray-600"}`}>
-            Service Providers
+          <button onClick={() => setTab("providers")} className={`px-5 py-2.5 text-sm rounded-lg font-medium transition-colors ${tab === "providers" ? "bg-[#16A34A] text-white" : "bg-white border border-gray-200 text-gray-600"}`}>
+            Legacy Providers
           </button>
         </div>
 
         {loading && <div className="text-center py-10 text-gray-400">Loading...</div>}
+
+        {/* REGISTERED PROVIDERS TAB */}
+        {!loading && tab === "registered" && (
+          <div className="space-y-3">
+            {homeProviders.length === 0 ? (
+              <div className="text-center py-16 bg-white rounded-xl border border-gray-100">
+                <p className="text-gray-400 text-sm">No registered providers yet</p>
+              </div>
+            ) : homeProviders.map((hp) => (
+              <div key={hp.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center overflow-hidden">
+                      {hp.logoUrl ? <img src={hp.logoUrl} className="w-full h-full object-cover" /> : <span className="text-lg font-bold text-blue-600">{hp.shopName.charAt(0)}</span>}
+                    </div>
+                    <div>
+                      <p className="font-bold text-sm text-gray-800">{hp.shopName}</p>
+                      <p className="text-xs text-gray-400">{hp.ownerName} • {hp.phone} • {hp.email}</p>
+                      {hp.skills && hp.skills.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {hp.skills.map((s: any) => <span key={s} className="text-[9px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">{s}</span>)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${hp.status === "active" ? "bg-green-100 text-green-700" : hp.status === "pending" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-500"}`}>{hp.status}</span>
+                  </div>
+                </div>
+                <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
+                  {hp.status === "pending" && <button onClick={async () => { await fetch(`/api/providers/${hp.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "active" }) }); await loadAll() }} className="text-xs bg-green-500 text-white px-3 py-1.5 rounded-lg font-bold">✓ Approve</button>}
+                  {hp.status === "active" && <button onClick={async () => { await fetch(`/api/providers/${hp.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "inactive" }) }); await loadAll() }} className="text-xs border border-gray-200 text-gray-600 px-3 py-1.5 rounded-lg font-medium">Deactivate</button>}
+                  {hp.status === "inactive" && <button onClick={async () => { await fetch(`/api/providers/${hp.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "active" }) }); await loadAll() }} className="text-xs bg-green-500 text-white px-3 py-1.5 rounded-lg font-bold">Reactivate</button>}
+                  <button onClick={() => setResetEmail(hp.email)} className="text-xs bg-orange-100 text-orange-700 px-3 py-1.5 rounded-lg font-medium hover:bg-orange-200">🔑 Reset Password</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* SLIDERS TAB */}
         {!loading && tab === "sliders" && (
@@ -172,7 +209,7 @@ export default function AdminHomeServicesPage() {
                       <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${slide.enabled ? "translate-x-5" : ""}`} />
                     </button>
                     <button onClick={() => editSlide(slide)} className="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold">Edit</button>
-                    <button onClick={() => deleteSlide(slide.id)} className="text-[10px] bg-red-100 text-red-700 px-2 py-1 rounded font-bold">Del</button>
+                    <button onClick={() => deleteSlide(slide.id)} className="text-[10px] bg-green-100 text-green-800 px-2 py-1 rounded font-bold">Del</button>
                   </div>
                 </div>
               </div>
@@ -212,7 +249,7 @@ export default function AdminHomeServicesPage() {
                       <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${p.available ? "translate-x-5" : ""}`} />
                     </button>
                     <button onClick={() => editProvider(p)} className="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold">Edit</button>
-                    <button onClick={() => deleteProvider(p.id)} className="text-[10px] bg-red-100 text-red-700 px-2 py-1 rounded font-bold">Del</button>
+                    <button onClick={() => deleteProvider(p.id)} className="text-[10px] bg-green-100 text-green-800 px-2 py-1 rounded font-bold">Del</button>
                   </div>
                 </div>
               </div>
@@ -253,7 +290,7 @@ export default function AdminHomeServicesPage() {
                 <select value={slideForm.bg} onChange={(e) => setSlideForm({ ...slideForm, bg: e.target.value })} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm mt-1 outline-none focus:border-teal-600">
                   <option value="from-teal-600 to-emerald-700">Teal → Emerald</option>
                   <option value="from-blue-600 to-indigo-700">Blue → Indigo</option>
-                  <option value="from-orange-500 to-red-600">Orange → Red</option>
+                  <option value="from-orange-500 to-green-700">Orange → Red</option>
                   <option value="from-purple-600 to-pink-600">Purple → Pink</option>
                   <option value="from-green-600 to-teal-700">Green → Teal</option>
                   <option value="from-gray-800 to-gray-900">Dark</option>
@@ -331,6 +368,8 @@ export default function AdminHomeServicesPage() {
           </div>
         </div>
       )}
+
+      {resetEmail && <ResetPasswordModal email={resetEmail} onClose={() => setResetEmail(null)} />}
     </>
   )
 }

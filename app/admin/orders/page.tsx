@@ -1,10 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { onOrdersUpdate, updateOrderStatus, assignDriver, getDrivers, getDeliverySettings, findNearestOnlineDriver, notifyOrderConfirmed, notifyOrderPreparing, notifyOrderOutForDelivery, notifyOrderDelivered, type Order, type OrderStatus, type OrderItem, type Driver, type DeliverySettings } from "@/lib/firebase"
-import { getFirestore, doc, updateDoc, serverTimestamp } from "firebase/firestore"
 
-const db = getFirestore()
+type OrderStatus = string
 
 const ADMIN_FLOW_STATUSES: OrderStatus[] = ["pending", "confirmed", "preparing", "ready_for_pickup", "rider_accepted", "rider_at_store", "rider_picked_up", "out_for_delivery", "delivered", "cancelled", "rejected"]
 
@@ -18,35 +16,37 @@ const STATUS_COLORS: Record<string, string> = {
   rider_picked_up: "bg-indigo-100 text-indigo-800",
   out_for_delivery: "bg-indigo-100 text-indigo-800",
   delivered: "bg-green-100 text-green-800",
-  cancelled: "bg-red-100 text-red-800",
-  rejected: "bg-red-100 text-red-800",
+  cancelled: "bg-green-100 text-green-900",
+  rejected: "bg-green-100 text-green-900",
 }
 
 type FilterTab = "incoming" | "active" | "completed" | "all"
 
 export default function AdminOrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([])
+  const [orders, setOrders] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<FilterTab>("incoming")
-  const [drivers, setDrivers] = useState<Driver[]>([])
+  const [drivers, setDrivers] = useState<any[]>([])
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null)
   const [riderFee, setRiderFee] = useState(30)
-  const [editingOrder, setEditingOrder] = useState<Order | null>(null)
-  const [editItems, setEditItems] = useState<OrderItem[]>([])
+  const [editingOrder, setEditingOrder] = useState<any>(null)
+  const [editItems, setEditItems] = useState<any[]>([])
 
   useEffect(() => {
-    getDrivers().then((data) => setDrivers(data.filter((d) => d.status === "active")))
-    getDeliverySettings().then((s) => setRiderFee(s.riderFeePerDelivery || 30))
-    const unsub = onOrdersUpdate((data) => {
+    fetch("/api/users?role=driver").then(r => r.json()).then((data: any[]) => setDrivers(data.filter(d => d.status === "active")))
+    fetch("/api/delivery-settings").then(r => r.json()).then((s: any) => setRiderFee(s.riderFeePerDelivery || 30))
+    const poll = () => fetch("/api/orders").then(r => r.json()).then((data: any[]) => {
       setOrders(data)
       setLoading(false)
     })
-    return () => unsub()
+    poll()
+    const iv = setInterval(poll, 8000)
+    return () => clearInterval(iv)
   }, [])
 
-  const handleStartEdit = (order: Order) => {
+  const handleStartEdit = (order: any) => {
     setEditingOrder(order)
-    setEditItems(order.items.map((item) => ({ ...item })))
+    setEditItems(order.items.map((item: any) => ({ ...item })))
   }
 
   const handleSaveEdit = async () => {
@@ -58,63 +58,62 @@ export default function AdminOrdersPage() {
     const note = oosItems.length > 0
       ? `Items out of stock: ${oosItems.map((i) => i.name).join(", ")}`
       : "Items updated by admin"
-    await updateDoc(doc(db, "orders", editingOrder.id), {
-      items: editItems,
-      total: newTotal,
-      notes: editingOrder.notes ? `${editingOrder.notes} | ${note}` : note,
-      updatedAt: serverTimestamp(),
+    await fetch(`/api/orders/${editingOrder.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items: editItems, total: newTotal, notes: editingOrder.notes ? `${editingOrder.notes} | ${note}` : note }),
     })
     setEditingOrder(null)
     setEditItems([])
   }
 
   const handleAccept = async (orderId: string) => {
-    await updateOrderStatus(orderId, "confirmed")
+    await fetch(`/api/orders/${orderId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "confirmed" }) })
   }
 
   const handleReject = async (orderId: string) => {
     if (!confirm("Reject this order?")) return
-    await updateOrderStatus(orderId, "rejected")
+    await fetch(`/api/orders/${orderId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "rejected" }) })
   }
 
   const handlePreparing = async (orderId: string) => {
-    await updateOrderStatus(orderId, "preparing")
+    await fetch(`/api/orders/${orderId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "preparing" }) })
   }
 
   const handleReady = async (orderId: string) => {
-    await updateOrderStatus(orderId, "ready_for_pickup")
+    await fetch(`/api/orders/${orderId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "ready_for_pickup" }) })
   }
 
   const handleAssignDriver = async (orderId: string, driverDocId: string) => {
     if (!driverDocId) {
-      await assignDriver(orderId, "", "")
+      await fetch(`/api/orders/${orderId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ driverId: "", driverName: "" }) })
       return
     }
     const driver = drivers.find((d) => d.id === driverDocId)
     if (!driver) return
-    await assignDriver(orderId, driver.id, driver.name)
+    await fetch(`/api/orders/${orderId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ driverId: driver.id, driverName: driver.name }) })
   }
 
-  const handleAutoAssignDriver = async (order: Order) => {
+  const handleAutoAssignDriver = async (order: any) => {
     const lat = order.deliveryLat || 0
     const lng = order.deliveryLng || 0
-    const nearest = await findNearestOnlineDriver(lat, lng)
+    const drivers2: any[] = await fetch("/api/users?role=driver").then(r => r.json())
+    const nearest = drivers2.find((d: any) => d.isOnline && d.status === "active") || null
     if (nearest) {
-      await assignDriver(order.id, nearest.id, nearest.name)
+      await fetch(`/api/orders/${order.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ driverId: nearest.id, driverName: nearest.name }) })
     } else {
       alert("No online riders available nearby.")
     }
   }
 
   const handleStatusChange = async (orderId: string, status: OrderStatus) => {
-    await updateOrderStatus(orderId, status)
+    await fetch(`/api/orders/${orderId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) })
     const order = orders.find((o) => o.id === orderId)
     if (order) {
       const customerId = (order as any).customerId
-      if (status === "confirmed" && customerId) await notifyOrderConfirmed(orderId, customerId)
-      if (status === "preparing" && customerId) await notifyOrderPreparing(orderId, customerId)
-      if (status === "out_for_delivery" && customerId && order.driverId) await notifyOrderOutForDelivery(orderId, customerId, order.driverId)
-      if (status === "delivered" && customerId) await notifyOrderDelivered(orderId, customerId)
+      if (status === "confirmed" && customerId) await fetch("/api/notifications", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ recipientType: "customer", recipientId: customerId, title: "Order Confirmed", message: "Your order has been confirmed", orderId }) })
+      if (status === "preparing" && customerId) await fetch("/api/notifications", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ recipientType: "customer", recipientId: customerId, title: "Preparing Your Order", message: "Your order is being prepared", orderId }) })
+      if (status === "delivered" && customerId) await fetch("/api/notifications", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ recipientType: "customer", recipientId: customerId, title: "Delivered!", message: "Your order has been delivered", orderId }) })
     }
   }
 
@@ -128,10 +127,10 @@ export default function AdminOrdersPage() {
     <>
       <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-20">
         <div className="flex items-center justify-between">
-          <h1 className="text-lg font-bold text-[#1a1a2e]">Order Management</h1>
+          <h1 className="text-lg font-bold text-[#1F2937]">Order Management</h1>
           <div className="flex items-center gap-2">
             {incoming.length > 0 && (
-              <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">
+              <span className="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">
                 {incoming.length} new
               </span>
             )}
@@ -155,7 +154,7 @@ export default function AdminOrdersPage() {
             <p className="text-xs text-gray-400">Delivered</p>
           </div>
           <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-            <p className="text-2xl font-bold text-[#1a1a2e]">{orders.length}</p>
+            <p className="text-2xl font-bold text-[#1F2937]">{orders.length}</p>
             <p className="text-xs text-gray-400">Total</p>
           </div>
         </div>
@@ -165,7 +164,7 @@ export default function AdminOrdersPage() {
           const delivered = orders.filter((o) => o.status === "delivered")
           const today = new Date(); today.setHours(0, 0, 0, 0)
           const todayDelivered = delivered.filter((o) => {
-            const d = o.deliveredAt?.toDate?.() || o.updatedAt?.toDate?.()
+            const d = o.deliveredAt || o.updatedAt
             return d && d >= today
           })
           const totalRevenue = delivered.reduce((s, o) => s + o.total, 0)
@@ -213,7 +212,7 @@ export default function AdminOrdersPage() {
               key={key}
               onClick={() => setTab(key)}
               className={`px-4 py-2 text-xs rounded-lg whitespace-nowrap font-medium transition-colors ${
-                tab === key ? "bg-[#D62828] text-white" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
+                tab === key ? "bg-[#16A34A] text-white" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
               }`}
             >
               {label}
@@ -243,10 +242,10 @@ export default function AdminOrdersPage() {
                       {order.status.replace(/_/g, " ")}
                     </span>
                     <span className="text-xs text-gray-400 font-mono">#{order.id.slice(0, 8)}</span>
-                    <span className="text-xs text-gray-400">{order.createdAt?.toDate?.()?.toLocaleString?.() || ""}</span>
+                    <span className="text-xs text-gray-400">{order.createdAt?.toLocaleString?.() || ""}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-[#D62828] font-bold">₱{order.total.toFixed(2)}</span>
+                    <span className="text-[#16A34A] font-bold">₱{order.total.toFixed(2)}</span>
                     <svg className={`w-4 h-4 text-gray-400 transition-transform ${expandedOrder === order.id ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
@@ -261,7 +260,7 @@ export default function AdminOrdersPage() {
                       <p className="text-xs text-gray-500">{order.items.length} items • {order.deliveryAddress.slice(0, 40)}...</p>
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={() => handleReject(order.id)} className="px-4 py-2 text-xs font-bold rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors">
+                      <button onClick={() => handleReject(order.id)} className="px-4 py-2 text-xs font-bold rounded-lg border border-green-200 text-green-700 hover:bg-green-50 transition-colors">
                         ✕ Reject
                       </button>
                       <button onClick={() => handleAccept(order.id)} className="px-4 py-2 text-xs font-bold rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors">
@@ -300,8 +299,8 @@ export default function AdminOrdersPage() {
                         )}
                       </div>
                       <div className="flex flex-wrap gap-1">
-                        {order.items.map((item, i) => (
-                          <span key={i} className={`text-xs px-2 py-0.5 rounded ${item.outOfStock ? "bg-red-50 text-red-400 line-through" : "bg-gray-100"}`}>
+                        {order.items.map((item: any, i: number) => (
+                          <span key={i} className={`text-xs px-2 py-0.5 rounded ${item.outOfStock ? "bg-green-50 text-green-400 line-through" : "bg-gray-100"}`}>
                             {item.name} ×{item.quantity}{item.outOfStock ? " — OUT OF STOCK" : ""}
                           </span>
                         ))}
@@ -392,18 +391,18 @@ export default function AdminOrdersPage() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => setEditingOrder(null)} />
           <div className="relative bg-white rounded-2xl w-full max-w-md overflow-hidden">
-            <div className="bg-[#1a1a2e] px-6 py-4">
+            <div className="bg-[#1F2937] px-6 py-4">
               <h2 className="font-bold text-lg text-white">Edit Order Items</h2>
               <p className="text-white/70 text-xs">#{editingOrder.id.slice(0, 8)} — {editingOrder.customerName}</p>
             </div>
             <div className="p-5 space-y-2 max-h-[50vh] overflow-y-auto">
               {editItems.map((item, i) => (
-                <div key={item.productId} className={`flex items-center gap-3 rounded-lg px-4 py-3 ${item.outOfStock ? "bg-red-50 border border-red-200" : "bg-gray-50"}`}>
+                <div key={item.productId} className={`flex items-center gap-3 rounded-lg px-4 py-3 ${item.outOfStock ? "bg-green-50 border border-green-200" : "bg-gray-50"}`}>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium truncate ${item.outOfStock ? "text-red-400 line-through" : "text-gray-800"}`}>{item.name}</p>
+                    <p className={`text-sm font-medium truncate ${item.outOfStock ? "text-green-400 line-through" : "text-gray-800"}`}>{item.name}</p>
                     <p className="text-[10px] text-gray-400">₱{item.price} each</p>
                     {item.outOfStock && (
-                      <span className="text-[9px] font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded mt-1 inline-block">OUT OF STOCK</span>
+                      <span className="text-[9px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded mt-1 inline-block">OUT OF STOCK</span>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
@@ -441,7 +440,7 @@ export default function AdminOrdersPage() {
                       className={`text-[9px] font-bold px-2 py-1.5 rounded-lg ml-1 transition-colors ${
                         item.outOfStock
                           ? "bg-green-100 text-green-700 hover:bg-green-200"
-                          : "bg-red-100 text-red-600 hover:bg-red-200"
+                          : "bg-green-100 text-green-700 hover:bg-green-200"
                       }`}
                     >
                       {item.outOfStock ? "✓ Restock" : "✕ Out of Stock"}
@@ -458,21 +457,21 @@ export default function AdminOrdersPage() {
                 </div>
                 <div className="text-right">
                   <p className="text-[10px] text-gray-400">New Total</p>
-                  <p className="text-lg font-bold text-[#D62828]">₱{editItems.filter((i) => !i.outOfStock).reduce((s, i) => s + i.price * i.quantity, 0).toFixed(2)}</p>
+                  <p className="text-lg font-bold text-[#16A34A]">₱{editItems.filter((i) => !i.outOfStock).reduce((s, i) => s + i.price * i.quantity, 0).toFixed(2)}</p>
                 </div>
               </div>
               {editItems.filter((i) => i.outOfStock).length > 0 && (
-                <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-3">
-                  <p className="text-[10px] text-red-700 font-bold">⚠️ {editItems.filter((i) => i.outOfStock).length} item(s) marked as out of stock:</p>
-                  <p className="text-[10px] text-red-600 mt-0.5">{editItems.filter((i) => i.outOfStock).map((i) => i.name).join(", ")}</p>
-                  <p className="text-[9px] text-red-400 mt-1">Customer will see these items with strikethrough &amp; “Out of Stock” label</p>
+                <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2 mb-3">
+                  <p className="text-[10px] text-green-800 font-bold">⚠️ {editItems.filter((i) => i.outOfStock).length} item(s) marked as out of stock:</p>
+                  <p className="text-[10px] text-green-700 mt-0.5">{editItems.filter((i) => i.outOfStock).map((i) => i.name).join(", ")}</p>
+                  <p className="text-[9px] text-green-400 mt-1">Customer will see these items with strikethrough &amp; “Out of Stock” label</p>
                 </div>
               )}
               <div className="flex gap-2">
                 <button onClick={() => setEditingOrder(null)} className="flex-1 border border-gray-200 text-gray-600 py-2.5 rounded-lg text-sm font-medium">
                   Cancel
                 </button>
-                <button onClick={handleSaveEdit} disabled={editItems.filter((i) => !i.outOfStock).length === 0} className="flex-1 bg-[#D62828] text-white py-2.5 rounded-lg text-sm font-bold hover:bg-[#b71c1c] disabled:opacity-40">
+                <button onClick={handleSaveEdit} disabled={editItems.filter((i) => !i.outOfStock).length === 0} className="flex-1 bg-[#16A34A] text-white py-2.5 rounded-lg text-sm font-bold hover:bg-[#15803d] disabled:opacity-40">
                   Save Changes
                 </button>
               </div>

@@ -1,11 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { onCustomerAuthChange, getCustomerProfile, type CustomerProfile } from "@/lib/firebase"
-import { getFirestore, collection, getDocs, query, where, orderBy } from "firebase/firestore"
-import type { User } from "firebase/auth"
+// Firebase auth removed
 
-const db = getFirestore()
 
 type ServiceProvider = {
   id: string
@@ -41,7 +38,7 @@ const FALLBACK_SLIDES = [
   {
     title: "Affordable & Reliable",
     subtitle: "Maayo ug presyo, kasaligan pa — local experts near you",
-    bg: "from-orange-500 to-red-600",
+    bg: "from-orange-500 to-green-700",
     cta: "See Services",
     ctaLink: "#services",
     icon: "⭐",
@@ -58,26 +55,21 @@ const SERVICE_CATEGORIES = [
 ]
 
 export default function HomeServicesPage() {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<any>(null)
   const [providers, setProviders] = useState<ServiceProvider[]>([])
   const [heroSlides, setHeroSlides] = useState<typeof FALLBACK_SLIDES>(FALLBACK_SLIDES)
   const [currentSlide, setCurrentSlide] = useState(0)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
   useEffect(() => {
-    const unsub = onCustomerAuthChange((u) => setUser(u))
-    return () => unsub()
+    const u = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "null") : null; setUser(u)
+    // no unsub needed
   }, [])
 
   // Load service providers and slides
   useEffect(() => {
-    getDocs(collection(db, "serviceProviders")).then((snap) => {
-      setProviders(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as ServiceProvider))
-    })
-    getDocs(query(collection(db, "homeServiceSlides"), orderBy("order"))).then((snap) => {
-      const data = snap.docs.map((d) => d.data()) as typeof FALLBACK_SLIDES
-      if (data.length > 0) setHeroSlides(data.filter((s: any) => s.enabled !== false))
-    })
+    fetch("/api/users?role=provider").then(r=>r.json()).then((p:any[])=>setProviders(p.filter(x=>x.status==="active")))
+    fetch("/api/hero").then(r=>r.json()).then((slides:any[])=>{ if(slides.length>0) setHeroSlides(slides) })
   }, [])
 
   // Auto-slide
@@ -91,7 +83,7 @@ export default function HomeServicesPage() {
     : providers
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
       <header className="bg-teal-600 text-white px-4 py-3 sticky top-0 z-50">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
@@ -251,7 +243,7 @@ export default function HomeServicesPage() {
 
         {/* Become a Provider CTA */}
         <div className="px-4 mt-8">
-          <div className="bg-gradient-to-br from-[#1a1a2e] to-[#2d2d4e] rounded-2xl p-6 text-white text-center">
+          <div className="bg-gradient-to-br from-[#16A34A] to-[#1F2937] rounded-2xl p-6 text-white text-center">
             <span className="text-4xl">💰</span>
             <h3 className="font-black text-lg mt-3">Earn with your skills</h3>
             <p className="text-white/60 text-xs mt-1">Kumita sa imong bakanteng oras gamit ang imong skills</p>
@@ -275,6 +267,28 @@ export default function HomeServicesPage() {
           </div>
         </div>
       </div>
+
+      {/* Bottom Nav */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-bottom">
+        <div className="max-w-lg mx-auto grid grid-cols-4 py-1.5">
+          <a href="/" className="flex flex-col items-center gap-0.5 py-1 text-gray-400">
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span className="text-[10px] font-medium">Home</span>
+          </a>
+          <a href="/grocery" className="flex flex-col items-center gap-0.5 py-1 text-gray-400">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" /></svg>
+            <span className="text-[10px] font-medium">Grocery</span>
+          </a>
+          <a href="/home-services" className="flex flex-col items-center gap-0.5 py-1 text-teal-600">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.573-1.066z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            <span className="text-[10px] font-bold">Services</span>
+          </a>
+          <a href="/account" className="flex flex-col items-center gap-0.5 py-1 text-gray-400">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+            <span className="text-[10px] font-medium">Account</span>
+          </a>
+        </div>
+      </nav>
     </main>
   )
 }

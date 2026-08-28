@@ -3,17 +3,17 @@
 const BASE_URL = "https://www.trip.com/?Allianceid=8726208&SID=319891223&trip_sub1=&trip_sub3=D18011212"
 
 const CATEGORIES = [
-  { id: "hotels", name: "Hotels", icon: "🏨", desc: "Find best hotel deals worldwide", link: BASE_URL },
-  { id: "flights", name: "Flights", icon: "✈️", desc: "Book cheap flights anywhere", link: BASE_URL },
-  { id: "tours", name: "Tours & Activities", icon: "🎫", desc: "Explore local tours & attractions", link: BASE_URL },
-  { id: "car", name: "Car Rental", icon: "🚗", desc: "Rent a car for your trip", link: BASE_URL },
-  { id: "train", name: "Train & Bus", icon: "🚆", desc: "Book train & bus tickets", link: BASE_URL },
-  { id: "packages", name: "Travel Packages", icon: "🌴", desc: "All-in-one vacation deals", link: BASE_URL },
+  { id: "hotels", name: "Hotels", icon: "https://img.icons8.com/3d-fluency/94/hotel.png", desc: "Find best hotel deals worldwide", link: BASE_URL },
+  { id: "flights", name: "Flights", icon: "https://img.icons8.com/3d-fluency/94/airplane-mode-on.png", desc: "Book cheap flights anywhere", link: BASE_URL },
+  { id: "tours", name: "Tours & Activities", icon: "https://img.icons8.com/3d-fluency/94/ticket.png", desc: "Explore local tours & attractions", link: BASE_URL },
+  { id: "car", name: "Car Rental", icon: "https://img.icons8.com/3d-fluency/94/car.png", desc: "Rent a car for your trip", link: BASE_URL },
+  { id: "train", name: "Train & Bus", icon: "https://img.icons8.com/3d-fluency/94/train.png", desc: "Book train & bus tickets", link: BASE_URL },
+  { id: "packages", name: "Travel Packages", icon: "https://img.icons8.com/3d-fluency/94/beach.png", desc: "All-in-one vacation deals", link: BASE_URL },
 ]
 
 export default function TravelPage() {
   return (
-    <div className="min-h-screen bg-[#f5f7fa] pb-20">
+    <div className="min-h-screen bg-[#F4F5F7] pb-20">
       {/* Header */}
       <header className="bg-[#003580] px-4 pt-12 pb-8">
         <div className="max-w-lg mx-auto">
@@ -26,7 +26,7 @@ export default function TravelPage() {
 
           {/* Hero */}
           <div className="bg-white/10 backdrop-blur rounded-2xl p-5 text-center">
-            <span className="text-4xl">✈️</span>
+            <img src="https://img.icons8.com/3d-fluency/94/airplane-mode-on.png" alt="Travel" className="w-14 h-14 mx-auto object-contain" />
             <h2 className="text-white font-black text-xl mt-2">Where do you want to go?</h2>
             <p className="text-white/60 text-xs mt-1">Book hotels, flights & more at the best prices</p>
           </div>
@@ -44,8 +44,8 @@ export default function TravelPage() {
               rel="noopener noreferrer"
               className="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-gray-100 hover:shadow-md hover:border-[#003580]/20 transition-all active:scale-[0.98]"
             >
-              <div className="w-12 h-12 bg-[#003580]/5 rounded-xl flex items-center justify-center text-2xl shrink-0">
-                {cat.icon}
+              <div className="w-12 h-12 bg-[#003580]/5 rounded-xl flex items-center justify-center shrink-0">
+                <img src={cat.icon} alt={cat.name} className="w-8 h-8 object-contain" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-gray-800">{cat.name}</p>
@@ -69,7 +69,7 @@ export default function TravelPage() {
       </div>
 
       {/* Bottom Nav */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-bottom">
         <div className="max-w-lg mx-auto grid grid-cols-4 py-1.5">
           <a href="/" className="flex flex-col items-center gap-0.5 py-1 text-gray-400">
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>

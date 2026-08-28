@@ -1,10 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getDeliverySettings, type Order, type DeliverySettings } from "@/lib/firebase"
-import { getFirestore, collection, query, orderBy, onSnapshot } from "firebase/firestore"
-
-const db = getFirestore()
 
 type LaundryOrder = {
   id: string
@@ -25,30 +21,27 @@ type WalletEntry = {
 }
 
 export default function AdminDashboardPage() {
-  const [groceryOrders, setGroceryOrders] = useState<Order[]>([])
+  const [groceryOrders, setGroceryOrders] = useState<any[]>([])
   const [laundryOrders, setLaundryOrders] = useState<LaundryOrder[]>([])
-  const [settings, setSettings] = useState<DeliverySettings | null>(null)
+  const [settings, setSettings] = useState<any>(null)
   const [walletEntries, setWalletEntries] = useState<WalletEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [period, setPeriod] = useState<"today" | "week" | "month" | "all">("today")
 
   useEffect(() => {
-    getDeliverySettings().then(setSettings)
-
-    const unsub1 = onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap) => {
-      setGroceryOrders(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Order))
-    }, () => {})
-
-    const unsub2 = onSnapshot(query(collection(db, "laundryOrders"), orderBy("createdAt", "desc")), (snap) => {
-      setLaundryOrders(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as LaundryOrder))
-    }, () => {})
-
-    const unsub3 = onSnapshot(query(collection(db, "wallet"), orderBy("createdAt", "desc")), (snap) => {
-      setWalletEntries(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as WalletEntry))
+    fetch("/api/delivery-settings").then(r => r.json()).then(setSettings)
+    async function load() {
+      const [orders, laundry] = await Promise.all([
+        fetch("/api/orders").then(r => r.json()),
+        fetch("/api/laundry-orders").then(r => r.json()).catch(() => []),
+      ])
+      setGroceryOrders(orders.filter((o: any) => o.type !== "laundry"))
+      setLaundryOrders(laundry)
       setLoading(false)
-    }, () => setLoading(false))
-
-    return () => { unsub1(); unsub2(); unsub3() }
+    }
+    load()
+    const interval = setInterval(load, 10000)
+    return () => clearInterval(interval)
   }, [])
 
   // Period filter
@@ -63,7 +56,7 @@ export default function AdminDashboardPage() {
   const startDate = getStartDate()
   const filterByDate = (createdAt: any) => {
     if (period === "all") return true
-    const d = createdAt?.toDate?.()
+    const d = createdAt
     return d && d >= startDate
   }
 
@@ -102,10 +95,10 @@ export default function AdminDashboardPage() {
     <>
       <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-20">
         <div className="flex items-center justify-between">
-          <h1 className="text-lg font-bold text-[#1a1a2e]">Dashboard</h1>
+          <h1 className="text-lg font-bold text-[#1F2937]">Dashboard</h1>
           <div className="flex gap-1">
             {(["today", "week", "month", "all"] as const).map((p) => (
-              <button key={p} onClick={() => setPeriod(p)} className={`px-3 py-1.5 text-[10px] rounded-lg font-bold capitalize transition-colors ${period === p ? "bg-[#D62828] text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>
+              <button key={p} onClick={() => setPeriod(p)} className={`px-3 py-1.5 text-[10px] rounded-lg font-bold capitalize transition-colors ${period === p ? "bg-[#16A34A] text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>
                 {p === "all" ? "All Time" : p}
               </button>
             ))}
@@ -115,7 +108,7 @@ export default function AdminDashboardPage() {
 
       <div className="p-6">
         {/* Platform Income Summary */}
-        <div className="bg-gradient-to-r from-[#D62828] to-[#a11d1d] rounded-2xl p-6 text-white mb-6">
+        <div className="bg-gradient-to-r from-[#16A34A] to-[#15803d] rounded-2xl p-6 text-white mb-6">
           <p className="text-white/60 text-xs uppercase font-semibold">Platform Income ({period === "all" ? "All Time" : period})</p>
           <p className="text-4xl font-black mt-1">₱{totalPlatformIncome.toLocaleString()}</p>
           <div className="grid grid-cols-4 gap-3 mt-4">
@@ -142,8 +135,8 @@ export default function AdminDashboardPage() {
         <div className="grid md:grid-cols-2 gap-4 mb-6">
           {/* Grocery */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-5 py-3 bg-red-50 border-b border-red-100">
-              <h3 className="font-bold text-sm text-[#D62828] flex items-center gap-2">
+            <div className="px-5 py-3 bg-green-50 border-b border-green-100">
+              <h3 className="font-bold text-sm text-[#16A34A] flex items-center gap-2">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" /></svg>
                 Grocery
               </h3>
@@ -163,7 +156,7 @@ export default function AdminDashboardPage() {
               </div>
               <div className="border-t border-gray-100 pt-2 flex justify-between">
                 <span className="text-xs text-gray-500">Rider Commission ({riderPercent}%)</span>
-                <span className="text-sm font-bold text-[#D62828]">₱{groceryPlatformProfit.toLocaleString()}</span>
+                <span className="text-sm font-bold text-[#16A34A]">₱{groceryPlatformProfit.toLocaleString()}</span>
               </div>
               <div className="bg-green-50 rounded-lg px-3 py-2 flex justify-between">
                 <span className="text-xs text-green-700 font-medium">Platform Profit</span>
@@ -200,11 +193,11 @@ export default function AdminDashboardPage() {
               <div className="border-t border-gray-100 pt-2 space-y-1">
                 <div className="flex justify-between">
                   <span className="text-xs text-gray-500">Partner Commission ({partnerPercent}%)</span>
-                  <span className="text-sm font-bold text-[#D62828]">₱{laundryPartnerCommission.toLocaleString()}</span>
+                  <span className="text-sm font-bold text-[#16A34A]">₱{laundryPartnerCommission.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-xs text-gray-500">Rider Commission ({riderPercent}%)</span>
-                  <span className="text-sm font-bold text-[#D62828]">₱{laundryRiderCommission.toLocaleString()}</span>
+                  <span className="text-sm font-bold text-[#16A34A]">₱{laundryRiderCommission.toLocaleString()}</span>
                 </div>
               </div>
               <div className="bg-green-50 rounded-lg px-3 py-2 flex justify-between">
@@ -218,13 +211,13 @@ export default function AdminDashboardPage() {
         {/* Breakdown Table */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="px-5 py-3 bg-gray-50 border-b border-gray-100">
-            <h3 className="font-bold text-sm text-[#1a1a2e]">Income Breakdown</h3>
+            <h3 className="font-bold text-sm text-[#1F2937]">Income Breakdown</h3>
           </div>
           <div className="divide-y divide-gray-50">
             <div className="px-5 py-3 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center">
-                  <svg className="w-4 h-4 text-[#D62828]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" /></svg>
+                <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-[#16A34A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" /></svg>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-800">Grocery Rider Commission</p>

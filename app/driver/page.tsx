@@ -1,8 +1,7 @@
 "use client"
 
 import { useEffect, useState, useRef } from "react"
-import { getDrivers, updateOrderStatus, updateDriverLocation, updateDriverLiveLocation, assignDriver, setDriverOnline, onDriverOrdersUpdate, onAvailableOrdersForDriver, sendChatMessage, onChatMessages, getDeliverySettings, onNotifications, markAllNotificationsRead, customerLogin, onCustomerAuthChange, db, type Order, type OrderStatus, type ChatMessage, type AppNotification } from "@/lib/firebase"
-import { collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp } from "firebase/firestore"
+import { useNotificationSound } from "@/app/components/useNotificationSound"
 
 type Tab = "available" | "active" | "history"
 
@@ -11,22 +10,25 @@ export default function DriverPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loginError, setLoginError] = useState("")
-  const [orders, setOrders] = useState<Order[]>([])
-  const [availableOrders, setAvailableOrders] = useState<Order[]>([])
+  const [orders, setOrders] = useState<any[]>([])
+  const [availableOrders, setAvailableOrders] = useState<any[]>([])
   const [laundryOrders, setLaundryOrders] = useState<any[]>([])
   const [tab, setTab] = useState<Tab>("available")
   const [online, setOnline] = useState(false)
   const [sharing, setSharing] = useState<string | null>(null)
-  const [driverNotifs, setDriverNotifs] = useState<AppNotification[]>([])
+  const [driverNotifs, setDriverNotifs] = useState<any[]>([])
   const [showNotifs, setShowNotifs] = useState(false)
   const watchRef = useRef<number | null>(null)
   const liveLocationRef = useRef<number | null>(null)
   // Chat
   const [chatOrderId, setChatOrderId] = useState<string | null>(null)
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+  const [chatMessages, setChatMessages] = useState<any[]>([])
   const [chatInput, setChatInput] = useState("")
   const chatEndRef = useRef<HTMLDivElement>(null)
   const [riderFee, setRiderFee] = useState(30)
+  const playSound = useNotificationSound()
+  const prevAvailableCount = useRef(0)
+  const prevNotifCount = useRef(0)
 
   useEffect(() => {
     const saved = localStorage.getItem("driver_session")
@@ -35,99 +37,88 @@ export default function DriverPage() {
       setDriver(d)
       setOnline(true)
       // Always re-fetch fresh data from Firestore
-      getDrivers().then((all) => {
+      fetch("/api/users?role=driver").then(r => r.json()).then((all: any[]) => {
         const found = all.find((x) => x.id === d.id)
         if (found) {
-          const fresh = { id: found.id, name: found.name, email: found.email, profileComplete: found.profileComplete, profileVerified: (found as any).profileVerified, walletBalance: found.walletBalance || 0, selfieUrl: found.selfieUrl }
+          const fresh = { id: found.id, name: found.name, email: found.email, profileComplete: found.profileComplete, profileVerified: found.profileVerified, walletBalance: found.walletBalance || 0, selfieUrl: found.selfieUrl }
           localStorage.setItem("driver_session", JSON.stringify(fresh))
           setDriver(fresh)
         }
       })
     } else {
-      // Auto-detect if Firebase Auth user is a rider
-      const unsub = onCustomerAuthChange(async (u) => {
-        if (u) {
-          const allDrivers = await getDrivers()
-          const found = allDrivers.find((d) => (d as any).uid === u.uid || d.email === u.email)
-          if (found && found.status === "active") {
-            const session = { id: found.id, name: found.name, email: found.email, profileComplete: found.profileComplete, profileVerified: (found as any).profileVerified, walletBalance: found.walletBalance || 0, selfieUrl: found.selfieUrl }
-            localStorage.setItem("driver_session", JSON.stringify(session))
-            setDriver(session)
-            setOnline(true)
-            await setDriverOnline(found.id, true)
-          }
-        }
-      })
-      return () => unsub()
+      // No session — show login
     }
   }, [])
 
   useEffect(() => {
-    getDeliverySettings().then((s) => setRiderFee(s.riderFeePerDelivery || 30))
+    fetch("/api/delivery-settings").then(r => r.json()).then((s: any) => setRiderFee(s.riderFeePerDelivery || 30))
   }, [])
   useEffect(() => {
     if (!driver) return
-    const unsub = onDriverOrdersUpdate(driver.id, setOrders)
-    return () => unsub()
+    const poll = () => fetch(`/api/orders?driverId=${driver.id}`).then(r => r.json()).then(setOrders)
+    poll()
+    const iv = setInterval(poll, 5000)
+    return () => clearInterval(iv)
   }, [driver])
 
   // Listen to laundry orders assigned to this driver
   useEffect(() => {
     if (!driver) return
-    const q = query(collection(db, "laundryOrders"), where("riderId", "==", driver.id))
-    const unsub = onSnapshot(q, (snap) => {
-      setLaundryOrders(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
-    }, (err) => console.warn("Laundry listener error:", err))
-    return () => unsub()
+    const iv = setInterval(async () => {
+      const r = await fetch(`/api/laundry-orders?riderId=${driver.id}`)
+      if (r.ok) setLaundryOrders(await r.json())
+    }, 5000)
+    return () => clearInterval(iv)
   }, [driver])
 
   // Listen to driver notifications
   useEffect(() => {
     if (!driver) return
-    const unsub = onNotifications("driver", driver.id, setDriverNotifs)
-    return () => unsub()
-  }, [driver])
+    const pollNotifs = () => fetch(`/api/notifications?recipientType=driver&recipientId=${driver.id}`).then(r => r.json()).then((notifs: any[]) => {
+      const unread = notifs.filter((n: any) => !n.read).length
+      if (unread > prevNotifCount.current && prevNotifCount.current >= 0) playSound()
+      prevNotifCount.current = unread
+      setDriverNotifs(notifs)
+    })
+    pollNotifs()
+    const iv = setInterval(pollNotifs, 10000)
+    return () => clearInterval(iv)
+  }, [driver, playSound])
 
   // Listen to available orders (ready_for_pickup, unassigned)
   useEffect(() => {
     if (!driver || !online) return
-    const unsub = onAvailableOrdersForDriver((all) => {
-      // Show orders not assigned or assigned to this driver
-      setAvailableOrders(all.filter((o) => !o.driverId || o.driverId === driver.id))
+    const pollAvail = () => fetch("/api/orders?status=ready_for_pickup").then(r => r.json()).then((all: any[]) => {
+      const filtered = all.filter((o: any) => !o.driverId || o.driverId === driver.id)
+      if (filtered.length > prevAvailableCount.current && prevAvailableCount.current >= 0) playSound()
+      prevAvailableCount.current = filtered.length
+      setAvailableOrders(filtered)
     })
-    return () => unsub()
-  }, [driver, online])
+    pollAvail()
+    const iv = setInterval(pollAvail, 5000)
+    return () => clearInterval(iv)
+  }, [driver, online, playSound])
 
   const login = async () => {
     setLoginError("")
     try {
-      // Try Firebase Auth login first
-      await customerLogin(email, password)
-      const allDrivers = await getDrivers()
-      const found = allDrivers.find((d) => d.email === email)
-      if (!found) { setLoginError("No rider account found for this email"); return }
-      if ((found.status as string) === "pending") { setLoginError("Your rider application is still pending approval"); return }
-      const session = { id: found.id, name: found.name, email: found.email, profileComplete: found.profileComplete, profileVerified: (found as any).profileVerified, walletBalance: found.walletBalance || 0, selfieUrl: found.selfieUrl }
+      const res = await fetch("/api/auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "login", email, password }) })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      if (data.user.role !== "driver") { setLoginError("No rider account found for this email"); return }
+      if (data.user.status === "pending") { setLoginError("Your rider application is still pending approval"); return }
+      const session = { id: data.user.id, name: data.user.name, email: data.user.email, profileComplete: data.user.profileComplete, profileVerified: data.user.profileVerified, walletBalance: data.user.walletBalance || 0, selfieUrl: data.user.selfieUrl }
       localStorage.setItem("driver_session", JSON.stringify(session))
       setDriver(session)
       setOnline(true)
-      await setDriverOnline(found.id, true)
-    } catch {
-      // Fallback: old method (email + phone as password)
-      const allDrivers = await getDrivers()
-      const found = allDrivers.find((d) => d.email === email && d.phone === password)
-      if (!found) { setLoginError("Invalid email or password"); return }
-      if ((found.status as string) === "pending") { setLoginError("Your rider application is still pending approval"); return }
-      const session = { id: found.id, name: found.name, email: found.email, profileComplete: found.profileComplete, profileVerified: (found as any).profileVerified, walletBalance: found.walletBalance || 0, selfieUrl: found.selfieUrl }
-      localStorage.setItem("driver_session", JSON.stringify(session))
-      setDriver(session)
-      setOnline(true)
-      await setDriverOnline(found.id, true)
+      await fetch(`/api/partners/${session.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isOnline: true }) })
+    } catch (e: any) {
+      setLoginError(e.message || "Invalid email or password")
     }
   }
 
   const logout = () => {
-    if (driver) setDriverOnline(driver.id, false)
+    if (driver) fetch(`/api/partners/${driver.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isOnline: false }) })
     if (liveLocationRef.current !== null) navigator.geolocation.clearWatch(liveLocationRef.current)
     localStorage.removeItem("driver_session")
     if (watchRef.current !== null) navigator.geolocation.clearWatch(watchRef.current)
@@ -140,10 +131,10 @@ export default function DriverPage() {
     if (!driver) return
     const newState = !online
     setOnline(newState)
-    await setDriverOnline(driver.id, newState)
+    await fetch(`/api/partners/${driver.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isOnline: newState }) })
     if (newState && navigator.geolocation) {
       liveLocationRef.current = navigator.geolocation.watchPosition(
-        (pos) => updateDriverLiveLocation(driver.id, pos.coords.latitude, pos.coords.longitude),
+        (pos) => fetch(`/api/partners/${driver.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ lat: pos.coords.latitude, lng: pos.coords.longitude }) }),
         () => {},
         { enableHighAccuracy: true, maximumAge: 10000 }
       )
@@ -157,27 +148,32 @@ export default function DriverPage() {
 
   const acceptOrder = async (orderId: string) => {
     if (!driver) return
-    await assignDriver(orderId, driver.id, driver.name)
-    await updateOrderStatus(orderId, "rider_accepted")
+    await fetch(`/api/orders/${orderId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ driverId: driver.id, driverName: driver.name, status: "rider_accepted" }) })
     setTab("active")
   }
 
   const arrivedAtStore = async (orderId: string) => {
-    await updateOrderStatus(orderId, "rider_at_store")
+    await fetch(`/api/orders/${orderId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "rider_at_store" }) })
   }
 
   const pickedUp = async (orderId: string) => {
-    await updateOrderStatus(orderId, "rider_picked_up")
+    await fetch(`/api/orders/${orderId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "rider_picked_up" }) })
     startLocationSharing(orderId)
   }
 
   const startDelivery = async (orderId: string) => {
-    await updateOrderStatus(orderId, "out_for_delivery")
+    await fetch(`/api/orders/${orderId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "out_for_delivery" }) })
   }
 
   const markDelivered = async (orderId: string) => {
-    await updateOrderStatus(orderId, "delivered")
+    await fetch(`/api/orders/${orderId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "delivered" }) })
     stopLocationSharing()
+    if (driver) {
+      const order = orders.find((o: any) => o.id === orderId)
+      const deliveryFee = order?.total ? Math.round(riderFee) : riderFee
+      const commission = Math.round(deliveryFee * 20 / 100)
+      await fetch("/api/wallet", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ownerId: driver.id, ownerType: "rider", type: "commission_deduction", amount: -commission, orderId, note: `20% commission on ₱${deliveryFee} delivery fee` }) })
+    }
   }
 
   const startLocationSharing = (orderId: string) => {
@@ -185,7 +181,7 @@ export default function DriverPage() {
     if (watchRef.current !== null) navigator.geolocation.clearWatch(watchRef.current)
     setSharing(orderId)
     watchRef.current = navigator.geolocation.watchPosition(
-      (pos) => updateDriverLocation(orderId, pos.coords.latitude, pos.coords.longitude),
+        (pos) => fetch(`/api/orders/${orderId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ driverLat: pos.coords.latitude, driverLng: pos.coords.longitude }) }),
       () => {},
       { enableHighAccuracy: true, maximumAge: 5000 }
     )
@@ -207,27 +203,28 @@ export default function DriverPage() {
   // Chat listener
   useEffect(() => {
     if (!chatOrderId) return
-    const unsub = onChatMessages(chatOrderId, (msgs) => {
-      setChatMessages(msgs)
-      setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100)
+    const poll = () => fetch(`/api/orders/${chatOrderId}`).then(r => r.ok ? r.json() : null).then((order: any) => {
+      if (order?.chats) { setChatMessages(order.chats); setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100) }
     })
-    return () => unsub()
+    poll()
+    const iv = setInterval(poll, 3000)
+    return () => clearInterval(iv)
   }, [chatOrderId])
 
   const handleSendChat = async () => {
     if (!chatInput.trim() || !chatOrderId || !driver) return
-    await sendChatMessage(chatOrderId, driver.id, driver.name, "driver", chatInput.trim())
+    await fetch("/api/orders/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ orderId: chatOrderId, senderId: driver.id, senderName: driver.name, senderRole: "driver", message: chatInput.trim() }) }).catch(() => {})
     setChatInput("")
   }
 
   // Categorize orders
-  const activeLaundry = laundryOrders.filter((o: any) => ["rider_to_customer", "rider_picked_up", "rider_to_laundromat", "rider_return_pickup", "rider_returning"].includes(o.status))
-  const historyLaundry = laundryOrders.filter((o: any) => ["delivered", "at_laundromat", "washing", "ready"].includes(o.status))
-  const activeOrders = orders.filter((o) => ["rider_accepted", "rider_at_store", "rider_picked_up", "out_for_delivery"].includes(o.status))
-  const historyOrders = orders.filter((o) => ["delivered", "cancelled"].includes(o.status))
+  const activeLaundry = laundryOrders.filter((o: any) => ["rider_to_customer", "rider_picked_up", "rider_to_laundromat", "rider_return_pickup", "rider_returning"].includes(o.status)).map((o: any) => ({ ...o, _type: "laundry" }))
+  const historyLaundry = laundryOrders.filter((o: any) => ["delivered", "at_laundromat", "washing", "ready"].includes(o.status)).map((o: any) => ({ ...o, _type: "laundry" }))
+  const activeOrders = orders.filter((o) => ["rider_accepted", "rider_at_store", "rider_picked_up", "out_for_delivery"].includes(o.status)).map((o) => ({ ...o, _type: "grocery" }))
+  const historyOrders = orders.filter((o) => ["delivered", "cancelled"].includes(o.status)).map((o) => ({ ...o, _type: "grocery" }))
   const allActive = [...activeOrders, ...activeLaundry]
   const allHistory = [...historyOrders, ...historyLaundry]
-  const displayOrders = tab === "available" ? availableOrders : tab === "active" ? allActive : allHistory
+  const displayOrders = tab === "available" ? availableOrders.map((o) => ({ ...o, _type: "grocery" })) : tab === "active" ? allActive : allHistory
 
   // Earnings
   const deliveredOrders = orders.filter((o) => o.status === "delivered")
@@ -236,7 +233,7 @@ export default function DriverPage() {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const todayDelivered = allDelivered.filter((o: any) => {
-    const d = o.deliveredAt?.toDate?.() || o.updatedAt?.toDate?.() || o.createdAt?.toDate?.()
+    const d = o.deliveredAt || o.updatedAt || o.createdAt
     return d && d >= today
   })
   const totalEarnings = allDelivered.length * riderFee
@@ -245,13 +242,13 @@ export default function DriverPage() {
   // ═══ LOGIN SCREEN ═══
   if (!driver) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-[#D62828] to-[#a11d1d] flex flex-col items-center justify-center p-4">
+      <main className="min-h-screen bg-gradient-to-b from-[#16A34A] to-[#15803d] flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
             <div className="w-20 h-20 bg-white rounded-full mx-auto flex items-center justify-center shadow-lg mb-4">
-              <svg className="w-10 h-10 text-[#D62828]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" /></svg>
+              <svg className="w-10 h-10 text-[#16A34A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" /></svg>
             </div>
-            <h1 className="text-white text-2xl font-bold">88 Seven Rider</h1>
+            <h1 className="text-white text-2xl font-bold tracking-tight">Payroo Rider</h1>
             <p className="text-white/70 text-sm mt-1">Delivery Partner App</p>
           </div>
 
@@ -260,19 +257,19 @@ export default function DriverPage() {
             <p className="text-xs text-gray-400 mb-5">Enter your rider credentials</p>
 
             {loginError && (
-              <div className="bg-red-50 border border-red-200 text-red-600 text-xs px-3 py-2 rounded-lg mb-4">{loginError}</div>
+              <div className="bg-amber-50 border border-amber-200 text-amber-700 text-xs px-3 py-2 rounded-lg mb-4">{loginError}</div>
             )}
 
             <div className="space-y-3">
               <div>
                 <label className="text-xs font-medium text-gray-500">Email</label>
-                <input type="email" placeholder="rider@88seven.com" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm mt-1 outline-none focus:border-[#D62828] focus:ring-1 focus:ring-[#D62828]" />
+                <input type="email" placeholder="rider@payroo.com" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm mt-1 outline-none focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A]" />
               </div>
               <div>
                 <label className="text-xs font-medium text-gray-500">Password</label>
-                <input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && login()} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm mt-1 outline-none focus:border-[#D62828] focus:ring-1 focus:ring-[#D62828]" />
+                <input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && login()} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm mt-1 outline-none focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A]" />
               </div>
-              <button onClick={login} className="w-full bg-[#D62828] text-white py-3.5 rounded-xl font-bold text-sm hover:bg-[#b71c1c] transition-colors mt-2">
+              <button onClick={login} className="w-full bg-[#16A34A] text-white py-3.5 rounded-xl font-bold text-sm hover:bg-[#15803d] transition-colors mt-2">
                 Login
               </button>
             </div>
@@ -287,7 +284,7 @@ export default function DriverPage() {
   return (
     <main className="min-h-screen bg-gray-100 max-w-lg mx-auto flex flex-col">
       {/* Header */}
-      <header className="bg-[#D62828] text-white px-4 py-3 sticky top-0 z-30">
+      <header className="bg-[#16A34A] text-white px-4 py-3 sticky top-0 z-30">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
@@ -304,7 +301,7 @@ export default function DriverPage() {
               <button onClick={() => setShowNotifs(!showNotifs)} className="relative text-white/80 hover:text-white">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
                 {driverNotifs.filter((n) => !n.read).length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-yellow-400 text-[#1a1a2e] text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">{driverNotifs.filter((n) => !n.read).length}</span>
+                  <span className="absolute -top-1 -right-1 bg-yellow-400 text-[#1F2937] text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">{driverNotifs.filter((n) => !n.read).length}</span>
                 )}
               </button>
               {showNotifs && (
@@ -312,7 +309,7 @@ export default function DriverPage() {
                   <div className="px-3 py-2 border-b flex items-center justify-between bg-gray-50">
                     <span className="text-xs font-bold text-gray-800">Notifications</span>
                     {driverNotifs.filter((n) => !n.read).length > 0 && driver && (
-                      <button onClick={() => markAllNotificationsRead("driver", driver.id)} className="text-[10px] text-[#D62828] font-medium">Mark read</button>
+                      <button onClick={() => fetch("/api/notifications", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "markAllRead", recipientType: "driver", recipientId: driver.id }) }).then(() => setDriverNotifs((n: any[]) => n.map(x => ({...x, read: true}))))} className="text-[10px] text-[#16A34A] font-medium">Mark read</button>
                     )}
                   </div>
                   <div className="max-h-48 overflow-y-auto">
@@ -330,7 +327,7 @@ export default function DriverPage() {
                 </div>
               )}
             </div>
-            <a href="/driver/wallet" className={`px-2 py-1 rounded-full text-[10px] font-bold ${(driver?.walletBalance || 0) >= 100 ? "bg-green-400/20 text-green-200" : "bg-red-400/20 text-red-200"}`}>₱{(driver?.walletBalance || 0).toFixed(0)}</a>
+            <a href="/driver/wallet" className={`px-2 py-1 rounded-full text-[10px] font-bold ${(driver?.walletBalance || 0) >= 100 ? "bg-green-400/20 text-green-200" : "bg-green-400/20 text-green-200"}`}>₱{(driver?.walletBalance || 0).toFixed(0)}</a>
             <button
               onClick={toggleOnline}
               className={`px-3 py-1.5 rounded-full text-[10px] font-bold transition-all ${
@@ -379,8 +376,8 @@ export default function DriverPage() {
           {driver.profileComplete && driver.profileVerified && (driver.walletBalance || 0) < 100 && (
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-red-700">Wallet Too Low (₱{(driver.walletBalance || 0).toFixed(0)})</p>
-                <p className="text-[10px] text-red-500">Min ₱100 required to accept tasks</p>
+                <p className="text-xs font-bold text-green-800">Wallet Too Low (₱{(driver.walletBalance || 0).toFixed(0)})</p>
+                <p className="text-[10px] text-green-500">Min ₱100 required to accept tasks</p>
               </div>
               <a href="/driver/wallet" className="text-[10px] bg-green-600 text-white px-3 py-1.5 rounded-lg font-bold">Top Up</a>
             </div>
@@ -429,13 +426,13 @@ export default function DriverPage() {
               <button
                 key={key}
                 onClick={() => setTab(key)}
-                className={`flex-1 py-3 text-xs font-bold transition-colors relative ${tab === key ? "text-[#D62828]" : "text-gray-400"}`}
+                className={`flex-1 py-3 text-xs font-bold transition-colors relative ${tab === key ? "text-[#16A34A]" : "text-gray-400"}`}
               >
                 {label}
                 {key === "available" && availableOrders.length > 0 && (
-                  <span className="absolute top-2 right-1/4 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                  <span className="absolute top-2 right-1/4 w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                 )}
-                {tab === key && <span className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-[#D62828] rounded-full" />}
+                {tab === key && <span className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-[#16A34A] rounded-full" />}
               </button>
             ))}
           </div>
@@ -457,10 +454,10 @@ export default function DriverPage() {
                   <div className="px-4 py-3 border-b border-gray-50 flex items-center justify-between">
                     <div>
                       <p className="font-bold text-sm text-gray-800">Order #{order.id.slice(-6).toUpperCase()}</p>
-                      <p className="text-[10px] text-gray-400">{order.createdAt?.toDate?.()?.toLocaleString?.() || "Just now"}</p>
+                      <p className="text-[10px] text-gray-400">{order.createdAt?.toLocaleString?.() || "Just now"}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-[#D62828]">₱{(order.total || (order as any).totalPrice || 0).toFixed(2)}</span>
+                      <span className="text-sm font-bold text-[#16A34A]">₱{(order.total || (order as any).totalPrice || 0).toFixed(2)}</span>
                       <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full capitalize ${
                         order.status === "ready_for_pickup" ? "bg-orange-100 text-orange-700" :
                         order.status === "rider_accepted" ? "bg-cyan-100 text-cyan-700" :
@@ -499,7 +496,7 @@ export default function DriverPage() {
                           <svg className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
                           <div className="flex-1">
                             <p className="text-[10px] font-bold text-blue-600 uppercase">Pickup / Store</p>
-                            <p className="text-xs text-blue-700">88 Seven Store</p>
+                            <p className="text-xs text-blue-700">Payroo Store</p>
                           </div>
                           <svg className="w-4 h-4 text-blue-400 mt-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                         </a>
@@ -523,14 +520,14 @@ export default function DriverPage() {
                       <a
                         href={order.deliveryLat && order.deliveryLng ? `https://www.google.com/maps/search/?api=1&query=${order.deliveryLat},${order.deliveryLng}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.deliveryAddress || (order as any).pickupAddress || "")}`}
                         target="_blank"
-                        className="flex items-start gap-2 bg-red-50 rounded-xl p-3 hover:bg-red-100 transition-colors"
+                        className="flex items-start gap-2 bg-green-50 rounded-xl p-3 hover:bg-green-100 transition-colors"
                       >
-                        <svg className="w-4 h-4 text-red-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        <svg className="w-4 h-4 text-green-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                         <div className="flex-1">
-                          <p className="text-[10px] font-bold text-red-600 uppercase">Drop-off / Delivery</p>
-                          <p className="text-xs text-red-700">{order.deliveryAddress || (order as any).pickupAddress || ""}</p>
+                          <p className="text-[10px] font-bold text-green-700 uppercase">Drop-off / Delivery</p>
+                          <p className="text-xs text-green-800">{order.deliveryAddress || (order as any).pickupAddress || ""}</p>
                         </div>
-                        <svg className="w-4 h-4 text-red-400 mt-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                        <svg className="w-4 h-4 text-green-400 mt-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                       </a>
                     </div>
 
@@ -565,14 +562,14 @@ export default function DriverPage() {
                       <button
                         onClick={() => canAcceptTasks && acceptOrder(order.id)}
                         disabled={!canAcceptTasks}
-                        className={`w-full py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 ${canAcceptTasks ? "bg-[#D62828] text-white hover:bg-[#b71c1c]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
+                        className={`w-full py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 ${canAcceptTasks ? "bg-[#16A34A] text-white hover:bg-[#15803d]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
                       >
                         {canAcceptTasks ? "✓ Accept Delivery Task" : "🔒 Complete profile & top up to accept"}
                       </button>
                     )}
 
                     {/* Accepted: Navigate to Store */}
-                    {order.status === "rider_accepted" && (
+                    {order.status === "rider_accepted" && (order as any)._type === "grocery" && (
                       <div className="space-y-2">
                         <p className="text-xs text-center text-gray-500 mb-2">Navigate to the store to pick up the order</p>
                         <button
@@ -585,7 +582,7 @@ export default function DriverPage() {
                     )}
 
                     {/* At Store: Pick Up */}
-                    {order.status === "rider_at_store" && (
+                    {order.status === "rider_at_store" && (order as any)._type === "grocery" && (
                       <div className="space-y-2">
                         <p className="text-xs text-center text-gray-500 mb-2">Collect the order from the store</p>
                         <button
@@ -598,13 +595,13 @@ export default function DriverPage() {
                     )}
 
                     {/* Picked Up / Out for Delivery */}
-                    {(order.status === "rider_picked_up" || order.status === "out_for_delivery") && (
+                    {(order.status === "rider_picked_up" || order.status === "out_for_delivery") && (order as any)._type === "grocery" && (
                       <div className="space-y-2">
                         <div className="flex gap-2">
                           <button
                             onClick={() => toggleLocation(order.id)}
                             className={`flex-1 py-3 rounded-xl text-xs font-bold transition-colors ${
-                              sharing === order.id ? "bg-red-100 text-red-700 border border-red-200" : "bg-blue-50 text-blue-700 border border-blue-200"
+                              sharing === order.id ? "bg-green-100 text-green-800 border border-green-200" : "bg-blue-50 text-blue-700 border border-blue-200"
                             }`}
                           >
                             {sharing === order.id ? "⏹ Stop Sharing" : "📡 Share Location"}
@@ -636,42 +633,48 @@ export default function DriverPage() {
                     )}
 
                     {/* ═══ LAUNDRY ORDER ACTIONS ═══ */}
-                    {order.status === "rider_to_customer" && (
+                    {order.status === "rider_to_customer" && (order as any)._type === "laundry" && (
                       <div className="space-y-2">
                         <p className="text-xs text-center text-gray-500 mb-2">🧳 Pick up laundry from customer</p>
-                        <button onClick={() => updateDoc(doc(db, 'laundryOrders', order.id), { status: 'rider_picked_up', updatedAt: serverTimestamp() })} className="w-full bg-cyan-600 text-white py-3.5 rounded-xl text-sm font-bold">
+                        <button onClick={() => fetch(`/api/laundry-orders/${order.id}`, { method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status: 'rider_picked_up' }) })} className="w-full bg-cyan-600 text-white py-3.5 rounded-xl text-sm font-bold">
                           ✓ Picked Up from Customer
                         </button>
                       </div>
                     )}
-                    {order.status === "rider_picked_up" && (order as any).partnerId && (
+                    {order.status === "rider_picked_up" && (order as any).partnerId && (order as any)._type === "laundry" && (
                       <div className="space-y-2">
                         <p className="text-xs text-center text-gray-500 mb-2">🧺 Deliver laundry to shop</p>
-                        <button onClick={() => updateDoc(doc(db, 'laundryOrders', order.id), { status: 'at_laundromat', updatedAt: serverTimestamp() })} className="w-full bg-purple-600 text-white py-3.5 rounded-xl text-sm font-bold">
+                        <button onClick={() => fetch(`/api/laundry-orders/${order.id}`, { method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status: 'at_laundromat' }) })} className="w-full bg-purple-600 text-white py-3.5 rounded-xl text-sm font-bold">
                           ✓ Delivered to Laundry Shop
                         </button>
                       </div>
                     )}
-                    {order.status === "rider_to_laundromat" && (
+                    {order.status === "rider_to_laundromat" && (order as any)._type === "laundry" && (
                       <div className="space-y-2">
                         <p className="text-xs text-center text-gray-500 mb-2">🧺 Deliver laundry to shop</p>
-                        <button onClick={() => updateDoc(doc(db, 'laundryOrders', order.id), { status: 'at_laundromat', updatedAt: serverTimestamp() })} className="w-full bg-purple-600 text-white py-3.5 rounded-xl text-sm font-bold">
+                        <button onClick={() => fetch(`/api/laundry-orders/${order.id}`, { method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status: 'at_laundromat' }) })} className="w-full bg-purple-600 text-white py-3.5 rounded-xl text-sm font-bold">
                           ✓ Delivered to Laundry Shop
                         </button>
                       </div>
                     )}
-                    {order.status === "rider_return_pickup" && (
+                    {order.status === "rider_return_pickup" && (order as any)._type === "laundry" && (
                       <div className="space-y-2">
                         <p className="text-xs text-center text-gray-500 mb-2">🧺 Pick up clean laundry from shop</p>
-                        <button onClick={() => updateDoc(doc(db, 'laundryOrders', order.id), { status: 'rider_returning', updatedAt: serverTimestamp() })} className="w-full bg-teal-600 text-white py-3.5 rounded-xl text-sm font-bold">
+                        <button onClick={() => fetch(`/api/laundry-orders/${order.id}`, { method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status: 'rider_returning' }) })} className="w-full bg-teal-600 text-white py-3.5 rounded-xl text-sm font-bold">
                           ✓ Picked Up Clean Laundry
                         </button>
                       </div>
                     )}
-                    {order.status === "rider_returning" && (
+                    {order.status === "rider_returning" && (order as any)._type === "laundry" && (
                       <div className="space-y-2">
                         <p className="text-xs text-center text-gray-500 mb-2">📦 Return clean laundry to customer</p>
-                        <button onClick={() => updateDoc(doc(db, 'laundryOrders', order.id), { status: 'delivered', updatedAt: serverTimestamp() })} className="w-full bg-green-600 text-white py-3.5 rounded-xl text-sm font-bold">
+                        <button onClick={async () => {
+                          await fetch(`/api/laundry-orders/${order.id}`, { method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status: 'delivered' }) })
+                          // Deduct rider commission
+                          if (driver) { const commission = Math.round(riderFee * 20 / 100); await fetch("/api/wallet", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ownerId: driver.id, ownerType: "rider", type: "commission_deduction", amount: -commission, orderId: order.id, note: `20% commission` }) }) }
+                          // Deduct partner commission
+                          if ((order as any).partnerId) { const partnerCommission = Math.round(((order as any).totalPrice || (order as any).price || 0) * 15 / 100); await fetch("/api/wallet", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ownerId: (order as any).partnerId, ownerType: "partner", type: "commission_deduction", amount: -partnerCommission, orderId: order.id, note: `15% commission` }) }) }
+                        }} className="w-full bg-green-600 text-white py-3.5 rounded-xl text-sm font-bold">
                           ✓ Delivered to Customer
                         </button>
                         {order.pickupLat && order.pickupLng && (
@@ -702,7 +705,7 @@ export default function DriverPage() {
             <div className="fixed inset-0 z-[100] flex flex-col">
               <div className="absolute inset-0 bg-black/50" onClick={() => setChatOrderId(null)} />
               <div className="relative mt-auto bg-white rounded-t-2xl w-full max-w-lg mx-auto h-[65vh] flex flex-col overflow-hidden">
-                <div className="bg-[#D62828] px-4 py-3 flex items-center justify-between flex-shrink-0">
+                <div className="bg-[#16A34A] px-4 py-3 flex items-center justify-between flex-shrink-0">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
@@ -723,11 +726,11 @@ export default function DriverPage() {
                   ) : (
                     chatMessages.map((msg) => (
                       <div key={msg.id} className={`flex ${msg.senderRole === "driver" ? "justify-end" : "justify-start"}`}>
-                        <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${msg.senderRole === "driver" ? "bg-[#D62828] text-white rounded-br-md" : "bg-white text-gray-800 border border-gray-200 rounded-bl-md"}`}>
+                        <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${msg.senderRole === "driver" ? "bg-[#16A34A] text-white rounded-br-md" : "bg-white text-gray-800 border border-gray-200 rounded-bl-md"}`}>
                           {msg.senderRole !== "driver" && <p className="text-[10px] font-bold mb-0.5 text-gray-400">{msg.senderName}</p>}
                           <p className="text-sm">{msg.message}</p>
                           <p className={`text-[9px] mt-1 ${msg.senderRole === "driver" ? "text-white/50" : "text-gray-300"}`}>
-                            {msg.createdAt?.toDate?.()?.toLocaleTimeString?.([], { hour: "2-digit", minute: "2-digit" }) || "now"}
+                            {msg.createdAt?.toLocaleTimeString?.([], { hour: "2-digit", minute: "2-digit" }) || "now"}
                           </p>
                         </div>
                       </div>
@@ -742,12 +745,12 @@ export default function DriverPage() {
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleSendChat()}
-                    className="flex-1 border border-gray-200 rounded-full px-4 py-2.5 text-sm outline-none focus:border-[#D62828]"
+                    className="flex-1 border border-gray-200 rounded-full px-4 py-2.5 text-sm outline-none focus:border-[#16A34A]"
                   />
                   <button
                     onClick={handleSendChat}
                     disabled={!chatInput.trim()}
-                    className="w-10 h-10 bg-[#D62828] text-white rounded-full flex items-center justify-center hover:bg-[#b71c1c] transition-colors disabled:opacity-40"
+                    className="w-10 h-10 bg-[#16A34A] text-white rounded-full flex items-center justify-center hover:bg-[#15803d] transition-colors disabled:opacity-40"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
                   </button>
@@ -758,15 +761,15 @@ export default function DriverPage() {
 
           {/* Bottom Nav */}
           <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg bg-white border-t border-gray-200 grid grid-cols-3 py-2 z-30">
-            <button onClick={() => setTab("available")} className={`flex flex-col items-center gap-0.5 py-1 ${tab === "available" ? "text-[#D62828]" : "text-gray-400"}`}>
+            <button onClick={() => setTab("available")} className={`flex flex-col items-center gap-0.5 py-1 ${tab === "available" ? "text-[#16A34A]" : "text-gray-400"}`}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
               <span className="text-[10px] font-medium">Available</span>
             </button>
-            <button onClick={() => setTab("active")} className={`flex flex-col items-center gap-0.5 py-1 ${tab === "active" ? "text-[#D62828]" : "text-gray-400"}`}>
+            <button onClick={() => setTab("active")} className={`flex flex-col items-center gap-0.5 py-1 ${tab === "active" ? "text-[#16A34A]" : "text-gray-400"}`}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" /></svg>
               <span className="text-[10px] font-medium">Active</span>
             </button>
-            <button onClick={() => setTab("history")} className={`flex flex-col items-center gap-0.5 py-1 ${tab === "history" ? "text-[#D62828]" : "text-gray-400"}`}>
+            <button onClick={() => setTab("history")} className={`flex flex-col items-center gap-0.5 py-1 ${tab === "history" ? "text-[#16A34A]" : "text-gray-400"}`}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
               <span className="text-[10px] font-medium">History</span>
             </button>

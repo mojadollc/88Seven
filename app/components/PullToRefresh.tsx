@@ -18,7 +18,8 @@ export default function PullToRefresh({ children, onRefresh }: { children: React
 
     const handleTouchStart = (e: TouchEvent) => {
       // Only trigger if scrolled to top
-      if (container.scrollTop > 0) return
+      const scrollTop = window.scrollY || document.documentElement.scrollTop
+      if (scrollTop > 0) return
       const scrollParent = getScrollParent(e.target as HTMLElement)
       if (scrollParent && scrollParent !== container && scrollParent.scrollTop > 0) return
       startY.current = e.touches[0].clientY
@@ -28,7 +29,8 @@ export default function PullToRefresh({ children, onRefresh }: { children: React
     const handleTouchMove = (e: TouchEvent) => {
       if (!touching || refreshing) return
       const deltaY = e.touches[0].clientY - startY.current
-      if (deltaY > 0 && container.scrollTop === 0) {
+      const scrollTop = window.scrollY || document.documentElement.scrollTop
+      if (deltaY > 0 && scrollTop === 0) {
         e.preventDefault()
         const dist = Math.min(deltaY * 0.5, 120)
         setPullDistance(dist)
@@ -64,7 +66,7 @@ export default function PullToRefresh({ children, onRefresh }: { children: React
   }, [pulling, pullDistance, refreshing, onRefresh])
 
   return (
-    <div ref={containerRef} className="min-h-screen relative overflow-auto">
+    <div ref={containerRef} className="min-h-screen relative">
       {/* Pull indicator */}
       <div
         className="absolute left-0 right-0 flex items-center justify-center z-[100] transition-all pointer-events-none"
@@ -74,19 +76,19 @@ export default function PullToRefresh({ children, onRefresh }: { children: React
           style={{ transform: refreshing ? undefined : `rotate(${pullDistance * 3}deg)` }}
         >
           {refreshing ? (
-            <svg className="w-5 h-5 text-[#D62828]" fill="none" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-[#16A34A]" fill="none" viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" />
               <path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
             </svg>
           ) : (
-            <svg className={`w-5 h-5 transition-colors ${pulling ? "text-[#D62828]" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={`w-5 h-5 transition-colors ${pulling ? "text-[#16A34A]" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
             </svg>
           )}
         </div>
       </div>
       {/* Content shifted down during pull */}
-      <div style={{ transform: `translateY(${pullDistance}px)`, transition: pullDistance === 0 && !refreshing ? "transform 0.3s ease" : "none" }}>
+      <div style={pullDistance > 0 || refreshing ? { transform: `translateY(${pullDistance}px)`, transition: pullDistance === 0 && !refreshing ? "transform 0.3s ease" : "none" } : undefined}>
         {children}
       </div>
     </div>

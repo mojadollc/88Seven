@@ -1,20 +1,22 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getDrivers, createDriver, updateDriver, deleteDriver, type Driver } from "@/lib/firebase"
+// All data via Postgres API
+import { ResetPasswordModal } from "@/app/admin/components/ResetPasswordModal"
 
 export default function AdminDriversPage() {
-  const [drivers, setDrivers] = useState<Driver[]>([])
+  const [drivers, setDrivers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
-  const [editing, setEditing] = useState<Driver | null>(null)
+  const [editing, setEditing] = useState<any>(null)
   const [form, setForm] = useState({ name: "", email: "", phone: "", status: "active" as "active" | "inactive" | "pending" })
+  const [resetEmail, setResetEmail] = useState<string | null>(null)
 
   useEffect(() => { loadDrivers() }, [])
 
   const loadDrivers = async () => {
     setLoading(true)
-    const data = await getDrivers()
+    const data = await fetch("/api/users?role=driver").then(r => r.json())
     setDrivers(data)
     setLoading(false)
   }
@@ -28,15 +30,15 @@ export default function AdminDriversPage() {
   const handleSubmit = async () => {
     if (!form.name.trim() || !form.phone.trim()) return
     if (editing) {
-      await updateDriver(editing.id, form)
+      await fetch(`/api/partners/${editing.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) })
     } else {
-      await createDriver(form)
+      await fetch("/api/auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "register", ...form, role: "driver", password: "Payroo2024!" }) })
     }
     resetForm()
     await loadDrivers()
   }
 
-  const handleEdit = (driver: Driver) => {
+  const handleEdit = (driver: any) => {
     setForm({ name: driver.name, email: driver.email, phone: driver.phone, status: driver.status })
     setEditing(driver)
     setShowForm(true)
@@ -44,7 +46,7 @@ export default function AdminDriversPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Remove this rider?")) return
-    await deleteDriver(id)
+    await fetch(`/api/partners/${id}`, { method: "DELETE" })
     await loadDrivers()
   }
 
@@ -52,10 +54,10 @@ export default function AdminDriversPage() {
     <>
       <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-20">
         <div className="flex items-center justify-between">
-          <h1 className="text-lg font-bold text-[#1a1a2e]">Riders / Drivers</h1>
+          <h1 className="text-lg font-bold text-[#1F2937]">Riders / Drivers</h1>
           <button
             onClick={() => { resetForm(); setShowForm(true) }}
-            className="text-xs bg-[#D62828] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#b71c1c] transition-colors"
+            className="text-xs bg-[#16A34A] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#15803d] transition-colors"
           >
             + Add Rider
           </button>
@@ -72,31 +74,31 @@ export default function AdminDriversPage() {
                 placeholder="Full Name *"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#D62828]"
+                className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#16A34A]"
               />
               <input
                 placeholder="Phone *"
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#D62828]"
+                className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#16A34A]"
               />
               <input
                 placeholder="Email (for login)"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#D62828]"
+                className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#16A34A]"
               />
               <select
                 value={form.status}
                 onChange={(e) => setForm({ ...form, status: e.target.value as "active" | "inactive" })}
-                className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#D62828]"
+                className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#16A34A]"
               >
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
               </select>
             </div>
             <div className="flex gap-2 mt-4">
-              <button onClick={handleSubmit} className="bg-[#D62828] text-white px-5 py-2 rounded-lg text-xs font-bold hover:bg-[#b71c1c]">
+              <button onClick={handleSubmit} className="bg-[#16A34A] text-white px-5 py-2 rounded-lg text-xs font-bold hover:bg-[#15803d]">
                 {editing ? "Update" : "Add Rider"}
               </button>
               <button onClick={resetForm} className="bg-gray-100 text-gray-600 px-5 py-2 rounded-lg text-xs font-medium">Cancel</button>
@@ -139,7 +141,7 @@ export default function AdminDriversPage() {
                     {driver.profileComplete && !(driver as any).profileVerified && (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 animate-pulse">Docs Submitted</span>
                     )}
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full ${(driver.walletBalance || 0) >= 100 ? "bg-green-50 text-green-600" : "bg-red-50 text-red-500"}`}>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full ${(driver.walletBalance || 0) >= 100 ? "bg-green-50 text-green-600" : "bg-green-50 text-green-500"}`}>
                       ₱{driver.walletBalance || 0}
                     </span>
                   </div>
@@ -154,17 +156,18 @@ export default function AdminDriversPage() {
                       {driver.nbiUrl && <a href={driver.nbiUrl} target="_blank" className="text-[10px] bg-white border border-gray-200 px-2 py-1 rounded">NBI/Clearance</a>}
                       {driver.vehicleUrl && <a href={driver.vehicleUrl} target="_blank" className="text-[10px] bg-white border border-gray-200 px-2 py-1 rounded">Vehicle Photo</a>}
                     </div>
-                    <button onClick={async () => { await updateDriver(driver.id, { profileVerified: true } as any); await loadDrivers() }} className="text-xs bg-green-500 text-white px-4 py-1.5 rounded-lg font-bold hover:bg-green-600">✓ Verify & Approve Documents</button>
+                    <button onClick={async () => { await fetch(`/api/partners/${driver.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ profileVerified: true }) }); await loadDrivers() }} className="text-xs bg-green-500 text-white px-4 py-1.5 rounded-lg font-bold hover:bg-green-600">✓ Verify & Approve Documents</button>
                   </div>
                 )}
 
                 {/* Actions */}
                 <div className="px-5 py-3 border-t border-gray-100 flex items-center gap-2">
                   {(driver.status as string) === "pending" && (
-                    <button onClick={async () => { await updateDriver(driver.id, { status: "active" }); await loadDrivers() }} className="text-xs bg-green-500 text-white px-3 py-1.5 rounded-lg font-bold">Approve Rider</button>
+                    <button onClick={async () => { await fetch(`/api/partners/${driver.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "active" }) }); await loadDrivers() }} className="text-xs bg-green-500 text-white px-3 py-1.5 rounded-lg font-bold">Approve Rider</button>
                   )}
                   <button onClick={() => handleEdit(driver)} className="text-xs text-blue-600 hover:underline">Edit</button>
-                  <button onClick={() => handleDelete(driver.id)} className="text-xs text-red-500 hover:underline">Remove</button>
+                  {driver.email && <button onClick={() => setResetEmail(driver.email)} className="text-xs text-orange-600 hover:underline">🔑 Reset Password</button>}
+                  <button onClick={() => handleDelete(driver.id)} className="text-xs text-green-500 hover:underline">Remove</button>
                 </div>
               </div>
             ))}
@@ -180,6 +183,8 @@ export default function AdminDriversPage() {
           </p>
         </div>
       </div>
+
+      {resetEmail && <ResetPasswordModal email={resetEmail} onClose={() => setResetEmail(null)} />}
     </>
   )
 }

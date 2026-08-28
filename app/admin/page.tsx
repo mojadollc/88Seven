@@ -1,54 +1,51 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getAllProducts, toggleProductVisibility, getStoreCategories, type Product, type Category } from "@/lib/firebase"
-import { doc, updateDoc, getFirestore } from "firebase/firestore"
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage"
+// All data via Postgres API
 
-const db = getFirestore()
 const ITEMS_PER_PAGE = 20
 
 export default function AdminProducts() {
-  const [products, setProducts] = useState<Product[]>([])
+  const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [toggling, setToggling] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [filterStatus, setFilterStatus] = useState<"all" | "visible" | "hidden">("all")
-  const [storeCategories, setStoreCategories] = useState<Category[]>([])
+  const [storeCategories, setStoreCategories] = useState<any[]>([])
 
   // Edit modal state
-  const [editing, setEditing] = useState<Product | null>(null)
+  const [editing, setEditing] = useState<any>(null)
   const [editForm, setEditForm] = useState({ name: "", price: "", stock: "", unit: "", category: "" })
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     loadProducts()
-    getStoreCategories().then(setStoreCategories)
   }, [])
 
   async function loadProducts() {
     setLoading(true)
     try {
-      setProducts(await getAllProducts())
+      const res = await fetch("/api/products?all=true")
+      setProducts(await res.json())
     } finally {
       setLoading(false)
     }
   }
 
-  async function handleToggle(product: Product) {
+  async function handleToggle(product: any) {
     setToggling(product.id)
     const newValue = product.showOnSite === false ? true : false
     try {
-      await toggleProductVisibility(product.id, newValue)
+      await fetch(`/api/products/${product.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ showOnSite: newValue }) })
       setProducts((prev) => prev.map((p) => (p.id === product.id ? { ...p, showOnSite: newValue } : p)))
     } finally {
       setToggling(null)
     }
   }
 
-  function openEdit(product: Product) {
+  function openEdit(product: any) {
     setEditing(product)
     setEditForm({
       name: product.name,
@@ -63,14 +60,14 @@ export default function AdminProducts() {
     if (!editing) return
     setSaving(true)
     try {
-      const updates: Record<string, any> = {
+      const updates = {
         name: editForm.name.trim(),
         price: parseFloat(editForm.price) || 0,
         stock: parseInt(editForm.stock) || 0,
         unit: editForm.unit.trim(),
         category: editForm.category,
       }
-      await updateDoc(doc(db, "products", editing.id), updates)
+      await fetch(`/api/products/${editing.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(updates) })
       setProducts((prev) => prev.map((p) => p.id === editing.id ? { ...p, ...updates } : p))
       setEditing(null)
     } finally {
@@ -82,11 +79,12 @@ export default function AdminProducts() {
     if (!editing) return
     setUploading(true)
     try {
-      const storage = getStorage()
-      const storageRef = ref(storage, `products/${editing.id}/${file.name}`)
-      await uploadBytes(storageRef, file)
-      const url = await getDownloadURL(storageRef)
-      await updateDoc(doc(db, "products", editing.id), { imageUrl: url })
+      const formData = new FormData()
+      formData.append("file", file)
+      formData.append("productId", editing.id)
+      const res = await fetch("/api/upload/product-image", { method: "POST", body: formData })
+      const { url } = await res.json()
+      await fetch(`/api/products/${editing.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ imageUrl: url }) })
       setProducts((prev) => prev.map((p) => p.id === editing.id ? { ...p, imageUrl: url } : p))
       setEditing({ ...editing, imageUrl: url })
     } finally {
@@ -110,14 +108,14 @@ export default function AdminProducts() {
   return (
     <>
       <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-20">
-        <h1 className="text-lg font-bold text-[#1a1a2e]">Product Management</h1>
+        <h1 className="text-lg font-bold text-[#1F2937]">Product Management</h1>
       </header>
 
       <div className="p-6">
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-            <p className="text-xl font-bold text-[#1a1a2e]">{products.length}</p>
+            <p className="text-xl font-bold text-[#1F2937]">{products.length}</p>
             <p className="text-xs text-gray-400">Total</p>
           </div>
           <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
@@ -125,7 +123,7 @@ export default function AdminProducts() {
             <p className="text-xs text-gray-400">Visible</p>
           </div>
           <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-            <p className="text-xl font-bold text-red-600">{products.filter((p) => p.showOnSite === false).length}</p>
+            <p className="text-xl font-bold text-green-700">{products.filter((p) => p.showOnSite === false).length}</p>
             <p className="text-xs text-gray-400">Hidden</p>
           </div>
           <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
@@ -141,11 +139,11 @@ export default function AdminProducts() {
               <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <input type="text" placeholder="Search products..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#D62828]" />
+              <input type="text" placeholder="Search products..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#16A34A]" />
             </div>
             <div className="flex gap-2">
               {(["all", "visible", "hidden"] as const).map((s) => (
-                <button key={s} onClick={() => setFilterStatus(s)} className={`px-4 py-2 rounded-lg text-xs font-medium capitalize ${filterStatus === s ? "bg-[#D62828] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>{s}</button>
+                <button key={s} onClick={() => setFilterStatus(s)} className={`px-4 py-2 rounded-lg text-xs font-medium capitalize ${filterStatus === s ? "bg-[#16A34A] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>{s}</button>
               ))}
             </div>
           </div>
@@ -184,13 +182,13 @@ export default function AdminProducts() {
                   </div>
                   {/* Name */}
                   <div>
-                    <p className="text-sm font-medium text-[#1a1a2e] line-clamp-1">{product.name}</p>
+                    <p className="text-sm font-medium text-[#1F2937] line-clamp-1">{product.name}</p>
                     <p className="text-xs text-gray-400 md:hidden">{product.category} · ₱{product.price} · Stock: {product.stock}</p>
                   </div>
                   {/* Price */}
                   <span className="hidden md:block text-xs font-medium text-green-700">₱{product.price.toFixed(2)}</span>
                   {/* Stock */}
-                  <span className={`hidden md:block text-xs font-medium ${product.stock <= 5 ? "text-red-600" : "text-gray-700"}`}>{product.stock}</span>
+                  <span className={`hidden md:block text-xs font-medium ${product.stock <= 5 ? "text-green-700" : "text-gray-700"}`}>{product.stock}</span>
                   {/* Category */}
                   <span className="hidden md:block text-xs text-gray-500 truncate">{product.category}</span>
                   {/* Unit */}
@@ -234,7 +232,7 @@ export default function AdminProducts() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => setEditing(null)} />
           <div className="relative bg-white rounded-2xl w-full max-w-md overflow-hidden">
-            <div className="bg-[#D62828] px-6 py-4 flex items-center justify-between">
+            <div className="bg-[#16A34A] px-6 py-4 flex items-center justify-between">
               <h2 className="font-bold text-white">Edit Product</h2>
               <button onClick={() => setEditing(null)} className="text-white/80 hover:text-white text-2xl">&times;</button>
             </div>
@@ -263,18 +261,18 @@ export default function AdminProducts() {
               {/* Name */}
               <div>
                 <label className="text-xs font-semibold text-gray-500">Product Name</label>
-                <input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#D62828]" />
+                <input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#16A34A]" />
               </div>
 
               {/* Price & Stock */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-semibold text-gray-500">Selling Price (₱)</label>
-                  <input type="number" min="0" step="0.01" value={editForm.price} onChange={(e) => setEditForm({ ...editForm, price: e.target.value })} className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#D62828]" />
+                  <input type="number" min="0" step="0.01" value={editForm.price} onChange={(e) => setEditForm({ ...editForm, price: e.target.value })} className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#16A34A]" />
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500">Stock</label>
-                  <input type="number" min="0" value={editForm.stock} onChange={(e) => setEditForm({ ...editForm, stock: e.target.value })} className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#D62828]" />
+                  <input type="number" min="0" value={editForm.stock} onChange={(e) => setEditForm({ ...editForm, stock: e.target.value })} className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#16A34A]" />
                 </div>
               </div>
 
@@ -292,7 +290,7 @@ export default function AdminProducts() {
                       price: selected?.salePrice ? String(selected.salePrice) : editForm.price,
                     })
                   }}
-                  className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#D62828] bg-white"
+                  className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#16A34A] bg-white"
                 >
                   <option value="">{editForm.category || "Select category"}</option>
                   {storeCategories.map((c) => (
@@ -314,14 +312,14 @@ export default function AdminProducts() {
               {/* Unit */}
               <div>
                 <label className="text-xs font-semibold text-gray-500">Unit</label>
-                <input placeholder="e.g. pc, kg, pack, bottle" value={editForm.unit} onChange={(e) => setEditForm({ ...editForm, unit: e.target.value })} className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#D62828]" />
+                <input placeholder="e.g. pc, kg, pack, bottle" value={editForm.unit} onChange={(e) => setEditForm({ ...editForm, unit: e.target.value })} className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#16A34A]" />
               </div>
             </div>
 
             {/* Footer */}
             <div className="px-6 py-4 border-t bg-gray-50 flex gap-3">
               <button onClick={() => setEditing(null)} className="flex-1 border border-gray-300 py-2.5 rounded-lg text-sm font-medium text-gray-600">Cancel</button>
-              <button onClick={handleSave} disabled={saving || !editForm.name.trim()} className="flex-1 bg-[#D62828] text-white py-2.5 rounded-lg text-sm font-bold disabled:opacity-40">
+              <button onClick={handleSave} disabled={saving || !editForm.name.trim()} className="flex-1 bg-[#16A34A] text-white py-2.5 rounded-lg text-sm font-bold disabled:opacity-40">
                 {saving ? "Saving..." : "Save Changes"}
               </button>
             </div>

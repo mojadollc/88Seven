@@ -1,12 +1,9 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { onCustomerAuthChange, getCustomerProfile, getAllPartners, getDeliverySettings, calculateDeliveryFee, updateCustomerProfile, getCustomerWalletBalance, deductCustomerWallet, getPaymentMethodsConfig, getListingMode, type CustomerProfile, type LaundryPartner, type DeliverySettings, type SavedAddress, type PaymentMethodsConfig } from "@/lib/firebase"
-import { getFirestore, collection, addDoc, serverTimestamp, query, where, orderBy, onSnapshot, getDocs, updateDoc, doc } from "firebase/firestore"
-import type { User } from "firebase/auth"
+// Firebase auth removed
 import AddressPicker from "@/app/components/AddressPicker"
 
-const db = getFirestore()
 
 type LaundryOrder = {
   id: string
@@ -52,7 +49,7 @@ const STATUS_COLORS: Record<string, string> = {
   rider_return_pickup: "bg-teal-100 text-teal-800",
   rider_returning: "bg-cyan-100 text-cyan-800",
   delivered: "bg-green-100 text-green-800",
-  cancelled: "bg-red-100 text-red-800",
+  cancelled: "bg-green-100 text-green-900",
 }
 
 function calcDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -64,14 +61,14 @@ function calcDistance(lat1: number, lng1: number, lat2: number, lng2: number): n
 }
 
 export default function LaundryPage() {
-  const [user, setUser] = useState<User | null>(null)
-  const [profile, setProfile] = useState<CustomerProfile | null>(null)
+  const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
   const [walletBalance, setWalletBalance] = useState(0)
-  const [pmConfig, setPmConfig] = useState<PaymentMethodsConfig>({ cod: true, wallet: true, qrph: true, ewallet: true, bank: true, xendit: true })
-  const [partners, setPartners] = useState<LaundryPartner[]>([])
-  const [settings, setSettings] = useState<DeliverySettings | null>(null)
+  const [pmConfig, setPmConfig] = useState<any>({ cod: true, wallet: true, qrph: true, ewallet: true, bank: true, xendit: true })
+  const [partners, setPartners] = useState<any[]>([])
+  const [settings, setSettings] = useState<any>(null)
   const [orders, setOrders] = useState<LaundryOrder[]>([])
-  const [selectedPartner, setSelectedPartner] = useState<LaundryPartner | null>(null)
+  const [selectedPartner, setSelectedPartner] = useState<any>(null)
   const [showBooking, setShowBooking] = useState(false)
   const [form, setForm] = useState({ service: "wash_dry_fold", weight: 3, address: "", notes: "", phone: "", lat: 0, lng: 0, paymentMethod: "cod" })
   const [userAddress, setUserAddress] = useState("")
@@ -106,80 +103,78 @@ export default function LaundryPage() {
   const [submitting, setSubmitting] = useState(false)
   const [tab, setTab] = useState<"shops" | "orders">("shops")
   const [showAddressPicker, setShowAddressPicker] = useState(false)
-  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([])
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([])
   const [partnerPromos, setPartnerPromos] = useState<{ id: string; partnerId: string; partnerName: string; title: string; promoCode: string; discountPercent: number; description: string; minOrder: number; validUntil: string; active: boolean }[]>([])
   const [platformPromos, setPlatformPromos] = useState<{ id: string; title: string; discountPercent: number; description: string; applicableTo: string; minOrder: number; validUntil: string; active: boolean }[]>([])
 
   useEffect(() => {
-    getDeliverySettings().then(setSettings)
-    getPaymentMethodsConfig().then(setPmConfig)
-    Promise.all([getAllPartners(), getListingMode()]).then(([p, lm]) => {
-      const active = p.filter((x) => x.status === "active")
-      setPartners(lm === "wallet_required" ? active.filter((x) => (x.walletBalance || 0) >= 100) : active)
+    fetch("/api/delivery-settings").then(r => r.json()).then(setSettings)
+    fetch("/api/settings/payment-methods").then(r => r.ok ? r.json() : {}).then((pm: any) => setPmConfig((prev: any) => ({ ...prev, ...pm })))
+    fetch("/api/users?role=partner").then(r => r.json()).then((p: any[]) => {
+      setPartners(p.filter((x: any) => x.status === "active"))
     })
-    // Load promos
-    getDocs(query(collection(db, "partnerPromos"), where("active", "==", true))).then((snap) => {
-      setPartnerPromos(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as any))
-    })
-    getDocs(query(collection(db, "platformPromos"), where("active", "==", true))).then((snap) => {
-      setPlatformPromos(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as any).filter((p: any) => p.applicableTo === "all" || p.applicableTo === "laundry"))
+    fetch("/api/promos?active=true").then((r) => r.json()).then((data) => {
+      setPlatformPromos(data.filter((p: any) => p.applicableTo === "all" || p.applicableTo === "laundry"))
     })
   }, [])
 
   useEffect(() => {
-    const unsub = onCustomerAuthChange(async (u) => {
+    const u = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "null") : null
+    if (u) {
       setUser(u)
-      if (u) {
-        const p = await getCustomerProfile(u.uid)
-        setProfile(p)
-        getCustomerWalletBalance(u.uid).then(setWalletBalance)
-        if (p) {
-          setForm((f) => ({ ...f, address: p.address || "", phone: p.phone || "" }))
-          if (p.savedAddresses) setSavedAddresses(p.savedAddresses)
-        }
-      }
-    })
-    return () => unsub()
+      const token = localStorage.getItem("token")
+      fetch("/api/users/me", { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.ok ? r.json() : null)
+        .then(p => {
+          if (p) {
+            setProfile(p)
+            setWalletBalance(p.walletBalance || 0)
+            setForm((f: any) => ({ ...f, address: p.address || "", phone: p.phone || "" }))
+            if (p.savedAddresses) setSavedAddresses(p.savedAddresses)
+          }
+        })
+    }
   }, [])
 
   useEffect(() => {
     if (!user) return
-    const q = query(collection(db, "laundryOrders"), where("customerId", "==", user.uid), orderBy("createdAt", "desc"))
-    const unsub = onSnapshot(q, (snap) => {
-      const allOrders = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as LaundryOrder)
-      setOrders(allOrders)
-      // Auto-cancel expired awaiting_payment orders
-      allOrders.forEach(async (order) => {
-        if (order.status === "awaiting_payment" && order.paymentExpiresAt) {
-          const expiresAt = order.paymentExpiresAt?.toDate ? order.paymentExpiresAt.toDate() : new Date(order.paymentExpiresAt)
-          if (new Date() > expiresAt) {
-            await updateDoc(doc(db, "laundryOrders", order.id), { status: "cancelled", cancelReason: "Payment expired", updatedAt: serverTimestamp() })
+    const iv = setInterval(async () => {
+      const r = await fetch(`/api/laundry-orders?customerId=${user.uid}`)
+      if (r.ok) {
+        const allOrders = await r.json()
+        setOrders(allOrders)
+        allOrders.forEach(async (order: any) => {
+          if (order.status === "awaiting_payment" && order.paymentExpiresAt) {
+            if (new Date() > new Date(order.paymentExpiresAt)) {
+              await fetch(`/api/laundry-orders/${order.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "cancelled", cancelReason: "Payment expired" }) })
+            }
           }
-        }
-      })
-    })
-    return () => unsub()
+        })
+      }
+    }, 5000)
+    return () => clearInterval(iv)
   }, [user])
 
 
-  const getDistanceToShop = (partner: LaundryPartner) => {
+  const getDistanceToShop = (partner: any) => {
     if (!form.lat || !form.lng || !partner.lat || !partner.lng) return null
     return calcDistance(form.lat, form.lng, partner.lat, partner.lng)
   }
 
-  const getPickupFee = (partner: LaundryPartner) => {
+  const getPickupFee = (partner: any) => {
     return 0 // No separate pickup fee — included in delivery
   }
 
-  const getDeliveryFee = (partner: LaundryPartner) => {
+  const getDeliveryFee = (partner: any) => {
     if (!settings) return 0
     const km = getDistanceToShop(partner)
-    if (!km) return settings.laundry.baseFare
-    return calculateDeliveryFee(km, settings.laundry)
+    if (!km) return settings.laundryBaseFare || 29
+    const extraKm = Math.max(0, km - (settings.laundryBaseKm || 2))
+    return Math.round((settings.laundryBaseFare || 29) + extraKm * (settings.laundryPerKmRate || 12))
   }
 
   const partnerServices = selectedPartner?.services?.length ? selectedPartner.services : DEFAULT_SERVICES
-  const selectedService = partnerServices.find((s) => s.id === form.service) || partnerServices[0]
+  const selectedService = partnerServices.find((s: any) => s.id === form.service) || partnerServices[0]
   const servicePrice = selectedService.price * form.weight
   const pickupFee = selectedPartner ? getPickupFee(selectedPartner) : 0
   const deliveryFee = selectedPartner ? getDeliveryFee(selectedPartner) : 0
@@ -204,7 +199,6 @@ export default function LaundryPage() {
       customerPhone: form.phone,
       partnerId: selectedPartner.id,
       partnerName: selectedPartner.shopName,
-      createdAt: serverTimestamp(),
     }
     if (form.lat) orderData.pickupLat = form.lat
     if (form.lng) orderData.pickupLng = form.lng
@@ -216,12 +210,13 @@ export default function LaundryPage() {
       orderData.paymentExpiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 min
     }
 
-    const docRef = await addDoc(collection(db, "laundryOrders"), orderData)
+    const res = await fetch("/api/laundry-orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(orderData) })
+    const docRef = await res.json()
 
     // Payroo Wallet payment
     if (form.paymentMethod === "wallet") {
-      await deductCustomerWallet(user.uid, totalPrice, docRef.id, `Laundry - ${selectedService.name} (${form.weight}kg)`)
-      setWalletBalance((prev) => prev - totalPrice)
+      await fetch("/api/wallet", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ownerId: user.id, ownerType: "customer", type: "deduction", amount: -totalPrice, orderId: docRef.id, note: `Laundry - ${selectedService.name} (${form.weight}kg)` }) })
+      setWalletBalance((prev: number) => prev - totalPrice)
       setShowBooking(false)
       setSubmitting(false)
       setTab("orders")
@@ -256,7 +251,7 @@ export default function LaundryPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
       <header className="bg-blue-600 text-white px-4 py-3 sticky top-0 z-50">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
@@ -300,7 +295,7 @@ export default function LaundryPage() {
             {platformPromos.length > 0 && (
               <div className="px-4 pt-4 space-y-2">
                 {platformPromos.map((promo) => (
-                  <div key={promo.id} className="bg-gradient-to-r from-red-500 to-orange-500 rounded-xl p-4 text-white">
+                  <div key={promo.id} className="bg-gradient-to-r from-green-500 to-orange-500 rounded-xl p-4 text-white">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-bold text-sm">{promo.title}</p>
@@ -380,7 +375,7 @@ export default function LaundryPage() {
 
                       {/* Services */}
                       <div className="flex flex-wrap gap-1 mt-3">
-                        {(partner.services?.length ? partner.services : DEFAULT_SERVICES).slice(0, 3).map((s) => (
+                        {(partner.services?.length ? partner.services : DEFAULT_SERVICES).slice(0, 3).map((s: any) => (
                           <span key={s.id} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{s.name}: ₱{s.price}/{s.unit.replace("per ", "")}</span>
                         ))}
                       </div>
@@ -434,7 +429,7 @@ export default function LaundryPage() {
                   <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase ${STATUS_COLORS[order.status] || "bg-gray-100 text-gray-600"}`}>
                     {order.status.replace(/_/g, " ")}
                   </span>
-                  <span className="text-[10px] text-gray-400">{order.createdAt?.toDate?.()?.toLocaleDateString?.(undefined, { month: "short", day: "numeric" }) || ""}</span>
+                  <span className="text-[10px] text-gray-400">{order.createdAt?.toLocaleDateString?.(undefined, { month: "short", day: "numeric" }) || ""}</span>
                 </div>
                 <p className="text-sm font-bold text-gray-800 mb-1">{order.serviceName} — {order.weight}kg</p>
                 <p className="text-[10px] text-gray-500 mb-2">🧺 {order.partnerName}</p>
@@ -460,9 +455,9 @@ export default function LaundryPage() {
                   <button
                     onClick={async () => {
                       if (!confirm("Are you sure you want to cancel this order?")) return
-                      await updateDoc(doc(db, "laundryOrders", order.id), { status: "cancelled", updatedAt: serverTimestamp() })
+                      await fetch(`/api/laundry-orders/${order.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "cancelled" }) })
                     }}
-                    className="w-full mt-3 border border-red-200 text-red-600 py-2 rounded-lg text-xs font-bold hover:bg-red-50"
+                    className="w-full mt-3 border border-green-200 text-green-700 py-2 rounded-lg text-xs font-bold hover:bg-green-50"
                   >
                     Cancel Order
                   </button>
@@ -476,9 +471,9 @@ export default function LaundryPage() {
                     <div className="flex gap-2">
                       <button
                         onClick={async () => {
-                          await updateDoc(doc(db, "laundryOrders", order.id), { status: "cancelled", cancelReason: "Cancelled by customer", updatedAt: serverTimestamp() })
+                          await fetch(`/api/laundry-orders/${order.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "cancelled", cancelReason: "Cancelled by customer" }) })
                         }}
-                        className="flex-1 border border-red-200 text-red-600 py-2.5 rounded-lg text-xs font-bold hover:bg-red-50"
+                        className="flex-1 border border-green-200 text-green-700 py-2.5 rounded-lg text-xs font-bold hover:bg-green-50"
                       >
                         Cancel
                       </button>
@@ -525,7 +520,7 @@ export default function LaundryPage() {
               <div>
                 <label className="text-xs font-semibold text-gray-500 uppercase">Service</label>
                 <div className="mt-2 space-y-2">
-                  {(selectedPartner.services?.length ? selectedPartner.services : DEFAULT_SERVICES).map((s) => (
+                  {(selectedPartner.services?.length ? selectedPartner.services : DEFAULT_SERVICES).map((s: any) => (
                     <label key={s.id} className={`flex items-center gap-3 border rounded-lg px-4 py-3 cursor-pointer ${form.service === s.id ? "border-blue-600 bg-blue-50" : "border-gray-200"}`}>
                       <input type="radio" name="service" value={s.id} checked={form.service === s.id} onChange={() => setForm({ ...form, service: s.id })} className="accent-blue-600" />
                       <div className="flex-1">
@@ -597,8 +592,8 @@ export default function LaundryPage() {
                 <div className="mt-2 space-y-2">
                   {/* COD */}
                   {pmConfig.cod && (
-                  <label className={`flex items-center gap-3 border-2 rounded-xl px-4 py-3 cursor-pointer transition-colors ${form.paymentMethod === "cod" ? "border-[#D62828] bg-red-50" : "border-gray-200 hover:border-gray-300"}`}>
-                    <input type="radio" name="lpay" value="cod" checked={form.paymentMethod === "cod"} onChange={() => setForm({ ...form, paymentMethod: "cod" })} className="accent-[#D62828]" />
+                  <label className={`flex items-center gap-3 border-2 rounded-xl px-4 py-3 cursor-pointer transition-colors ${form.paymentMethod === "cod" ? "border-[#16A34A] bg-green-50" : "border-gray-200 hover:border-gray-300"}`}>
+                    <input type="radio" name="lpay" value="cod" checked={form.paymentMethod === "cod"} onChange={() => setForm({ ...form, paymentMethod: "cod" })} className="accent-[#16A34A]" />
                     <span className="text-2xl">💵</span>
                     <div>
                       <p className="text-sm font-bold text-gray-800">Cash on Delivery</p>
@@ -616,9 +611,9 @@ export default function LaundryPage() {
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-bold text-gray-800">Payroo Wallet</p>
-                        <p className="text-[11px] text-gray-400">Balance: <span className={`font-bold ${walletBalance >= totalPrice ? "text-green-600" : "text-red-500"}`}>₱{walletBalance.toFixed(2)}</span></p>
+                        <p className="text-[11px] text-gray-400">Balance: <span className={`font-bold ${walletBalance >= totalPrice ? "text-green-600" : "text-green-500"}`}>₱{walletBalance.toFixed(2)}</span></p>
                       </div>
-                      {walletBalance < totalPrice && <span className="text-[9px] bg-red-100 text-red-600 font-bold px-2 py-0.5 rounded-full">LOW</span>}
+                      {walletBalance < totalPrice && <span className="text-[9px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full">LOW</span>}
                     </label>
                   )}
 
@@ -686,7 +681,7 @@ export default function LaundryPage() {
 
             <div className="px-6 py-4 border-t bg-gray-50">
               {(!form.address || !form.phone) && (
-                <p className="text-[10px] text-red-500 mb-2 text-center">
+                <p className="text-[10px] text-green-500 mb-2 text-center">
                   {!form.address && !form.phone ? "Please set your address and phone number" : !form.address ? "Please set your delivery address" : "Please enter your phone number"}
                 </p>
               )}
@@ -711,14 +706,36 @@ export default function LaundryPage() {
         onSaveAddress={async (addr) => {
           const updated = [...savedAddresses, addr]
           setSavedAddresses(updated)
-          if (user) await updateCustomerProfile(user.uid, { savedAddresses: updated })
+          if (user) await fetch("/api/users/me", { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` }, body: JSON.stringify({ savedAddresses: updated }) })
         }}
         onDeleteAddress={async (id) => {
           const updated = savedAddresses.filter((a) => a.id !== id)
           setSavedAddresses(updated)
-          if (user) await updateCustomerProfile(user.uid, { savedAddresses: updated })
+          if (user) await fetch("/api/users/me", { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` }, body: JSON.stringify({ savedAddresses: updated }) })
         }}
       />
+
+      {/* Bottom Nav */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-bottom">
+        <div className="max-w-lg mx-auto grid grid-cols-4 py-1.5">
+          <a href="/" className="flex flex-col items-center gap-0.5 py-1 text-gray-400">
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span className="text-[10px] font-medium">Home</span>
+          </a>
+          <a href="/grocery" className="flex flex-col items-center gap-0.5 py-1 text-gray-400">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" /></svg>
+            <span className="text-[10px] font-medium">Grocery</span>
+          </a>
+          <a href="/laundry" className="flex flex-col items-center gap-0.5 py-1 text-blue-600">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+            <span className="text-[10px] font-bold">Laundry</span>
+          </a>
+          <a href="/account" className="flex flex-col items-center gap-0.5 py-1 text-gray-400">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+            <span className="text-[10px] font-medium">Account</span>
+          </a>
+        </div>
+      </nav>
     </main>
   )
 }

@@ -1,10 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getDeliverySettings, updateDeliverySettings, type DeliverySettings, type ServiceFeeConfig } from "@/lib/firebase"
-import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore"
 
-const db = getFirestore()
 
 export type PaymentMethodsConfig = {
   cod: boolean
@@ -15,18 +12,19 @@ export type PaymentMethodsConfig = {
   xendit: boolean
 }
 
-const DEFAULT_SETTINGS: DeliverySettings = {
+const DEFAULT_SETTINGS = {
   storeLat: 0, storeLng: 0, riderFeePerDelivery: 30,
   riderCommissionPercent: 20, partnerCommissionPercent: 15,
   freeDeliveryMinOrder: 1000, freeDeliveryArea: "Lapu-Lapu City, Cebu 6015",
-  grocery: { baseFare: 39, baseKm: 2, perKmRate: 10, surgeMultiplier: 1.5, surgeEnabled: false },
-  laundry: { baseFare: 29, baseKm: 2, perKmRate: 12, surgeMultiplier: 1.5, surgeEnabled: false },
+  groceryBaseFare: 39, groceryBaseKm: 2, groceryPerKmRate: 10, grocerySurgeMultiplier: 1.5, grocerySurgeEnabled: false,
+  laundryBaseFare: 29, laundryBaseKm: 2, laundryPerKmRate: 12, laundrySurgeMultiplier: 1.5, laundrySurgeEnabled: false,
 }
+
 
 type SettingsTab = "delivery" | "commission" | "payments" | "listing"
 
 export default function AdminSettingsPage() {
-  const [settings, setSettings] = useState<DeliverySettings>(DEFAULT_SETTINGS)
+  const [settings, setSettings] = useState<any>(DEFAULT_SETTINGS)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -34,18 +32,23 @@ export default function AdminSettingsPage() {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethodsConfig>({
     cod: true, wallet: true, qrph: true, ewallet: true, bank: true, xendit: true,
   })
-  const [listingMode, setListingMode] = useState<"free" | "wallet_required">("free")
+  const [listingConfig, setListingConfig] = useState<any>({ defaultMode: "free", defaultMinBalance: 100 })
+  const [partners, setPartners] = useState<any[]>([])
+  const [partnerOverrides, setPartnerOverrides] = useState<Record<string, { mode: string; min: number }>>({})
 
   useEffect(() => {
     async function load() {
-      const [data, pmSnap, lmSnap] = await Promise.all([
-        getDeliverySettings(),
-        getDoc(doc(db, "appSettings", "paymentMethods")),
-        getDoc(doc(db, "appSettings", "listingMode")),
+      const [data, pm, allPartners] = await Promise.all([
+        fetch("/api/delivery-settings").then(r => r.json()),
+        fetch("/api/settings/payment-methods").then(r => r.ok ? r.json() : {}).catch(() => ({})),
+        fetch("/api/users?role=partner").then(r => r.json()),
       ])
       setSettings({ ...DEFAULT_SETTINGS, ...data })
-      if (pmSnap.exists()) setPaymentMethods({ cod: true, wallet: true, qrph: true, ewallet: true, bank: true, xendit: true, ...pmSnap.data() })
-      if (lmSnap.exists()) setListingMode(lmSnap.data().mode || "free")
+      setPaymentMethods((prev: any) => ({ ...prev, ...pm }))
+      setPartners(allPartners.filter((p: any) => p.status === "active" || p.status === "pending"))
+      const overrides: Record<string, { mode: string; min: number }> = {}
+      allPartners.forEach((p: any) => { overrides[p.id] = { mode: p.listingMode || "free", min: p.minimumBalance ?? 0 } })
+      setPartnerOverrides(overrides)
       setLoading(false)
     }
     load()
@@ -54,9 +57,11 @@ export default function AdminSettingsPage() {
   const handleSave = async () => {
     setSaving(true)
     await Promise.all([
-      updateDeliverySettings(settings),
-      setDoc(doc(db, "appSettings", "paymentMethods"), paymentMethods),
-      setDoc(doc(db, "appSettings", "listingMode"), { mode: listingMode }),
+      fetch("/api/delivery-settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(settings) }),
+      fetch("/api/settings/payment-methods", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(paymentMethods) }),
+      ...Object.entries(partnerOverrides).map(([id, val]) =>
+        fetch(`/api/partners/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ listingMode: val.mode, minimumBalance: val.min }) })
+      ),
     ])
     setSaving(false)
     setSaved(true)
@@ -71,14 +76,15 @@ export default function AdminSettingsPage() {
     )
   }
 
-  const updateServiceConfig = (service: "grocery" | "laundry", field: keyof ServiceFeeConfig, value: number | boolean) => {
-    setSettings({ ...settings, [service]: { ...settings[service], [field]: value } })
+  const updateServiceConfig = (service: "grocery" | "laundry", field: string, value: number | boolean) => {
+    const key = service + field.charAt(0).toUpperCase() + field.slice(1)
+    setSettings((s: any) => ({ ...s, [key]: value }))
   }
 
   if (loading) return (
     <div className="flex items-center justify-center h-[60vh]">
       <div className="text-center">
-        <div className="w-8 h-8 border-3 border-[#D62828] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+        <div className="w-8 h-8 border-3 border-[#16A34A] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
         <p className="text-sm text-gray-400">Loading settings...</p>
       </div>
     </div>
@@ -97,10 +103,10 @@ export default function AdminSettingsPage() {
       <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-20">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold text-[#1a1a2e]">Settings</h1>
+            <h1 className="text-lg font-bold text-[#1F2937]">Settings</h1>
             <p className="text-[11px] text-gray-400 mt-0.5">Configure delivery, payments, and platform settings</p>
           </div>
-          <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 bg-[#D62828] text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-[#b71c1c] transition-colors disabled:opacity-50 shadow-sm">
+          <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 bg-[#16A34A] text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-[#15803d] transition-colors disabled:opacity-50 shadow-sm">
             {saving ? (
               <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Saving...</>
             ) : saved ? (
@@ -120,7 +126,7 @@ export default function AdminSettingsPage() {
               key={t.key}
               onClick={() => setTab(t.key)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                tab === t.key ? "bg-white text-[#1a1a2e] shadow-sm" : "text-gray-500 hover:text-gray-700"
+                tab === t.key ? "bg-white text-[#1F2937] shadow-sm" : "text-gray-500 hover:text-gray-700"
               }`}
             >
               <span className="text-base">{t.icon}</span>
@@ -161,12 +167,12 @@ export default function AdminSettingsPage() {
 
               {/* Grocery Fee */}
               <Section title="Grocery Delivery Fee" desc="Fee structure for grocery deliveries">
-                <FeeGrid config={settings.grocery} onChange={(f, v) => updateServiceConfig("grocery", f, v)} />
+                <FeeGrid config={{ baseFare: settings.groceryBaseFare, baseKm: settings.groceryBaseKm, perKmRate: settings.groceryPerKmRate, surgeMultiplier: settings.grocerySurgeMultiplier, surgeEnabled: settings.grocerySurgeEnabled }} onChange={(f, v) => updateServiceConfig("grocery", f, v)} />
               </Section>
 
               {/* Laundry Fee */}
               <Section title="Laundry Pickup & Delivery Fee" desc="Fee structure for laundry pickups and deliveries">
-                <FeeGrid config={settings.laundry} onChange={(f, v) => updateServiceConfig("laundry", f, v)} />
+                <FeeGrid config={{ baseFare: settings.laundryBaseFare, baseKm: settings.laundryBaseKm, perKmRate: settings.laundryPerKmRate, surgeMultiplier: settings.laundrySurgeMultiplier, surgeEnabled: settings.laundrySurgeEnabled }} onChange={(f, v) => updateServiceConfig("laundry", f, v)} />
               </Section>
 
               {/* Free Delivery */}
@@ -208,7 +214,7 @@ export default function AdminSettingsPage() {
                       <div className="w-px h-10 bg-gray-200" />
                       <div>
                         <p className="text-xs text-gray-500">Platform gets</p>
-                        <p className="text-xl font-bold text-[#D62828]">₱{Math.round(49 * settings.riderCommissionPercent / 100)}</p>
+                        <p className="text-xl font-bold text-[#16A34A]">₱{Math.round(49 * settings.riderCommissionPercent / 100)}</p>
                       </div>
                     </div>
                   </div>
@@ -234,7 +240,7 @@ export default function AdminSettingsPage() {
                       <div className="w-px h-10 bg-gray-200" />
                       <div>
                         <p className="text-xs text-gray-500">Platform gets</p>
-                        <p className="text-xl font-bold text-[#D62828]">₱{Math.round(200 * settings.partnerCommissionPercent / 100)}</p>
+                        <p className="text-xl font-bold text-[#16A34A]">₱{Math.round(200 * settings.partnerCommissionPercent / 100)}</p>
                       </div>
                     </div>
                   </div>
@@ -283,68 +289,142 @@ export default function AdminSettingsPage() {
           {/* ═══ LISTING MODE TAB ═══ */}
           {tab === "listing" && (
             <div className="space-y-6">
-              <Section title="Provider & Partner Visibility" desc="Control how laundry shops and service providers appear to customers">
-                <div className="space-y-3">
+              {/* Global Default */}
+              <Section title="Default Listing Mode" desc="Applies to all partners unless overridden below">
+                <div className="flex gap-3">
                   <button
-                    onClick={() => setListingMode("free")}
-                    className={`w-full text-left border-2 rounded-xl px-6 py-5 transition-all ${listingMode === "free" ? "border-green-500 bg-green-50 shadow-sm" : "border-gray-200 hover:border-gray-300"}`}
+                    onClick={() => setListingConfig({ ...listingConfig, defaultMode: "free" })}
+                    className={`flex-1 text-left border-2 rounded-xl px-5 py-4 transition-all ${listingConfig.defaultMode === "free" ? "border-green-500 bg-green-50" : "border-gray-200 hover:border-gray-300"}`}
                   >
-                    <div className="flex items-start gap-4">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${listingMode === "free" ? "bg-green-500" : "bg-gray-200"}`}>
-                        <span className="text-lg">🆓</span>
-                      </div>
-                      <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg">🆓</span>
+                      <div>
                         <p className="text-sm font-bold text-gray-800">Free Listing</p>
-                        <p className="text-xs text-gray-500 mt-1">All approved partners and service providers are automatically visible to customers — <span className="font-semibold">no wallet top-up needed.</span></p>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          <span className="text-[10px] bg-green-100 text-green-700 px-2 py-1 rounded-lg font-medium">✓ No barriers to entry</span>
-                          <span className="text-[10px] bg-green-100 text-green-700 px-2 py-1 rounded-lg font-medium">✓ Best for growth</span>
-                          <span className="text-[10px] bg-green-100 text-green-700 px-2 py-1 rounded-lg font-medium">✓ Partners accept bookings freely</span>
-                        </div>
+                        <p className="text-[10px] text-gray-500">All approved shops visible — no wallet needed</p>
                       </div>
-                      {listingMode === "free" && (
-                        <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shrink-0">
-                          <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                        </div>
-                      )}
                     </div>
                   </button>
-
                   <button
-                    onClick={() => setListingMode("wallet_required")}
-                    className={`w-full text-left border-2 rounded-xl px-6 py-5 transition-all ${listingMode === "wallet_required" ? "border-orange-500 bg-orange-50 shadow-sm" : "border-gray-200 hover:border-gray-300"}`}
+                    onClick={() => setListingConfig({ ...listingConfig, defaultMode: "wallet_required" })}
+                    className={`flex-1 text-left border-2 rounded-xl px-5 py-4 transition-all ${listingConfig.defaultMode === "wallet_required" ? "border-orange-500 bg-orange-50" : "border-gray-200 hover:border-gray-300"}`}
                   >
-                    <div className="flex items-start gap-4">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${listingMode === "wallet_required" ? "bg-orange-500" : "bg-gray-200"}`}>
-                        <span className="text-lg">💰</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg">💰</span>
+                      <div>
+                        <p className="text-sm font-bold text-gray-800">Wallet Required</p>
+                        <p className="text-[10px] text-gray-500">Shops must have balance to be listed</p>
                       </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-bold text-gray-800">Wallet Balance Required</p>
-                        <p className="text-xs text-gray-500 mt-1">Partners must maintain <span className="font-semibold text-orange-700">minimum ₱100</span> wallet balance to be listed and accept bookings. Ensures committed providers.</p>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          <span className="text-[10px] bg-orange-100 text-orange-700 px-2 py-1 rounded-lg font-medium">⚠️ ₱100 minimum required</span>
-                          <span className="text-[10px] bg-orange-100 text-orange-700 px-2 py-1 rounded-lg font-medium">⚠️ Hidden if balance is 0</span>
-                          <span className="text-[10px] bg-orange-100 text-orange-700 px-2 py-1 rounded-lg font-medium">✓ Ensures quality providers</span>
-                        </div>
-                      </div>
-                      {listingMode === "wallet_required" && (
-                        <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center shrink-0">
-                          <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                        </div>
-                      )}
                     </div>
                   </button>
                 </div>
-
-                {/* Current Mode Summary */}
-                <div className={`mt-4 rounded-xl p-4 border ${listingMode === "free" ? "bg-green-50 border-green-200" : "bg-orange-50 border-orange-200"}`}>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm">{listingMode === "free" ? "🟢" : "🟠"}</span>
-                    <p className={`text-xs font-bold ${listingMode === "free" ? "text-green-800" : "text-orange-800"}`}>
-                      Currently: {listingMode === "free" ? "Free Listing — all approved providers are visible" : "Wallet Required — only providers with ₱100+ balance are visible"}
-                    </p>
+                {listingConfig.defaultMode === "wallet_required" && (
+                  <div className="mt-4 flex items-center gap-3">
+                    <label className="text-xs font-semibold text-gray-600">Default Minimum Balance:</label>
+                    <div className="relative w-32">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">₱</span>
+                      <input type="number" min={0} value={listingConfig.defaultMinBalance} onChange={(e) => setListingConfig({ ...listingConfig, defaultMinBalance: Number(e.target.value) })} className="input-field pl-8 text-center font-bold" />
+                    </div>
                   </div>
-                  <p className="text-[10px] text-gray-500 mt-1 ml-6">Applies to: Laundry Partners, Home Service Providers</p>
+                )}
+              </Section>
+
+              {/* Per-Partner Override */}
+              <Section title="Per-Shop Listing Rules" desc="Override listing mode for specific laundry shops and service providers">
+                <div className="space-y-2">
+                  {partners.length === 0 && (
+                    <p className="text-center text-gray-400 text-xs py-6">No partners registered yet.</p>
+                  )}
+                  {partners.map((p) => {
+                    const override = partnerOverrides[p.id] || { mode: listingConfig.defaultMode, min: listingConfig.defaultMinBalance }
+                    const isVisible = override.mode === "free" || (p.walletBalance || 0) >= override.min
+                    return (
+                      <div key={p.id} className={`flex items-center gap-4 border rounded-xl px-5 py-4 transition-all ${override.mode === "wallet_required" ? "border-orange-200 bg-orange-50/30" : "border-green-200 bg-green-50/30"}`}>
+                        {/* Shop Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-semibold text-gray-800 truncate">{p.shopName}</p>
+                            {isVisible ? (
+                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-green-100 text-green-700 shrink-0">✓ VISIBLE</span>
+                            ) : (
+                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-green-100 text-green-700 shrink-0">✗ HIDDEN</span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-gray-400 mt-0.5">
+                            {p.ownerName} • Wallet: <span className={`font-bold ${(p.walletBalance || 0) > 0 ? "text-green-600" : "text-gray-500"}`}>₱{(p.walletBalance || 0).toLocaleString()}</span>
+                          </p>
+                        </div>
+                        {/* Mode Select */}
+                        <select
+                          value={override.mode}
+                          onChange={(e) => setPartnerOverrides({ ...partnerOverrides, [p.id]: { ...override, mode: e.target.value as any, min: e.target.value === "free" ? 0 : (override.min || listingConfig.defaultMinBalance) } })}
+                          className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-[#16A34A]"
+                        >
+                          <option value="free">Free</option>
+                          <option value="wallet_required">Wallet Required</option>
+                        </select>
+                        {/* Min Balance */}
+                        {override.mode === "wallet_required" && (
+                          <div className="relative w-24">
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] font-bold">₱</span>
+                            <input
+                              type="number"
+                              min={0}
+                              value={override.min}
+                              onChange={(e) => setPartnerOverrides({ ...partnerOverrides, [p.id]: { ...override, min: Number(e.target.value) } })}
+                              className="w-full border border-gray-200 rounded-lg pl-5 pr-2 py-1.5 text-xs font-bold outline-none focus:border-[#16A34A]"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </Section>
+
+              {/* Summary */}
+              <Section title="Visibility Summary" desc="Which shops are currently visible to customers">
+                <div className="overflow-hidden rounded-lg border border-gray-200">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 uppercase">Shop Name</th>
+                        <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-gray-500 uppercase">Mode</th>
+                        <th className="text-right px-4 py-2.5 text-[10px] font-semibold text-gray-500 uppercase">Min Balance</th>
+                        <th className="text-right px-4 py-2.5 text-[10px] font-semibold text-gray-500 uppercase">Wallet</th>
+                        <th className="text-center px-4 py-2.5 text-[10px] font-semibold text-gray-500 uppercase">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {partners.map((p) => {
+                        const override = partnerOverrides[p.id] || { mode: listingConfig.defaultMode, min: listingConfig.defaultMinBalance }
+                        const isVisible = override.mode === "free" || (p.walletBalance || 0) >= override.min
+                        return (
+                          <tr key={p.id} className="border-t border-gray-100">
+                            <td className="px-4 py-3 font-medium text-gray-800">{p.shopName}</td>
+                            <td className="px-4 py-3">
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${override.mode === "free" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"}`}>
+                                {override.mode === "free" ? "FREE" : "WALLET REQ"}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-right font-bold text-gray-600">
+                              {override.mode === "free" ? "—" : `₱${override.min.toLocaleString()}`}
+                            </td>
+                            <td className="px-4 py-3 text-right font-bold text-gray-600">₱{(p.walletBalance || 0).toLocaleString()}</td>
+                            <td className="px-4 py-3 text-center">
+                              {isVisible ? (
+                                <span className="text-[10px] font-bold text-green-600">🟢 Visible</span>
+                              ) : (
+                                <span className="text-[10px] font-bold text-green-500">🔴 Hidden</span>
+                              )}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                      {partners.length === 0 && (
+                        <tr><td colSpan={5} className="px-4 py-6 text-center text-gray-400 text-xs">No partners yet.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </Section>
             </div>
@@ -363,7 +443,7 @@ export default function AdminSettingsPage() {
           transition: border-color 0.15s, box-shadow 0.15s;
         }
         .input-field:focus {
-          border-color: #D62828;
+          border-color: #16A34A;
           box-shadow: 0 0 0 3px rgba(214, 40, 40, 0.08);
         }
       `}</style>
@@ -375,7 +455,7 @@ function Section({ title, desc, children }: { title: string; desc: string; child
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-100">
-        <h2 className="font-bold text-[15px] text-[#1a1a2e]">{title}</h2>
+        <h2 className="font-bold text-[15px] text-[#1F2937]">{title}</h2>
         <p className="text-[11px] text-gray-400 mt-0.5">{desc}</p>
       </div>
       <div className="p-6">{children}</div>
@@ -392,7 +472,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   )
 }
 
-function FeeGrid({ config, onChange }: { config: ServiceFeeConfig; onChange: (field: keyof ServiceFeeConfig, value: number | boolean) => void }) {
+function FeeGrid({ config, onChange }: { config: any; onChange: (field: string, value: number | boolean) => void }) {
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-3 gap-4">
@@ -422,11 +502,11 @@ function FeeGrid({ config, onChange }: { config: ServiceFeeConfig; onChange: (fi
         <div className="flex items-center gap-3">
           {config.surgeEnabled && (
             <div className="flex items-center gap-2">
-              <input type="number" min={1} step={0.1} value={config.surgeMultiplier} onChange={(e) => onChange("surgeMultiplier", Number(e.target.value))} className="w-16 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-center font-bold outline-none focus:border-[#D62828]" />
+              <input type="number" min={1} step={0.1} value={config.surgeMultiplier} onChange={(e) => onChange("surgeMultiplier", Number(e.target.value))} className="w-16 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-center font-bold outline-none focus:border-[#16A34A]" />
               <span className="text-xs text-gray-400">×</span>
             </div>
           )}
-          <button onClick={() => onChange("surgeEnabled", !config.surgeEnabled)} className={`relative w-11 h-6 rounded-full transition-colors ${config.surgeEnabled ? "bg-red-500" : "bg-gray-300"}`}>
+          <button onClick={() => onChange("surgeEnabled", !config.surgeEnabled)} className={`relative w-11 h-6 rounded-full transition-colors ${config.surgeEnabled ? "bg-green-500" : "bg-gray-300"}`}>
             <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${config.surgeEnabled ? "translate-x-5" : ""}`} />
           </button>
         </div>
@@ -442,7 +522,7 @@ function FeeGrid({ config, onChange }: { config: ServiceFeeConfig; onChange: (fi
             return (
               <div key={extra} className="text-center bg-white rounded-lg p-2.5 border border-gray-100">
                 <p className="text-[10px] text-gray-400">{km} km</p>
-                <p className="text-base font-bold text-[#D62828]">₱{fee}</p>
+                <p className="text-base font-bold text-[#16A34A]">₱{fee}</p>
               </div>
             )
           })}
