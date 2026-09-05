@@ -205,7 +205,7 @@ export default function HomePage() {
           {/* Logo */}
           <a href="/" className="flex items-center gap-2 shrink-0">
             {logoUrl ? (
-              <img src={logoUrl} alt="Logo" className="h-9 w-auto object-contain" />
+              <img src={logoUrl} alt="Logo" className="h-11 w-auto object-contain" />
             ) : (
               <>
                 <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center shadow-sm">
@@ -481,7 +481,7 @@ export default function HomePage() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="flex items-center gap-2">
             {logoUrl ? (
-              <img src={logoUrl} alt="Logo" className="h-9 w-auto object-contain" />
+              <img src={logoUrl} alt="Logo" className="h-11 w-auto object-contain" />
             ) : (
               <>
                 <div className="w-8 h-8 bg-teal-600 rounded-xl flex items-center justify-center">

@@ -92,7 +92,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!authenticated) return null
 
   return (
-    <div className="min-h-screen bg-[#F5F5DB] flex">
+    <div className="min-h-screen flex" style={{ backgroundColor: "#f9fafb" }}>
       {/* SIDEBAR */}
       <aside className="hidden md:flex flex-col w-[240px] bg-white border-r border-gray-200 fixed h-full z-30">
         <div className="p-5 border-b border-gray-100">

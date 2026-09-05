@@ -24,6 +24,9 @@ function applyVars(t: any) {
 
 export function useAppTheme() {
   useEffect(() => {
+    // Don't apply theme vars on admin pages
+    if (window.location.pathname.startsWith("/admin")) return
+
     // 1. Apply cached theme instantly (no flash)
     try {
       const cached = localStorage.getItem(CACHE_KEY)

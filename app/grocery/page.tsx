@@ -244,7 +244,7 @@ export default function GroceryPage() {
         <div className="max-w-6xl mx-auto px-3 md:px-6 py-2.5 flex items-center gap-3">
           <a href="/" className="flex items-center gap-1.5 shrink-0">
             {logoUrl ? (
-              <img src={logoUrl} alt="Logo" className="h-8 w-auto object-contain" />
+              <img src={logoUrl} alt="Logo" className="h-11 w-auto object-contain" />
             ) : (
               <>
                 <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
@@ -392,7 +392,7 @@ export default function GroceryPage() {
           <div className="rounded-2xl px-5 py-4 flex items-center justify-between" style={{ backgroundColor: "var(--theme-footer-bg, #1a1a1a)" }}>
             <a href="/" className="flex items-center gap-2">
               {logoUrl ? (
-                <img src={logoUrl} alt="Logo" className="h-8 w-auto object-contain" />
+                <img src={logoUrl} alt="Logo" className="h-11 w-auto object-contain" />
               ) : (
                 <span className="font-black tracking-tight" style={{ color: "var(--theme-footer-text, #ffffff)" }}>Gruwcer</span>
               )}
