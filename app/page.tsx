@@ -209,9 +209,9 @@ export default function HomePage() {
             ) : (
               <>
                 <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center shadow-sm">
-                  <span className="text-white font-black text-sm">G</span>
+                  <span className="font-black text-sm" style={{ color: "var(--theme-header-text, #ffffff)" }}>G</span>
                 </div>
-                <span className="font-black text-xl text-white tracking-tight">Gruwcer</span>
+                <span className="font-black text-xl tracking-tight" style={{ color: "var(--theme-header-text, #ffffff)" }}>Gruwcer</span>
               </>
             )}
           </a>
@@ -219,20 +219,20 @@ export default function HomePage() {
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-1">
             {NAV_ITEMS.map(item => (
-              <a key={item.label} href={item.href} className="px-4 py-2 text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors">{item.label}</a>
+              <a key={item.label} href={item.href} className="px-4 py-2 text-sm font-medium rounded-lg transition-colors hover:bg-black/5" style={{ color: "var(--theme-header-text, #ffffff)" }}>{item.label}</a>
             ))}
           </nav>
 
 {/* Right actions */}
           <div className="flex items-center gap-2">
-            <button onClick={() => setShowAddressModal(true)} className="hidden md:flex items-center gap-1.5 text-sm text-white/80 hover:text-white px-3 py-2 rounded-lg hover:bg-white/10 transition-colors">
-              <svg className="w-4 h-4 text-white/80 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            <button onClick={() => setShowAddressModal(true)} className="hidden md:flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg hover:bg-black/5 transition-colors" style={{ color: "var(--theme-header-text, #ffffff)" }}>
+              <svg className="w-4 h-4 shrink-0" style={{ color: "var(--theme-header-text, #ffffff)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
               <span className="max-w-[120px] truncate">{detecting ? "Detecting..." : address || "Set location"}</span>
             </button>
 
             <div className="relative">
               <button onClick={() => setShowNotifs(!showNotifs)} className="relative p-2 rounded-xl hover:bg-white/10 transition-colors">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                <svg className="w-5 h-5" style={{ color: "var(--theme-header-text, #ffffff)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
                 {mounted && unread > 0 && <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">{unread}</span>}
               </button>
               {showNotifs && (
@@ -253,30 +253,30 @@ export default function HomePage() {
               )}
             </div>
 
-            <a href="/account" className="hidden md:flex items-center gap-2 bg-white text-teal-700 text-sm font-semibold px-4 py-2 rounded-xl transition-colors hover:bg-gray-100">
+            <a href="/account" className="hidden md:flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-xl transition-colors hover:bg-black/5" style={{ color: "var(--theme-header-text, #ffffff)" }}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
               {mounted && profile?.name ? profile.name.split(" ")[0] : "Account"}
             </a>
 
             {/* Mobile menu toggle */}
             <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-2 rounded-xl hover:bg-white/10 transition-colors">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={mobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} /></svg>
+              <svg className="w-5 h-5" style={{ color: "var(--theme-header-text, #ffffff)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={mobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} /></svg>
             </button>
           </div>
         </div>
 
         {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-white/20 bg-teal-700 px-4 py-3 space-y-1">
+          <div className="md:hidden border-t border-black/10 px-4 py-3 space-y-1" style={{ background: "var(--theme-header-bg, #009689)" }}>
             {NAV_ITEMS.map(item => (
-              <a key={item.label} href={item.href} className="block px-3 py-2.5 text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition-colors">{item.label}</a>
+              <a key={item.label} href={item.href} className="block px-3 py-2.5 text-sm font-medium rounded-xl transition-colors hover:bg-black/5" style={{ color: "var(--theme-header-text, #ffffff)" }}>{item.label}</a>
             ))}
-            <div className="pt-2 border-t border-white/20 mt-2">
-              <button onClick={() => { setShowAddressModal(true); setMobileMenuOpen(false) }} className="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-white/80 hover:bg-white/10 rounded-xl">
-                <svg className="w-4 h-4 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            <div className="pt-2 border-t border-black/10 mt-2">
+              <button onClick={() => { setShowAddressModal(true); setMobileMenuOpen(false) }} className="flex items-center gap-2 w-full px-3 py-2.5 text-sm hover:bg-black/5 rounded-xl" style={{ color: "var(--theme-header-text, #ffffff)" }}>
+                <svg className="w-4 h-4" style={{ color: "var(--theme-header-text, #ffffff)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 {detecting ? "Detecting..." : address || "Set location"}
               </button>
-              <a href="/account" className="flex items-center gap-2 px-3 py-2.5 text-sm font-semibold text-white hover:bg-white/10 rounded-xl">
+              <a href="/account" className="flex items-center gap-2 px-3 py-2.5 text-sm font-semibold hover:bg-black/5 rounded-xl" style={{ color: "var(--theme-header-text, #ffffff)" }}>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                 {mounted && profile?.name ? profile.name : "My Account"}
               </a>

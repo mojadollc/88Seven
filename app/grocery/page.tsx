@@ -265,7 +265,7 @@ export default function GroceryPage() {
               className="flex-1 px-4 py-2 rounded-l-xl text-sm outline-none bg-white text-gray-800 placeholder-gray-400"
             />
             <button className="bg-[#FF8A00] px-4 rounded-r-xl">
-              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              <svg className="w-4 h-4" style={{ color: "var(--theme-header-text, #ffffff)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             </button>
           </div>
 
