@@ -2,24 +2,24 @@
 
 import { useEffect, useState } from "react"
 
-const DEFAULTS = { themeType: "solid", themeColor: "#319F44", themeColorTo: "#59EBC6", themeTextColor: "#ffffff", themeBgColor: "#F5F5DB" }
+const DEFAULTS = { themeType: "solid", themeColor: "#319F44", themeColorTo: "#59EBC6", themeTextColor: "#ffffff", themeBgColor: "#F5F5DB", themeDeliveryBannerColor: "#267a34" }
 
 const PRESETS = [
-  { label: "Green", type: "solid", color: "#319F44", colorTo: "#319F44", text: "#ffffff", bg: "#F5F5DB" },
-  { label: "Teal", type: "solid", color: "#0d9488", colorTo: "#0d9488", text: "#ffffff", bg: "#f0fdfa" },
-  { label: "Blue", type: "solid", color: "#1a56db", colorTo: "#1a56db", text: "#ffffff", bg: "#eff6ff" },
-  { label: "Purple", type: "solid", color: "#7c3aed", colorTo: "#7c3aed", text: "#ffffff", bg: "#faf5ff" },
-  { label: "Orange", type: "solid", color: "#ea580c", colorTo: "#ea580c", text: "#ffffff", bg: "#fff7ed" },
-  { label: "Rose", type: "solid", color: "#e11d48", colorTo: "#e11d48", text: "#ffffff", bg: "#fff1f2" },
-  { label: "Dark", type: "solid", color: "#1F2937", colorTo: "#1F2937", text: "#ffffff", bg: "#f9fafb" },
-  { label: "Green→Teal", type: "gradient", color: "#319F44", colorTo: "#59EBC6", text: "#ffffff", bg: "#F5F5DB" },
-  { label: "Blue→Purple", type: "gradient", color: "#1a56db", colorTo: "#7c3aed", text: "#ffffff", bg: "#eff6ff" },
-  { label: "Orange→Red", type: "gradient", color: "#f97316", colorTo: "#e11d48", text: "#ffffff", bg: "#fff7ed" },
-  { label: "Teal→Blue", type: "gradient", color: "#0d9488", colorTo: "#1a56db", text: "#ffffff", bg: "#f0fdfa" },
-  { label: "Purple→Pink", type: "gradient", color: "#7c3aed", colorTo: "#ec4899", text: "#ffffff", bg: "#faf5ff" },
+  { label: "Green", type: "solid", color: "#319F44", colorTo: "#319F44", text: "#ffffff", bg: "#F5F5DB", banner: "#267a34" },
+  { label: "Teal", type: "solid", color: "#0d9488", colorTo: "#0d9488", text: "#ffffff", bg: "#f0fdfa", banner: "#0f766e" },
+  { label: "Blue", type: "solid", color: "#1a56db", colorTo: "#1a56db", text: "#ffffff", bg: "#eff6ff", banner: "#1e40af" },
+  { label: "Purple", type: "solid", color: "#7c3aed", colorTo: "#7c3aed", text: "#ffffff", bg: "#faf5ff", banner: "#6d28d9" },
+  { label: "Orange", type: "solid", color: "#ea580c", colorTo: "#ea580c", text: "#ffffff", bg: "#fff7ed", banner: "#c2410c" },
+  { label: "Rose", type: "solid", color: "#e11d48", colorTo: "#e11d48", text: "#ffffff", bg: "#fff1f2", banner: "#be123c" },
+  { label: "Dark", type: "solid", color: "#1F2937", colorTo: "#1F2937", text: "#ffffff", bg: "#f9fafb", banner: "#111827" },
+  { label: "Green→Teal", type: "gradient", color: "#319F44", colorTo: "#59EBC6", text: "#ffffff", bg: "#F5F5DB", banner: "#267a34" },
+  { label: "Blue→Purple", type: "gradient", color: "#1a56db", colorTo: "#7c3aed", text: "#ffffff", bg: "#eff6ff", banner: "#1e40af" },
+  { label: "Orange→Red", type: "gradient", color: "#f97316", colorTo: "#e11d48", text: "#ffffff", bg: "#fff7ed", banner: "#c2410c" },
+  { label: "Teal→Blue", type: "gradient", color: "#0d9488", colorTo: "#1a56db", text: "#ffffff", bg: "#f0fdfa", banner: "#0f766e" },
+  { label: "Purple→Pink", type: "gradient", color: "#7c3aed", colorTo: "#ec4899", text: "#ffffff", bg: "#faf5ff", banner: "#6d28d9" },
 ]
 
-type Theme = { themeType: string; themeColor: string; themeColorTo: string; themeTextColor: string; themeBgColor: string }
+type Theme = { themeType: string; themeColor: string; themeColorTo: string; themeTextColor: string; themeBgColor: string; themeDeliveryBannerColor: string }
 
 function applyThemeLive(t: Theme) {
   const root = document.documentElement
@@ -31,6 +31,7 @@ function applyThemeLive(t: Theme) {
   root.style.setProperty("--theme-text", t.themeTextColor)
   root.style.setProperty("--theme-bg", bg)
   root.style.setProperty("--theme-page-bg", t.themeBgColor)
+  root.style.setProperty("--theme-delivery-banner", t.themeDeliveryBannerColor)
   root.style.setProperty("--primary", t.themeColor)
   document.body.style.backgroundColor = t.themeBgColor
 }
@@ -122,7 +123,10 @@ export default function AdminThemePage() {
                   <span className="text-[10px] font-bold" style={{ color: theme.themeTextColor }}>Account</span>
                 </div>
               </div>
-              {/* Mock body */}
+              {/* Mock delivery banner */}
+              <div className="py-1 text-center" style={{ backgroundColor: theme.themeDeliveryBannerColor }}>
+                <span className="text-white text-[10px] font-medium">⚡ Same-Day Delivery — Order before 3:00 PM</span>
+              </div>
               <div className="p-4 space-y-3" style={{ backgroundColor: theme.themeBgColor }}>
                 <div className="h-20 rounded-xl" style={bgStyle} />
                 <div className="grid grid-cols-3 gap-2">
@@ -195,6 +199,17 @@ export default function AdminThemePage() {
               preview={<div className="w-10 h-10 rounded-lg border border-gray-200" style={{ background: theme.themeBgColor }} />}
             />
 
+            <ColorRow
+              label="Delivery Banner"
+              value={theme.themeDeliveryBannerColor}
+              onChange={v => update({ themeDeliveryBannerColor: v })}
+              preview={
+                <div className="h-10 flex-1 rounded-lg flex items-center justify-center text-[10px] font-medium text-white" style={{ background: theme.themeDeliveryBannerColor }}>
+                  ⚡ Same-Day Delivery
+                </div>
+              }
+            />
+
           </div>
         </div>
 
@@ -212,7 +227,7 @@ export default function AdminThemePage() {
                 : { background: p.color }
               return (
                 <button key={p.label}
-                  onClick={() => update({ themeType: p.type, themeColor: p.color, themeColorTo: p.colorTo, themeTextColor: p.text, themeBgColor: p.bg })}
+                  onClick={() => update({ themeType: p.type, themeColor: p.color, themeColorTo: p.colorTo, themeTextColor: p.text, themeBgColor: p.bg, themeDeliveryBannerColor: p.banner })}
                   className={`flex flex-col items-center gap-2 p-2 rounded-xl border-2 transition-all ${isActive ? "border-gray-900 shadow-md" : "border-transparent hover:border-gray-200"}`}>
                   <div className="w-10 h-10 rounded-lg shadow-sm" style={style} />
                   <span className="text-[10px] font-semibold text-gray-600 text-center leading-tight">{p.label}</span>

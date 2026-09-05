@@ -198,7 +198,7 @@ export default function HomePage() {
     <main className="min-h-screen" suppressHydrationWarning style={{ backgroundColor: "var(--theme-page-bg, #F5F5DB)" }}>
 
       {/* ── NAVBAR ── */}
-      <header className="sticky top-0 z-50 shadow-sm" style={{ background: "var(--theme-color)" }}>
+      <header className="sticky top-0 z-50 shadow-sm" style={{ background: "var(--theme-bg)" }}>
         <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between gap-4">
           {/* Logo */}
           <a href="/" className="flex items-center gap-2 shrink-0">

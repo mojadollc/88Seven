@@ -7,12 +7,13 @@ const DEFAULTS = {
   themeColorTo: "#59EBC6",
   themeTextColor: "#ffffff",
   themeBgColor: "#F5F5DB",
+  themeDeliveryBannerColor: "#267a34",
 }
 
 export async function GET() {
   try {
     const rows = await (prisma as any).$queryRaw`
-      SELECT "themeType", "themeColor", "themeColorTo", "themeTextColor", "themeBgColor"
+      SELECT "themeType", "themeColor", "themeColorTo", "themeTextColor", "themeBgColor", "themeDeliveryBannerColor"
       FROM "AppSettings" WHERE key = 'global' LIMIT 1
     `
     const row = Array.isArray(rows) ? rows[0] : null
@@ -22,6 +23,7 @@ export async function GET() {
       themeColorTo: row?.themeColorTo ?? DEFAULTS.themeColorTo,
       themeTextColor: row?.themeTextColor ?? DEFAULTS.themeTextColor,
       themeBgColor: row?.themeBgColor ?? DEFAULTS.themeBgColor,
+      themeDeliveryBannerColor: row?.themeDeliveryBannerColor ?? DEFAULTS.themeDeliveryBannerColor,
     })
   } catch {
     return NextResponse.json(DEFAULTS)
@@ -31,28 +33,28 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { themeType, themeColor, themeColorTo, themeTextColor, themeBgColor } = body
+    const { themeType, themeColor, themeColorTo, themeTextColor, themeBgColor, themeDeliveryBannerColor } = body
 
-    // Ensure columns exist first (safe ALTER TABLE IF NOT EXISTS)
     await (prisma as any).$executeRawUnsafe(`
       ALTER TABLE "AppSettings"
         ADD COLUMN IF NOT EXISTS "themeType" TEXT NOT NULL DEFAULT 'solid',
         ADD COLUMN IF NOT EXISTS "themeColor" TEXT NOT NULL DEFAULT '#319F44',
         ADD COLUMN IF NOT EXISTS "themeColorTo" TEXT NOT NULL DEFAULT '#59EBC6',
         ADD COLUMN IF NOT EXISTS "themeTextColor" TEXT NOT NULL DEFAULT '#ffffff',
-        ADD COLUMN IF NOT EXISTS "themeBgColor" TEXT NOT NULL DEFAULT '#F5F5DB'
+        ADD COLUMN IF NOT EXISTS "themeBgColor" TEXT NOT NULL DEFAULT '#F5F5DB',
+        ADD COLUMN IF NOT EXISTS "themeDeliveryBannerColor" TEXT NOT NULL DEFAULT '#267a34'
     `)
 
-    // Upsert via raw SQL
     await (prisma as any).$executeRaw`
-      INSERT INTO "AppSettings" (id, key, "themeType", "themeColor", "themeColorTo", "themeTextColor", "themeBgColor", "updatedAt")
-      VALUES (gen_random_uuid(), 'global', ${themeType}, ${themeColor}, ${themeColorTo}, ${themeTextColor}, ${themeBgColor}, NOW())
+      INSERT INTO "AppSettings" (id, key, "themeType", "themeColor", "themeColorTo", "themeTextColor", "themeBgColor", "themeDeliveryBannerColor", "updatedAt")
+      VALUES (gen_random_uuid(), 'global', ${themeType}, ${themeColor}, ${themeColorTo}, ${themeTextColor}, ${themeBgColor}, ${themeDeliveryBannerColor ?? DEFAULTS.themeDeliveryBannerColor}, NOW())
       ON CONFLICT (key) DO UPDATE SET
         "themeType" = EXCLUDED."themeType",
         "themeColor" = EXCLUDED."themeColor",
         "themeColorTo" = EXCLUDED."themeColorTo",
         "themeTextColor" = EXCLUDED."themeTextColor",
         "themeBgColor" = EXCLUDED."themeBgColor",
+        "themeDeliveryBannerColor" = EXCLUDED."themeDeliveryBannerColor",
         "updatedAt" = NOW()
     `
 
