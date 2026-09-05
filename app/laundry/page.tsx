@@ -253,7 +253,7 @@ export default function LaundryPage() {
   return (
     <main className="min-h-screen pb-20" style={{ backgroundColor: "var(--theme-page-bg, #F5F5DB)" }}>
       {/* Header */}
-      <header className="text-white px-4 py-3 sticky top-0 z-50" style={{ background: "var(--theme-bg)" }}>
+      <header className="text-white px-4 py-3 sticky top-0 z-50" style={{ background: "var(--theme-header-bg, #319F44)" }}>
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <a href="/" className="flex items-center gap-2">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>

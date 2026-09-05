@@ -2,26 +2,27 @@
 
 import { useEffect, useState } from "react"
 
-const DEFAULTS = { themeType: "solid", themeColor: "#319F44", themeColorTo: "#59EBC6", themeTextColor: "#ffffff", themeBgColor: "#F5F5DB", themeDeliveryBannerColor: "#267a34", themeDeliveryBannerTextColor: "#ffffff", themeFooterBgColor: "#1a1a1a", themeFooterTextColor: "#ffffff" }
+const DEFAULTS = { themeType: "solid", themeColor: "#319F44", themeColorTo: "#59EBC6", themeTextColor: "#ffffff", themeBgColor: "#F5F5DB", themeDeliveryBannerColor: "#267a34", themeDeliveryBannerTextColor: "#ffffff", themeFooterBgColor: "#1a1a1a", themeFooterTextColor: "#ffffff", themeHeaderBgColor: "#319F44", themeHeaderTextColor: "#ffffff" }
 
 const PRESETS = [
-  { label: "Green", type: "solid", color: "#319F44", colorTo: "#319F44", text: "#ffffff", bg: "#F5F5DB", banner: "#267a34", bannerText: "#ffffff", footerBg: "#1a1a1a", footerText: "#ffffff" },
-  { label: "Teal Clean", type: "solid", color: "#009689", colorTo: "#009689", text: "#ffffff", bg: "#FFFFFF", banner: "#006F68", bannerText: "#ffffff", footerBg: "#006F68", footerText: "#ffffff" },
-  { label: "Teal Fresh", type: "gradient", color: "#009689", colorTo: "#18B3A3", text: "#ffffff", bg: "#FFFFFF", banner: "#006F68", bannerText: "#ffffff", footerBg: "#006F68", footerText: "#ffffff" },
-  { label: "Teal", type: "solid", color: "#0d9488", colorTo: "#0d9488", text: "#ffffff", bg: "#f0fdfa", banner: "#0f766e", bannerText: "#ffffff", footerBg: "#134e4a", footerText: "#ffffff" },
-  { label: "Blue", type: "solid", color: "#1a56db", colorTo: "#1a56db", text: "#ffffff", bg: "#eff6ff", banner: "#1e40af", bannerText: "#ffffff", footerBg: "#1e3a8a", footerText: "#ffffff" },
-  { label: "Purple", type: "solid", color: "#7c3aed", colorTo: "#7c3aed", text: "#ffffff", bg: "#faf5ff", banner: "#6d28d9", bannerText: "#ffffff", footerBg: "#4c1d95", footerText: "#ffffff" },
-  { label: "Orange", type: "solid", color: "#ea580c", colorTo: "#ea580c", text: "#ffffff", bg: "#fff7ed", banner: "#c2410c", bannerText: "#ffffff", footerBg: "#7c2d12", footerText: "#ffffff" },
-  { label: "Rose", type: "solid", color: "#e11d48", colorTo: "#e11d48", text: "#ffffff", bg: "#fff1f2", banner: "#be123c", bannerText: "#ffffff", footerBg: "#881337", footerText: "#ffffff" },
-  { label: "Dark", type: "solid", color: "#1F2937", colorTo: "#1F2937", text: "#ffffff", bg: "#f9fafb", banner: "#111827", bannerText: "#ffffff", footerBg: "#030712", footerText: "#ffffff" },
-  { label: "Green→Teal", type: "gradient", color: "#319F44", colorTo: "#59EBC6", text: "#ffffff", bg: "#F5F5DB", banner: "#267a34", bannerText: "#ffffff", footerBg: "#1a1a1a", footerText: "#ffffff" },
-  { label: "Blue→Purple", type: "gradient", color: "#1a56db", colorTo: "#7c3aed", text: "#ffffff", bg: "#eff6ff", banner: "#1e40af", bannerText: "#ffffff", footerBg: "#1e3a8a", footerText: "#ffffff" },
-  { label: "Orange→Red", type: "gradient", color: "#f97316", colorTo: "#e11d48", text: "#ffffff", bg: "#fff7ed", banner: "#c2410c", bannerText: "#ffffff", footerBg: "#7c2d12", footerText: "#ffffff" },
-  { label: "Teal→Blue", type: "gradient", color: "#0d9488", colorTo: "#1a56db", text: "#ffffff", bg: "#f0fdfa", banner: "#0f766e", bannerText: "#ffffff", footerBg: "#134e4a", footerText: "#ffffff" },
-  { label: "Purple→Pink", type: "gradient", color: "#7c3aed", colorTo: "#ec4899", text: "#ffffff", bg: "#faf5ff", banner: "#6d28d9", bannerText: "#ffffff", footerBg: "#4c1d95", footerText: "#ffffff" },
+  { label: "Green", type: "solid", color: "#319F44", colorTo: "#319F44", text: "#ffffff", bg: "#F5F5DB", banner: "#267a34", bannerText: "#ffffff", footerBg: "#1a1a1a", footerText: "#ffffff", headerBg: "#319F44", headerText: "#ffffff" },
+  { label: "Teal Clean", type: "solid", color: "#009689", colorTo: "#009689", text: "#ffffff", bg: "#FFFFFF", banner: "#006F68", bannerText: "#ffffff", footerBg: "#006F68", footerText: "#ffffff", headerBg: "#009689", headerText: "#ffffff" },
+  { label: "Teal Fresh", type: "gradient", color: "#009689", colorTo: "#18B3A3", text: "#ffffff", bg: "#FFFFFF", banner: "#006F68", bannerText: "#ffffff", footerBg: "#006F68", footerText: "#ffffff", headerBg: "#009689", headerText: "#ffffff" },
+  { label: "White Header", type: "solid", color: "#009689", colorTo: "#009689", text: "#009689", bg: "#FFFFFF", banner: "#006F68", bannerText: "#ffffff", footerBg: "#006F68", footerText: "#ffffff", headerBg: "#ffffff", headerText: "#009689" },
+  { label: "Teal", type: "solid", color: "#0d9488", colorTo: "#0d9488", text: "#ffffff", bg: "#f0fdfa", banner: "#0f766e", bannerText: "#ffffff", footerBg: "#134e4a", footerText: "#ffffff", headerBg: "#0d9488", headerText: "#ffffff" },
+  { label: "Blue", type: "solid", color: "#1a56db", colorTo: "#1a56db", text: "#ffffff", bg: "#eff6ff", banner: "#1e40af", bannerText: "#ffffff", footerBg: "#1e3a8a", footerText: "#ffffff", headerBg: "#1a56db", headerText: "#ffffff" },
+  { label: "Purple", type: "solid", color: "#7c3aed", colorTo: "#7c3aed", text: "#ffffff", bg: "#faf5ff", banner: "#6d28d9", bannerText: "#ffffff", footerBg: "#4c1d95", footerText: "#ffffff", headerBg: "#7c3aed", headerText: "#ffffff" },
+  { label: "Orange", type: "solid", color: "#ea580c", colorTo: "#ea580c", text: "#ffffff", bg: "#fff7ed", banner: "#c2410c", bannerText: "#ffffff", footerBg: "#7c2d12", footerText: "#ffffff", headerBg: "#ea580c", headerText: "#ffffff" },
+  { label: "Rose", type: "solid", color: "#e11d48", colorTo: "#e11d48", text: "#ffffff", bg: "#fff1f2", banner: "#be123c", bannerText: "#ffffff", footerBg: "#881337", footerText: "#ffffff", headerBg: "#e11d48", headerText: "#ffffff" },
+  { label: "Dark", type: "solid", color: "#1F2937", colorTo: "#1F2937", text: "#ffffff", bg: "#f9fafb", banner: "#111827", bannerText: "#ffffff", footerBg: "#030712", footerText: "#ffffff", headerBg: "#1F2937", headerText: "#ffffff" },
+  { label: "Green→Teal", type: "gradient", color: "#319F44", colorTo: "#59EBC6", text: "#ffffff", bg: "#F5F5DB", banner: "#267a34", bannerText: "#ffffff", footerBg: "#1a1a1a", footerText: "#ffffff", headerBg: "#319F44", headerText: "#ffffff" },
+  { label: "Blue→Purple", type: "gradient", color: "#1a56db", colorTo: "#7c3aed", text: "#ffffff", bg: "#eff6ff", banner: "#1e40af", bannerText: "#ffffff", footerBg: "#1e3a8a", footerText: "#ffffff", headerBg: "#1a56db", headerText: "#ffffff" },
+  { label: "Orange→Red", type: "gradient", color: "#f97316", colorTo: "#e11d48", text: "#ffffff", bg: "#fff7ed", banner: "#c2410c", bannerText: "#ffffff", footerBg: "#7c2d12", footerText: "#ffffff", headerBg: "#f97316", headerText: "#ffffff" },
+  { label: "Teal→Blue", type: "gradient", color: "#0d9488", colorTo: "#1a56db", text: "#ffffff", bg: "#f0fdfa", banner: "#0f766e", bannerText: "#ffffff", footerBg: "#134e4a", footerText: "#ffffff", headerBg: "#0d9488", headerText: "#ffffff" },
+  { label: "Purple→Pink", type: "gradient", color: "#7c3aed", colorTo: "#ec4899", text: "#ffffff", bg: "#faf5ff", banner: "#6d28d9", bannerText: "#ffffff", footerBg: "#4c1d95", footerText: "#ffffff", headerBg: "#7c3aed", headerText: "#ffffff" },
 ]
 
-type Theme = { themeType: string; themeColor: string; themeColorTo: string; themeTextColor: string; themeBgColor: string; themeDeliveryBannerColor: string; themeDeliveryBannerTextColor: string; themeFooterBgColor: string; themeFooterTextColor: string }
+type Theme = { themeType: string; themeColor: string; themeColorTo: string; themeTextColor: string; themeBgColor: string; themeDeliveryBannerColor: string; themeDeliveryBannerTextColor: string; themeFooterBgColor: string; themeFooterTextColor: string; themeHeaderBgColor: string; themeHeaderTextColor: string }
 
 function applyThemeLive(t: Theme) {
   const root = document.documentElement
@@ -37,6 +38,8 @@ function applyThemeLive(t: Theme) {
   root.style.setProperty("--theme-delivery-banner-text", t.themeDeliveryBannerTextColor)
   root.style.setProperty("--theme-footer-bg", t.themeFooterBgColor)
   root.style.setProperty("--theme-footer-text", t.themeFooterTextColor)
+  root.style.setProperty("--theme-header-bg", t.themeHeaderBgColor)
+  root.style.setProperty("--theme-header-text", t.themeHeaderTextColor)
   root.style.setProperty("--primary", t.themeColor)
   document.body.style.backgroundColor = t.themeBgColor
 }
@@ -118,15 +121,15 @@ export default function AdminThemePage() {
           <div className="p-6">
             <div className="rounded-2xl overflow-hidden shadow-lg border border-gray-100">
               {/* Mock header */}
-              <div className="px-5 py-3.5 flex items-center justify-between border-b border-gray-100" style={{ background: "#ffffff" }}>
+              <div className="px-5 py-3.5 flex items-center justify-between border-b border-gray-100" style={{ background: theme.themeHeaderBgColor }}>
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: theme.themeColor }}>
-                    <span className="font-black text-xs text-white">G</span>
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: `${theme.themeHeaderTextColor}33` }}>
+                    <span className="font-black text-xs" style={{ color: theme.themeHeaderTextColor }}>G</span>
                   </div>
-                  <span className="font-black text-sm" style={{ color: theme.themeColor }}>Gruwcer</span>
+                  <span className="font-black text-sm" style={{ color: theme.themeHeaderTextColor }}>Gruwcer</span>
                 </div>
-                <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: theme.themeColor }}>
-                  <span className="text-[10px] font-bold text-white">👤</span>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: `${theme.themeHeaderTextColor}33` }}>
+                  <span className="text-[10px]" style={{ color: theme.themeHeaderTextColor }}>👤</span>
                 </div>
               </div>
               {/* Mock delivery banner */}
@@ -249,6 +252,28 @@ export default function AdminThemePage() {
               }
             />
 
+            <ColorRow
+              label="Header BG"
+              value={theme.themeHeaderBgColor}
+              onChange={v => update({ themeHeaderBgColor: v })}
+              preview={
+                <div className="h-10 flex-1 rounded-lg flex items-center justify-center text-[10px] font-medium" style={{ background: theme.themeHeaderBgColor, color: theme.themeHeaderTextColor }}>
+                  Header
+                </div>
+              }
+            />
+
+            <ColorRow
+              label="Header Text"
+              value={theme.themeHeaderTextColor}
+              onChange={v => update({ themeHeaderTextColor: v })}
+              preview={
+                <div className="h-10 flex-1 rounded-lg flex items-center justify-center text-[10px] font-medium" style={{ background: theme.themeHeaderBgColor, color: theme.themeHeaderTextColor }}>
+                  Header
+                </div>
+              }
+            />
+
           </div>
         </div>
 
@@ -266,7 +291,7 @@ export default function AdminThemePage() {
                 : { background: p.color }
               return (
                 <button key={p.label}
-                  onClick={() => update({ themeType: p.type, themeColor: p.color, themeColorTo: p.colorTo, themeTextColor: p.text, themeBgColor: p.bg, themeDeliveryBannerColor: p.banner, themeDeliveryBannerTextColor: p.bannerText, themeFooterBgColor: p.footerBg, themeFooterTextColor: p.footerText })}
+                  onClick={() => update({ themeType: p.type, themeColor: p.color, themeColorTo: p.colorTo, themeTextColor: p.text, themeBgColor: p.bg, themeDeliveryBannerColor: p.banner, themeDeliveryBannerTextColor: p.bannerText, themeFooterBgColor: p.footerBg, themeFooterTextColor: p.footerText, themeHeaderBgColor: p.headerBg, themeHeaderTextColor: p.headerText })}
                   className={`flex flex-col items-center gap-2 p-2 rounded-xl border-2 transition-all ${isActive ? "border-gray-900 shadow-md" : "border-transparent hover:border-gray-200"}`}>
                   <div className="w-10 h-10 rounded-lg shadow-sm" style={style} />
                   <span className="text-[10px] font-semibold text-gray-600 text-center leading-tight">{p.label}</span>

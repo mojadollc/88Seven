@@ -23,12 +23,15 @@ async function getTheme() {
         ADD COLUMN IF NOT EXISTS "themeDeliveryBannerTextColor" TEXT NOT NULL DEFAULT '#ffffff',
         ADD COLUMN IF NOT EXISTS "themeFooterBgColor" TEXT NOT NULL DEFAULT '#1a1a1a',
         ADD COLUMN IF NOT EXISTS "themeFooterTextColor" TEXT NOT NULL DEFAULT '#ffffff',
-        ADD COLUMN IF NOT EXISTS "logoUrl" TEXT NOT NULL DEFAULT ''
+        ADD COLUMN IF NOT EXISTS "logoUrl" TEXT NOT NULL DEFAULT '',
+        ADD COLUMN IF NOT EXISTS "themeHeaderBgColor" TEXT NOT NULL DEFAULT '#319F44',
+        ADD COLUMN IF NOT EXISTS "themeHeaderTextColor" TEXT NOT NULL DEFAULT '#ffffff'
     `)
     const rows = await (prisma as any).$queryRaw`
       SELECT "themeType","themeColor","themeColorTo","themeTextColor","themeBgColor",
              "themeDeliveryBannerColor","themeDeliveryBannerTextColor",
-             "themeFooterBgColor","themeFooterTextColor","logoUrl"
+             "themeFooterBgColor","themeFooterTextColor","logoUrl",
+             "themeHeaderBgColor","themeHeaderTextColor"
       FROM "AppSettings" WHERE key = 'global' LIMIT 1
     `
     const r = Array.isArray(rows) ? rows[0] : null
@@ -42,6 +45,8 @@ async function getTheme() {
       themeDeliveryBannerTextColor: r?.themeDeliveryBannerTextColor ?? "#ffffff",
       themeFooterBgColor:         r?.themeFooterBgColor         ?? "#1a1a1a",
       themeFooterTextColor:       r?.themeFooterTextColor       ?? "#ffffff",
+      themeHeaderBgColor:         r?.themeHeaderBgColor         ?? "#319F44",
+      themeHeaderTextColor:       r?.themeHeaderTextColor       ?? "#ffffff",
       logoUrl:                    r?.logoUrl                    ?? "",
     }
   } catch {
@@ -49,7 +54,8 @@ async function getTheme() {
       themeType: "solid", themeColor: "#319F44", themeColorTo: "#59EBC6",
       themeTextColor: "#ffffff", themeBgColor: "#F5F5DB",
       themeDeliveryBannerColor: "#267a34", themeDeliveryBannerTextColor: "#ffffff",
-      themeFooterBgColor: "#1a1a1a", themeFooterTextColor: "#ffffff", logoUrl: "",
+      themeFooterBgColor: "#1a1a1a", themeFooterTextColor: "#ffffff",
+      themeHeaderBgColor: "#319F44", themeHeaderTextColor: "#ffffff", logoUrl: "",
     }
   }
 }
@@ -111,6 +117,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       --theme-delivery-banner-text: ${t.themeDeliveryBannerTextColor};
       --theme-footer-bg: ${t.themeFooterBgColor};
       --theme-footer-text: ${t.themeFooterTextColor};
+      --theme-header-bg: ${t.themeHeaderBgColor};
+      --theme-header-text: ${t.themeHeaderTextColor};
       --primary: ${t.themeColor};
     }
     body { background-color: ${t.themeBgColor}; }

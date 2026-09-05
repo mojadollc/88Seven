@@ -11,6 +11,8 @@ const DEFAULTS = {
   themeDeliveryBannerTextColor: "#ffffff",
   themeFooterBgColor: "#1a1a1a",
   themeFooterTextColor: "#ffffff",
+  themeHeaderBgColor: "#319F44",
+  themeHeaderTextColor: "#ffffff",
 }
 
 const MIGRATE = `
@@ -23,7 +25,9 @@ const MIGRATE = `
     ADD COLUMN IF NOT EXISTS "themeDeliveryBannerColor" TEXT NOT NULL DEFAULT '#267a34',
     ADD COLUMN IF NOT EXISTS "themeDeliveryBannerTextColor" TEXT NOT NULL DEFAULT '#ffffff',
     ADD COLUMN IF NOT EXISTS "themeFooterBgColor" TEXT NOT NULL DEFAULT '#1a1a1a',
-    ADD COLUMN IF NOT EXISTS "themeFooterTextColor" TEXT NOT NULL DEFAULT '#ffffff'
+    ADD COLUMN IF NOT EXISTS "themeFooterTextColor" TEXT NOT NULL DEFAULT '#ffffff',
+    ADD COLUMN IF NOT EXISTS "themeHeaderBgColor" TEXT NOT NULL DEFAULT '#319F44',
+    ADD COLUMN IF NOT EXISTS "themeHeaderTextColor" TEXT NOT NULL DEFAULT '#ffffff'
 `
 
 export const dynamic = "force-dynamic"
@@ -32,7 +36,7 @@ export async function GET() {
   try {
     await (prisma as any).$executeRawUnsafe(MIGRATE)
     const rows = await (prisma as any).$queryRaw`
-      SELECT "themeType", "themeColor", "themeColorTo", "themeTextColor", "themeBgColor", "themeDeliveryBannerColor", "themeDeliveryBannerTextColor", "themeFooterBgColor", "themeFooterTextColor"
+      SELECT "themeType", "themeColor", "themeColorTo", "themeTextColor", "themeBgColor", "themeDeliveryBannerColor", "themeDeliveryBannerTextColor", "themeFooterBgColor", "themeFooterTextColor", "themeHeaderBgColor", "themeHeaderTextColor"
       FROM "AppSettings" WHERE key = 'global' LIMIT 1
     `
     const row = Array.isArray(rows) ? rows[0] : null
@@ -46,6 +50,8 @@ export async function GET() {
       themeDeliveryBannerTextColor: row?.themeDeliveryBannerTextColor ?? DEFAULTS.themeDeliveryBannerTextColor,
       themeFooterBgColor: row?.themeFooterBgColor ?? DEFAULTS.themeFooterBgColor,
       themeFooterTextColor: row?.themeFooterTextColor ?? DEFAULTS.themeFooterTextColor,
+      themeHeaderBgColor: row?.themeHeaderBgColor ?? DEFAULTS.themeHeaderBgColor,
+      themeHeaderTextColor: row?.themeHeaderTextColor ?? DEFAULTS.themeHeaderTextColor,
     }, { headers: { "Cache-Control": "no-store, no-cache, must-revalidate" } })
   } catch {
     return NextResponse.json(DEFAULTS, { headers: { "Cache-Control": "no-store" } })
@@ -55,13 +61,13 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { themeType, themeColor, themeColorTo, themeTextColor, themeBgColor, themeDeliveryBannerColor, themeDeliveryBannerTextColor, themeFooterBgColor, themeFooterTextColor } = body
+    const { themeType, themeColor, themeColorTo, themeTextColor, themeBgColor, themeDeliveryBannerColor, themeDeliveryBannerTextColor, themeFooterBgColor, themeFooterTextColor, themeHeaderBgColor, themeHeaderTextColor } = body
 
     await (prisma as any).$executeRawUnsafe(MIGRATE)
 
     await (prisma as any).$executeRaw`
-      INSERT INTO "AppSettings" (id, key, "themeType", "themeColor", "themeColorTo", "themeTextColor", "themeBgColor", "themeDeliveryBannerColor", "themeDeliveryBannerTextColor", "themeFooterBgColor", "themeFooterTextColor", "updatedAt")
-      VALUES (gen_random_uuid(), 'global', ${themeType}, ${themeColor}, ${themeColorTo}, ${themeTextColor}, ${themeBgColor}, ${themeDeliveryBannerColor ?? DEFAULTS.themeDeliveryBannerColor}, ${themeDeliveryBannerTextColor ?? DEFAULTS.themeDeliveryBannerTextColor}, ${themeFooterBgColor ?? DEFAULTS.themeFooterBgColor}, ${themeFooterTextColor ?? DEFAULTS.themeFooterTextColor}, NOW())
+      INSERT INTO "AppSettings" (id, key, "themeType", "themeColor", "themeColorTo", "themeTextColor", "themeBgColor", "themeDeliveryBannerColor", "themeDeliveryBannerTextColor", "themeFooterBgColor", "themeFooterTextColor", "themeHeaderBgColor", "themeHeaderTextColor", "updatedAt")
+      VALUES (gen_random_uuid(), 'global', ${themeType}, ${themeColor}, ${themeColorTo}, ${themeTextColor}, ${themeBgColor}, ${themeDeliveryBannerColor ?? DEFAULTS.themeDeliveryBannerColor}, ${themeDeliveryBannerTextColor ?? DEFAULTS.themeDeliveryBannerTextColor}, ${themeFooterBgColor ?? DEFAULTS.themeFooterBgColor}, ${themeFooterTextColor ?? DEFAULTS.themeFooterTextColor}, ${themeHeaderBgColor ?? DEFAULTS.themeHeaderBgColor}, ${themeHeaderTextColor ?? DEFAULTS.themeHeaderTextColor}, NOW())
       ON CONFLICT (key) DO UPDATE SET
         "themeType" = EXCLUDED."themeType",
         "themeColor" = EXCLUDED."themeColor",
@@ -72,6 +78,8 @@ export async function POST(req: Request) {
         "themeDeliveryBannerTextColor" = EXCLUDED."themeDeliveryBannerTextColor",
         "themeFooterBgColor" = EXCLUDED."themeFooterBgColor",
         "themeFooterTextColor" = EXCLUDED."themeFooterTextColor",
+        "themeHeaderBgColor" = EXCLUDED."themeHeaderBgColor",
+        "themeHeaderTextColor" = EXCLUDED."themeHeaderTextColor",
         "updatedAt" = NOW()
     `
 
