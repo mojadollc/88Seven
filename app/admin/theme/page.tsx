@@ -6,7 +6,8 @@ const DEFAULTS = { themeType: "solid", themeColor: "#319F44", themeColorTo: "#59
 
 const PRESETS = [
   { label: "Green", type: "solid", color: "#319F44", colorTo: "#319F44", text: "#ffffff", bg: "#F5F5DB", banner: "#267a34", bannerText: "#ffffff", footerBg: "#1a1a1a", footerText: "#ffffff" },
-  { label: "White", type: "solid", color: "#ffffff", colorTo: "#ffffff", text: "#1F2937", bg: "#f9fafb", banner: "#1F2937", bannerText: "#ffffff", footerBg: "#1F2937", footerText: "#ffffff" },
+  { label: "Teal Clean", type: "solid", color: "#009689", colorTo: "#009689", text: "#ffffff", bg: "#FFFFFF", banner: "#006F68", bannerText: "#ffffff", footerBg: "#006F68", footerText: "#ffffff" },
+  { label: "Teal Fresh", type: "gradient", color: "#009689", colorTo: "#18B3A3", text: "#ffffff", bg: "#FFFFFF", banner: "#006F68", bannerText: "#ffffff", footerBg: "#006F68", footerText: "#ffffff" },
   { label: "Teal", type: "solid", color: "#0d9488", colorTo: "#0d9488", text: "#ffffff", bg: "#f0fdfa", banner: "#0f766e", bannerText: "#ffffff", footerBg: "#134e4a", footerText: "#ffffff" },
   { label: "Blue", type: "solid", color: "#1a56db", colorTo: "#1a56db", text: "#ffffff", bg: "#eff6ff", banner: "#1e40af", bannerText: "#ffffff", footerBg: "#1e3a8a", footerText: "#ffffff" },
   { label: "Purple", type: "solid", color: "#7c3aed", colorTo: "#7c3aed", text: "#ffffff", bg: "#faf5ff", banner: "#6d28d9", bannerText: "#ffffff", footerBg: "#4c1d95", footerText: "#ffffff" },
