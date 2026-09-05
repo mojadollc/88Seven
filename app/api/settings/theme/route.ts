@@ -13,8 +13,22 @@ const DEFAULTS = {
   themeFooterTextColor: "#ffffff",
 }
 
+const MIGRATE = `
+  ALTER TABLE "AppSettings"
+    ADD COLUMN IF NOT EXISTS "themeType" TEXT NOT NULL DEFAULT 'solid',
+    ADD COLUMN IF NOT EXISTS "themeColor" TEXT NOT NULL DEFAULT '#319F44',
+    ADD COLUMN IF NOT EXISTS "themeColorTo" TEXT NOT NULL DEFAULT '#59EBC6',
+    ADD COLUMN IF NOT EXISTS "themeTextColor" TEXT NOT NULL DEFAULT '#ffffff',
+    ADD COLUMN IF NOT EXISTS "themeBgColor" TEXT NOT NULL DEFAULT '#F5F5DB',
+    ADD COLUMN IF NOT EXISTS "themeDeliveryBannerColor" TEXT NOT NULL DEFAULT '#267a34',
+    ADD COLUMN IF NOT EXISTS "themeDeliveryBannerTextColor" TEXT NOT NULL DEFAULT '#ffffff',
+    ADD COLUMN IF NOT EXISTS "themeFooterBgColor" TEXT NOT NULL DEFAULT '#1a1a1a',
+    ADD COLUMN IF NOT EXISTS "themeFooterTextColor" TEXT NOT NULL DEFAULT '#ffffff'
+`
+
 export async function GET() {
   try {
+    await (prisma as any).$executeRawUnsafe(MIGRATE)
     const rows = await (prisma as any).$queryRaw`
       SELECT "themeType", "themeColor", "themeColorTo", "themeTextColor", "themeBgColor", "themeDeliveryBannerColor", "themeDeliveryBannerTextColor", "themeFooterBgColor", "themeFooterTextColor"
       FROM "AppSettings" WHERE key = 'global' LIMIT 1
@@ -41,18 +55,7 @@ export async function POST(req: Request) {
     const body = await req.json()
     const { themeType, themeColor, themeColorTo, themeTextColor, themeBgColor, themeDeliveryBannerColor, themeDeliveryBannerTextColor, themeFooterBgColor, themeFooterTextColor } = body
 
-    await (prisma as any).$executeRawUnsafe(`
-      ALTER TABLE "AppSettings"
-        ADD COLUMN IF NOT EXISTS "themeType" TEXT NOT NULL DEFAULT 'solid',
-        ADD COLUMN IF NOT EXISTS "themeColor" TEXT NOT NULL DEFAULT '#319F44',
-        ADD COLUMN IF NOT EXISTS "themeColorTo" TEXT NOT NULL DEFAULT '#59EBC6',
-        ADD COLUMN IF NOT EXISTS "themeTextColor" TEXT NOT NULL DEFAULT '#ffffff',
-        ADD COLUMN IF NOT EXISTS "themeBgColor" TEXT NOT NULL DEFAULT '#F5F5DB',
-        ADD COLUMN IF NOT EXISTS "themeDeliveryBannerColor" TEXT NOT NULL DEFAULT '#267a34',
-        ADD COLUMN IF NOT EXISTS "themeDeliveryBannerTextColor" TEXT NOT NULL DEFAULT '#ffffff',
-        ADD COLUMN IF NOT EXISTS "themeFooterBgColor" TEXT NOT NULL DEFAULT '#1a1a1a',
-        ADD COLUMN IF NOT EXISTS "themeFooterTextColor" TEXT NOT NULL DEFAULT '#ffffff'
-    `)
+    await (prisma as any).$executeRawUnsafe(MIGRATE)
 
     await (prisma as any).$executeRaw`
       INSERT INTO "AppSettings" (id, key, "themeType", "themeColor", "themeColorTo", "themeTextColor", "themeBgColor", "themeDeliveryBannerColor", "themeDeliveryBannerTextColor", "themeFooterBgColor", "themeFooterTextColor", "updatedAt")
