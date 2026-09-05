@@ -9,6 +9,11 @@
   --bg: #F5F5DB;            /* Cream Background */
   --text: #1F2937;          /* Charcoal */
   --third: #FFFFFF;
+  /* Theme (overridden by ThemeProvider at runtime) */
+  --theme-color: #319F44;
+  --theme-color-to: #59EBC6;
+  --theme-text: #ffffff;
+  --theme-type: solid;
   --sat: env(safe-area-inset-top);
   --sab: env(safe-area-inset-bottom);
   --sal: env(safe-area-inset-left);

@@ -368,6 +368,11 @@ model AppSettings {
   // Listing mode
   defaultListingMode  ListingMode @default(free)
   defaultMinBalance   Float       @default(100)
+  // Theme
+  themeType           String      @default("solid")   // solid | gradient
+  themeColor          String      @default("#319F44")
+  themeColorTo        String      @default("#59EBC6")
+  themeTextColor      String      @default("#ffffff")
   updatedAt           DateTime    @updatedAt
 }
 

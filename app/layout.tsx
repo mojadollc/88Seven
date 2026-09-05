@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next"
 import { Plus_Jakarta_Sans } from "next/font/google"
 import Script from "next/script"
 import PullToRefresh from "./components/PullToRefresh"
+import { ThemeProvider } from "./components/ThemeProvider"
 import "./globals.css"
 
 const font = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] })
@@ -58,9 +59,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="assetlinks.json" href="/.well-known/assetlinks.json" />
       </head>
       <body className={`${font.className} bg-[#F5F5DB] antialiased`} suppressHydrationWarning>
-        <PullToRefresh>
-          {children}
-        </PullToRefresh>
+        <ThemeProvider>
+          <PullToRefresh>
+            {children}
+          </PullToRefresh>
+        </ThemeProvider>
         <Script id="sw-register" strategy="afterInteractive">
           {`
             if('serviceWorker' in navigator && window.location.hostname !== 'localhost'){

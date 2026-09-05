@@ -238,7 +238,7 @@ export default function GroceryPage() {
     <main className="min-h-screen bg-[#F5F5DB] pb-20">
 
       {/* ── HEADER ── */}
-      <header className="bg-[#319F44] sticky top-0 z-50 shadow-sm">
+      <header className="sticky top-0 z-50 shadow-sm" style={{ background: "var(--theme-color)" }}>
         <div className="max-w-6xl mx-auto px-3 md:px-6 py-2.5 flex items-center gap-3">
           <a href="/" className="flex items-center gap-1.5 shrink-0">
             <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
