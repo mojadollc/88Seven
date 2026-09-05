@@ -383,22 +383,20 @@ export default function HomePage() {
 
       {/* ── BANNER CAROUSEL ── */}
       {mounted && banners.length > 0 && (
-        <section className="w-full pb-12">
-          <div className="relative overflow-hidden h-[260px] md:h-[480px] shadow-lg cursor-pointer"
+        <section className="max-w-7xl mx-auto px-4 md:px-8 pb-12">
+          <div className="relative rounded-3xl overflow-hidden h-[180px] md:h-[300px] shadow-lg cursor-pointer"
             style={{
               backgroundColor: banners[currentBanner]?.bgColor || "#16A34A",
-              backgroundImage: banners[currentBanner]?.imageUrl ? `url(${banners[currentBanner].imageUrl})` : undefined,
+              backgroundImage: banners[currentBanner]?.imageUrl ? `linear-gradient(105deg,rgba(0,0,0,0.65) 0%,rgba(0,0,0,0.1) 60%),url(${banners[currentBanner].imageUrl})` : undefined,
               backgroundSize: "cover", backgroundPosition: "center",
             }}>
-            {/* Dark overlay */}
-            <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
             <div className="absolute -right-16 -top-16 w-64 h-64 bg-white/5 rounded-full" />
             <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-white/5 rounded-full" />
-            <a href={banners[currentBanner]?.link || "#"} className="absolute inset-0 flex flex-col justify-center p-8 md:p-20 max-w-3xl">
+            <a href={banners[currentBanner]?.link || "#"} className="absolute inset-0 flex flex-col justify-center p-6 md:p-12">
               <span className="self-start bg-white/20 backdrop-blur border border-white/30 rounded-full px-3 py-1 text-white text-[10px] font-bold uppercase tracking-widest mb-3">✦ Featured</span>
-              <h2 className="text-white font-black text-3xl md:text-6xl leading-tight drop-shadow max-w-lg">{banners[currentBanner]?.title}</h2>
-              <p className="text-white/80 text-base md:text-xl mt-3 max-w-sm">{banners[currentBanner]?.subtitle}</p>
-              <span className="self-start mt-6 bg-white text-gray-900 text-xs md:text-sm font-bold px-6 py-3 rounded-xl shadow-lg hover:bg-gray-50 transition-colors">Order now →</span>
+              <h2 className="text-white font-black text-2xl md:text-5xl leading-tight drop-shadow max-w-lg">{banners[currentBanner]?.title}</h2>
+              <p className="text-white/80 text-sm md:text-lg mt-2 max-w-sm">{banners[currentBanner]?.subtitle}</p>
+              <span className="self-start mt-4 bg-white text-gray-900 text-xs md:text-sm font-bold px-5 py-2.5 rounded-xl shadow-lg hover:bg-gray-50 transition-colors">Order now →</span>
             </a>
             {banners.length > 1 && (
               <div className="absolute bottom-4 right-4 flex gap-1.5">
