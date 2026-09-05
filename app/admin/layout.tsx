@@ -100,7 +100,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <span className="text-[10px] text-gray-400">Admin</span>
           </a>
         </div>
-        <nav className="flex-1 p-3">
+        <nav className="flex-1 p-3 overflow-y-auto">
           <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2">Management</p>
           {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href || (item.href !== "/admin" && item.href !== "/admin/hero" && pathname.startsWith(item.href))
