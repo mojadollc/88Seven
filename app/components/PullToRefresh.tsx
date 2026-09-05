@@ -76,12 +76,12 @@ export default function PullToRefresh({ children, onRefresh }: { children: React
           style={{ transform: refreshing ? undefined : `rotate(${pullDistance * 3}deg)` }}
         >
           {refreshing ? (
-            <svg className="w-5 h-5 text-[#4194AF]" fill="none" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-[#319F44]" fill="none" viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" />
               <path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
             </svg>
           ) : (
-            <svg className={`w-5 h-5 transition-colors ${pulling ? "text-[#4194AF]" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={`w-5 h-5 transition-colors ${pulling ? "text-[#319F44]" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
             </svg>
           )}

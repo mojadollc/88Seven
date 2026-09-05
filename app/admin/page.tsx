@@ -119,11 +119,11 @@ export default function AdminProducts() {
             <p className="text-xs text-gray-400">Total</p>
           </div>
           <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-            <p className="text-xl font-bold text-[#4194AF]">{products.filter((p) => p.showOnSite !== false).length}</p>
+            <p className="text-xl font-bold text-[#319F44]">{products.filter((p) => p.showOnSite !== false).length}</p>
             <p className="text-xs text-gray-400">Visible</p>
           </div>
           <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-            <p className="text-xl font-bold text-[#3a7d96]">{products.filter((p) => p.showOnSite === false).length}</p>
+            <p className="text-xl font-bold text-[#267a34]">{products.filter((p) => p.showOnSite === false).length}</p>
             <p className="text-xs text-gray-400">Hidden</p>
           </div>
           <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
@@ -139,11 +139,11 @@ export default function AdminProducts() {
               <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <input type="text" placeholder="Search products..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#4194AF]" />
+              <input type="text" placeholder="Search products..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#319F44]" />
             </div>
             <div className="flex gap-2">
               {(["all", "visible", "hidden"] as const).map((s) => (
-                <button key={s} onClick={() => setFilterStatus(s)} className={`px-4 py-2 rounded-lg text-xs font-medium capitalize ${filterStatus === s ? "bg-[#4194AF] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>{s}</button>
+                <button key={s} onClick={() => setFilterStatus(s)} className={`px-4 py-2 rounded-lg text-xs font-medium capitalize ${filterStatus === s ? "bg-[#319F44] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>{s}</button>
               ))}
             </div>
           </div>
@@ -186,9 +186,9 @@ export default function AdminProducts() {
                     <p className="text-xs text-gray-400 md:hidden">{product.category} · ₱{product.price} · Stock: {product.stock}</p>
                   </div>
                   {/* Price */}
-                  <span className="hidden md:block text-xs font-medium text-[#3a7d96]">₱{product.price.toFixed(2)}</span>
+                  <span className="hidden md:block text-xs font-medium text-[#267a34]">₱{product.price.toFixed(2)}</span>
                   {/* Stock */}
-                  <span className={`hidden md:block text-xs font-medium ${product.stock <= 5 ? "text-[#3a7d96]" : "text-gray-700"}`}>{product.stock}</span>
+                  <span className={`hidden md:block text-xs font-medium ${product.stock <= 5 ? "text-[#267a34]" : "text-gray-700"}`}>{product.stock}</span>
                   {/* Category */}
                   <span className="hidden md:block text-xs text-gray-500 truncate">{product.category}</span>
                   {/* Unit */}
@@ -198,7 +198,7 @@ export default function AdminProducts() {
                     <button
                       onClick={() => handleToggle(product)}
                       disabled={toggling === product.id}
-                      className={`relative w-11 h-6 rounded-full transition-colors ${product.showOnSite !== false ? "bg-[#4194AF]/100" : "bg-gray-300"} ${toggling === product.id ? "opacity-50" : ""}`}
+                      className={`relative w-11 h-6 rounded-full transition-colors ${product.showOnSite !== false ? "bg-[#319F44]/100" : "bg-gray-300"} ${toggling === product.id ? "opacity-50" : ""}`}
                     >
                       <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${product.showOnSite !== false ? "translate-x-5" : ""}`} />
                     </button>
@@ -232,7 +232,7 @@ export default function AdminProducts() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => setEditing(null)} />
           <div className="relative bg-white rounded-2xl w-full max-w-md overflow-hidden">
-            <div className="bg-[#4194AF] px-6 py-4 flex items-center justify-between">
+            <div className="bg-[#319F44] px-6 py-4 flex items-center justify-between">
               <h2 className="font-bold text-white">Edit Product</h2>
               <button onClick={() => setEditing(null)} className="text-white/80 hover:text-white text-2xl">&times;</button>
             </div>
@@ -261,18 +261,18 @@ export default function AdminProducts() {
               {/* Name */}
               <div>
                 <label className="text-xs font-semibold text-gray-500">Product Name</label>
-                <input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#4194AF]" />
+                <input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#319F44]" />
               </div>
 
               {/* Price & Stock */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-semibold text-gray-500">Selling Price (₱)</label>
-                  <input type="number" min="0" step="0.01" value={editForm.price} onChange={(e) => setEditForm({ ...editForm, price: e.target.value })} className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#4194AF]" />
+                  <input type="number" min="0" step="0.01" value={editForm.price} onChange={(e) => setEditForm({ ...editForm, price: e.target.value })} className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#319F44]" />
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500">Stock</label>
-                  <input type="number" min="0" value={editForm.stock} onChange={(e) => setEditForm({ ...editForm, stock: e.target.value })} className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#4194AF]" />
+                  <input type="number" min="0" value={editForm.stock} onChange={(e) => setEditForm({ ...editForm, stock: e.target.value })} className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#319F44]" />
                 </div>
               </div>
 
@@ -290,7 +290,7 @@ export default function AdminProducts() {
                       price: selected?.salePrice ? String(selected.salePrice) : editForm.price,
                     })
                   }}
-                  className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#4194AF] bg-white"
+                  className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#319F44] bg-white"
                 >
                   <option value="">{editForm.category || "Select category"}</option>
                   {storeCategories.map((c) => (
@@ -303,7 +303,7 @@ export default function AdminProducts() {
                   return (
                     <p className="text-[10px] text-gray-400 mt-1">
                       {sel.unit && <>Unit: <span className="font-medium text-gray-600">{sel.unit}</span> · </>}
-                      {sel.salePrice && <>Sale Price: <span className="font-medium text-[#4194AF]">₱{sel.salePrice}</span></>}
+                      {sel.salePrice && <>Sale Price: <span className="font-medium text-[#319F44]">₱{sel.salePrice}</span></>}
                     </p>
                   )
                 })()}
@@ -312,14 +312,14 @@ export default function AdminProducts() {
               {/* Unit */}
               <div>
                 <label className="text-xs font-semibold text-gray-500">Unit</label>
-                <input placeholder="e.g. pc, kg, pack, bottle" value={editForm.unit} onChange={(e) => setEditForm({ ...editForm, unit: e.target.value })} className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#4194AF]" />
+                <input placeholder="e.g. pc, kg, pack, bottle" value={editForm.unit} onChange={(e) => setEditForm({ ...editForm, unit: e.target.value })} className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#319F44]" />
               </div>
             </div>
 
             {/* Footer */}
             <div className="px-6 py-4 border-t bg-gray-50 flex gap-3">
               <button onClick={() => setEditing(null)} className="flex-1 border border-gray-300 py-2.5 rounded-lg text-sm font-medium text-gray-600">Cancel</button>
-              <button onClick={handleSave} disabled={saving || !editForm.name.trim()} className="flex-1 bg-[#4194AF] text-white py-2.5 rounded-lg text-sm font-bold disabled:opacity-40">
+              <button onClick={handleSave} disabled={saving || !editForm.name.trim()} className="flex-1 bg-[#319F44] text-white py-2.5 rounded-lg text-sm font-bold disabled:opacity-40">
                 {saving ? "Saving..." : "Save Changes"}
               </button>
             </div>

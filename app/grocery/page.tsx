@@ -27,7 +27,7 @@ const CATEGORY_ICONS: Record<string, string> = {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-  "all": "bg-[#93D569]/20 text-[#3a7d96]",
+  "all": "bg-[#59EBC6]/20 text-[#267a34]",
   "beverages": "bg-blue-100 text-blue-700",
   "household": "bg-yellow-100 text-yellow-700",
   "condiments": "bg-orange-100 text-orange-700",
@@ -42,7 +42,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   "biscuits": "bg-orange-100 text-orange-700",
   "bread & pastry": "bg-amber-100 text-amber-700",
   "meat & seafood": "bg-red-100 text-red-700",
-  "rice": "bg-[#93D569]/20 text-[#3a7d96]",
+  "rice": "bg-[#59EBC6]/20 text-[#267a34]",
   "office & school supply": "bg-indigo-100 text-indigo-700",
   "baby": "bg-pink-100 text-pink-700",
   "pet": "bg-teal-100 text-teal-700",
@@ -238,7 +238,7 @@ export default function GroceryPage() {
     <main className="min-h-screen bg-gray-50 pb-20">
 
       {/* ── HEADER ── */}
-      <header className="bg-[#4194AF] sticky top-0 z-50 shadow-sm">
+      <header className="bg-[#319F44] sticky top-0 z-50 shadow-sm">
         <div className="max-w-6xl mx-auto px-3 md:px-6 py-2.5 flex items-center gap-3">
           <a href="/" className="flex items-center gap-1.5 shrink-0">
             <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
@@ -272,11 +272,11 @@ export default function GroceryPage() {
                 <div className="absolute right-0 top-10 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden">
                   <div className="px-4 py-3 border-b flex items-center justify-between">
                     <span className="text-sm font-bold text-gray-800">Notifications</span>
-                    {notifications.filter(n => !n.read).length > 0 && <button onClick={() => fetch("/api/notifications", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "markAllRead", recipientType: "customer", recipientId: user.id }) }).then(() => setNotifications(n => n.map(x => ({ ...x, read: true }))))} className="text-xs text-[#4194AF] font-semibold">Mark all read</button>}
+                    {notifications.filter(n => !n.read).length > 0 && <button onClick={() => fetch("/api/notifications", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "markAllRead", recipientType: "customer", recipientId: user.id }) }).then(() => setNotifications(n => n.map(x => ({ ...x, read: true }))))} className="text-xs text-[#319F44] font-semibold">Mark all read</button>}
                   </div>
                   <div className="max-h-60 overflow-y-auto">
                     {notifications.length === 0 ? <p className="p-4 text-xs text-gray-400 text-center">No notifications</p> : notifications.slice(0, 8).map(n => (
-                      <div key={n.id} className={`px-4 py-2.5 border-b border-gray-50 ${!n.read ? "bg-[#4194AF]/10" : ""}`}>
+                      <div key={n.id} className={`px-4 py-2.5 border-b border-gray-50 ${!n.read ? "bg-[#319F44]/10" : ""}`}>
                         <p className="text-xs font-semibold text-gray-800">{n.title}</p>
                         <p className="text-[11px] text-gray-500">{n.message}</p>
                       </div>
@@ -325,7 +325,7 @@ export default function GroceryPage() {
             {allCategories.map((cat) => {
               const isActive = selectedCategory === cat
               const icon = cat === "All" ? "🛒" : getCatIcon(cat)
-              const colorClass = isActive ? "bg-[#4194AF] text-white border-[#4194AF]" : `${getCatColor(cat)} border-transparent`
+              const colorClass = isActive ? "bg-[#319F44] text-white border-[#319F44]" : `${getCatColor(cat)} border-transparent`
               return (
                 <button
                   key={cat}
@@ -348,7 +348,7 @@ export default function GroceryPage() {
               {!loading && <span className="text-gray-400 font-normal ml-1.5">({filtered.length})</span>}
             </h2>
             {selectedCategory !== "All" && (
-              <button onClick={() => setSelectedCategory("All")} className="text-xs text-[#4194AF] font-semibold">Clear filter</button>
+              <button onClick={() => setSelectedCategory("All")} className="text-xs text-[#319F44] font-semibold">Clear filter</button>
             )}
           </div>
 
@@ -368,7 +368,7 @@ export default function GroceryPage() {
             <div className="bg-white rounded-2xl p-16 text-center border border-gray-100">
               <p className="text-4xl mb-3">🔍</p>
               <p className="text-gray-500 font-medium">No products found</p>
-              <button onClick={() => { setSelectedCategory("All"); setSearchQuery("") }} className="mt-3 text-sm text-[#4194AF] font-semibold">Clear filters</button>
+              <button onClick={() => { setSelectedCategory("All"); setSearchQuery("") }} className="mt-3 text-sm text-[#319F44] font-semibold">Clear filters</button>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-3">
@@ -417,7 +417,7 @@ export default function GroceryPage() {
               <div className="flex-1 flex flex-col items-center justify-center gap-3 text-gray-400">
                 <span className="text-5xl">🛒</span>
                 <p className="text-sm font-medium">Your cart is empty</p>
-                <button onClick={() => setShowCart(false)} className="text-sm text-[#4194AF] font-semibold">Continue shopping</button>
+                <button onClick={() => setShowCart(false)} className="text-sm text-[#319F44] font-semibold">Continue shopping</button>
               </div>
             ) : (
               <>
@@ -429,12 +429,12 @@ export default function GroceryPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-800 truncate">{item.product.name}</p>
-                        <p className="text-[#4194AF] font-bold text-sm">₱{((item.product.onSale && item.product.salePrice ? item.product.salePrice : item.product.price) * item.quantity).toFixed(2)}</p>
+                        <p className="text-[#319F44] font-bold text-sm">₱{((item.product.onSale && item.product.salePrice ? item.product.salePrice : item.product.price) * item.quantity).toFixed(2)}</p>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
                         <button onClick={() => updateQuantity(item.product.id, -1)} className="w-7 h-7 rounded-lg bg-white border border-gray-200 text-gray-600 font-bold text-sm flex items-center justify-center">−</button>
                         <span className="text-sm font-bold w-5 text-center">{item.quantity}</span>
-                        <button onClick={() => updateQuantity(item.product.id, 1)} className="w-7 h-7 rounded-lg bg-[#4194AF] text-white font-bold text-sm flex items-center justify-center">+</button>
+                        <button onClick={() => updateQuantity(item.product.id, 1)} className="w-7 h-7 rounded-lg bg-[#319F44] text-white font-bold text-sm flex items-center justify-center">+</button>
                       </div>
                     </div>
                   ))}
@@ -442,7 +442,7 @@ export default function GroceryPage() {
                 <div className="border-t p-4 space-y-3 shrink-0 bg-white">
                   <div className="flex justify-between text-sm text-gray-600"><span>Subtotal</span><span>₱{cartTotal.toFixed(2)}</span></div>
                   {cartDeposit > 0 && <div className="flex justify-between text-sm text-orange-600"><span>Bottle Deposit</span><span>₱{cartDeposit.toFixed(2)}</span></div>}
-                  <div className="flex justify-between font-bold text-gray-900 text-base border-t pt-2"><span>Total</span><span className="text-[#4194AF]">₱{(cartTotal + cartDeposit).toFixed(2)}</span></div>
+                  <div className="flex justify-between font-bold text-gray-900 text-base border-t pt-2"><span>Total</span><span className="text-[#319F44]">₱{(cartTotal + cartDeposit).toFixed(2)}</span></div>
                   <button onClick={() => { setShowCart(false); if (!user) { window.location.href = "/auth?redirect=/grocery" } else { setShowCheckout(true); if (!checkoutForm.lat) detectLocation() } }} className="w-full bg-[#FF8A00] text-white py-3.5 rounded-xl font-bold hover:bg-[#e07800] transition-colors">Checkout →</button>
                 </div>
               </>
@@ -456,27 +456,27 @@ export default function GroceryPage() {
         <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowCheckout(false)} />
           <div className="relative bg-white rounded-t-3xl md:rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
-            <div className="bg-[#4194AF] px-5 py-4 flex items-center justify-between">
+            <div className="bg-[#319F44] px-5 py-4 flex items-center justify-between">
               <div><h2 className="font-bold text-lg text-white">Checkout</h2><p className="text-white/70 text-xs">Complete your delivery details</p></div>
               <button onClick={() => setShowCheckout(false)} className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-white">&times;</button>
             </div>
             <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
               <div className="space-y-3">
-                <input placeholder="Full Name" value={checkoutForm.name} onChange={(e) => setCheckoutForm({ ...checkoutForm, name: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#4194AF] outline-none" />
-                <input type="tel" inputMode="numeric" placeholder="Phone Number" value={checkoutForm.phone} onChange={(e) => setCheckoutForm({ ...checkoutForm, phone: e.target.value.replace(/[^0-9]/g, "") })} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#4194AF] outline-none" />
-                <textarea placeholder="Delivery address..." value={checkoutForm.address} onChange={(e) => setCheckoutForm({ ...checkoutForm, address: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#4194AF] outline-none resize-none" rows={2} />
+                <input placeholder="Full Name" value={checkoutForm.name} onChange={(e) => setCheckoutForm({ ...checkoutForm, name: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#319F44] outline-none" />
+                <input type="tel" inputMode="numeric" placeholder="Phone Number" value={checkoutForm.phone} onChange={(e) => setCheckoutForm({ ...checkoutForm, phone: e.target.value.replace(/[^0-9]/g, "") })} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#319F44] outline-none" />
+                <textarea placeholder="Delivery address..." value={checkoutForm.address} onChange={(e) => setCheckoutForm({ ...checkoutForm, address: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#319F44] outline-none resize-none" rows={2} />
                 <button onClick={detectLocation} disabled={locating} className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-blue-200 bg-blue-50 text-blue-600 rounded-xl py-2.5 text-sm font-medium">
                   {locating ? "Detecting..." : "📍 Use current location"}
                 </button>
-                {checkoutForm.lat !== 0 && <p className="text-xs text-[#4194AF]">✓ Location pinned</p>}
-                <input placeholder="Landmark (required)" value={checkoutForm.landmark} onChange={(e) => setCheckoutForm({ ...checkoutForm, landmark: e.target.value })} className={`w-full border rounded-xl px-4 py-3 text-sm focus:border-[#4194AF] outline-none ${!checkoutForm.landmark.trim() ? "border-amber-300 bg-amber-50/30" : "border-gray-200"}`} />
+                {checkoutForm.lat !== 0 && <p className="text-xs text-[#319F44]">✓ Location pinned</p>}
+                <input placeholder="Landmark (required)" value={checkoutForm.landmark} onChange={(e) => setCheckoutForm({ ...checkoutForm, landmark: e.target.value })} className={`w-full border rounded-xl px-4 py-3 text-sm focus:border-[#319F44] outline-none ${!checkoutForm.landmark.trim() ? "border-amber-300 bg-amber-50/30" : "border-gray-200"}`} />
               </div>
 
               <div className="space-y-2">
                 <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Payment</p>
                 {paymentMethods.cod && (
-                  <label className={`flex items-center gap-3 border-2 rounded-xl px-4 py-3 cursor-pointer ${checkoutForm.paymentMethod === "cod" ? "border-[#4194AF] bg-[#4194AF]/10" : "border-gray-200"}`}>
-                    <input type="radio" name="pay" value="cod" checked={checkoutForm.paymentMethod === "cod"} onChange={() => setCheckoutForm({ ...checkoutForm, paymentMethod: "cod" })} className="accent-[#4194AF]" />
+                  <label className={`flex items-center gap-3 border-2 rounded-xl px-4 py-3 cursor-pointer ${checkoutForm.paymentMethod === "cod" ? "border-[#319F44] bg-[#319F44]/10" : "border-gray-200"}`}>
+                    <input type="radio" name="pay" value="cod" checked={checkoutForm.paymentMethod === "cod"} onChange={() => setCheckoutForm({ ...checkoutForm, paymentMethod: "cod" })} className="accent-[#319F44]" />
                     <span className="text-xl">💵</span>
                     <div><p className="text-sm font-bold text-gray-800">Cash on Delivery</p><p className="text-xs text-gray-400">Pay when order arrives</p></div>
                   </label>
@@ -485,7 +485,7 @@ export default function GroceryPage() {
                   <label className={`flex items-center gap-3 border-2 rounded-xl px-4 py-3 cursor-pointer ${checkoutForm.paymentMethod === "wallet" ? "border-purple-500 bg-purple-50" : "border-gray-200"}`}>
                     <input type="radio" name="pay" value="wallet" checked={checkoutForm.paymentMethod === "wallet"} onChange={() => setCheckoutForm({ ...checkoutForm, paymentMethod: "wallet" })} className="accent-purple-500" disabled={walletBalance < (cartTotal + cartDeposit + deliveryFee)} />
                     <span className="text-xl">👛</span>
-                    <div className="flex-1"><p className="text-sm font-bold text-gray-800">Gruwcer Wallet</p><p className="text-xs text-gray-400">Balance: <span className="font-bold text-[#4194AF]">₱{walletBalance.toFixed(2)}</span></p></div>
+                    <div className="flex-1"><p className="text-sm font-bold text-gray-800">Gruwcer Wallet</p><p className="text-xs text-gray-400">Balance: <span className="font-bold text-[#319F44]">₱{walletBalance.toFixed(2)}</span></p></div>
                     {walletBalance < (cartTotal + cartDeposit + deliveryFee) && <span className="text-[9px] bg-red-100 text-red-600 font-bold px-2 py-0.5 rounded-full">LOW</span>}
                   </label>
                 )}
@@ -509,8 +509,8 @@ export default function GroceryPage() {
               <div className="bg-gray-50 rounded-xl p-3 space-y-1.5">
                 <div className="flex justify-between text-sm text-gray-600"><span>Items ({cartCount})</span><span>₱{cartTotal.toFixed(2)}</span></div>
                 {cartDeposit > 0 && <div className="flex justify-between text-sm text-orange-600"><span>Bottle Deposit</span><span>₱{cartDeposit.toFixed(2)}</span></div>}
-                <div className="flex justify-between text-sm"><span className={deliveryFee === 0 ? "text-[#4194AF]" : "text-gray-600"}>Delivery</span><span className={deliveryFee === 0 ? "text-[#4194AF] font-bold" : ""}>{deliveryFee === 0 ? "FREE" : `₱${deliveryFee.toFixed(2)}`}</span></div>
-                <div className="flex justify-between font-bold text-gray-900 border-t pt-2"><span>Total</span><span className="text-[#4194AF] text-lg">₱{(cartTotal + cartDeposit + deliveryFee).toFixed(2)}</span></div>
+                <div className="flex justify-between text-sm"><span className={deliveryFee === 0 ? "text-[#319F44]" : "text-gray-600"}>Delivery</span><span className={deliveryFee === 0 ? "text-[#319F44] font-bold" : ""}>{deliveryFee === 0 ? "FREE" : `₱${deliveryFee.toFixed(2)}`}</span></div>
+                <div className="flex justify-between font-bold text-gray-900 border-t pt-2"><span>Total</span><span className="text-[#319F44] text-lg">₱{(cartTotal + cartDeposit + deliveryFee).toFixed(2)}</span></div>
               </div>
             </div>
             <div className="px-5 py-4 border-t bg-gray-50 shrink-0">
@@ -526,7 +526,7 @@ export default function GroceryPage() {
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-50">
         <div className="max-w-lg mx-auto grid grid-cols-4 py-2">
           <a href="/" className="flex flex-col items-center gap-0.5 py-1 text-gray-400"><svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span className="text-[10px]">Home</span></a>
-          <a href="/grocery" className="flex flex-col items-center gap-0.5 py-1 text-[#4194AF]"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" /></svg><span className="text-[10px] font-bold">Grocery</span></a>
+          <a href="/grocery" className="flex flex-col items-center gap-0.5 py-1 text-[#319F44]"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" /></svg><span className="text-[10px] font-bold">Grocery</span></a>
           <a href="/laundry" className="flex flex-col items-center gap-0.5 py-1 text-gray-400"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg><span className="text-[10px]">Laundry</span></a>
           <a href="/account" className="flex flex-col items-center gap-0.5 py-1 text-gray-400"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg><span className="text-[10px]">Account</span></a>
         </div>
@@ -558,7 +558,7 @@ function ProductCard({ product, onAdd }: any) {
       <div className="p-2.5">
         <p className="text-xs text-gray-700 line-clamp-2 leading-snug min-h-[32px]">{product.name}</p>
         <div className="flex items-center gap-1.5 mt-1.5">
-          <span className="text-[#4194AF] font-black text-sm">₱{displayPrice.toFixed(2)}</span>
+          <span className="text-[#319F44] font-black text-sm">₱{displayPrice.toFixed(2)}</span>
           {hasDiscount && <span className="text-gray-300 text-[10px] line-through">₱{product.price.toFixed(2)}</span>}
         </div>
         {product.bottleDeposit ? <p className="text-[10px] text-orange-500 mt-0.5">+₱{product.bottleDeposit} deposit</p> : null}
@@ -573,7 +573,7 @@ function HeroSlider() {
   const [slides, setSlides] = useState<any[]>([])
   const [loaded, setLoaded] = useState(false)
   const fallback = [
-    { id: "1", badge: "Express Delivery", title: "Fast Delivery", highlight: "To Your Doorstep", description: "Fresh groceries delivered same day!", imageUrl: "", bgColor: "#4194AF", link: "/grocery" },
+    { id: "1", badge: "Express Delivery", title: "Fast Delivery", highlight: "To Your Doorstep", description: "Fresh groceries delivered same day!", imageUrl: "", bgColor: "#319F44", link: "/grocery" },
     { id: "2", badge: "New Arrivals", title: "Fresh Products", highlight: "Every Single Day", description: "Quality essentials sourced daily.", imageUrl: "", bgColor: "#1F2937", link: "/grocery" },
     { id: "3", badge: "Member Exclusive", title: "Save Up To", highlight: "50% Off Today", description: "Sign up and unlock exclusive deals!", imageUrl: "", bgColor: "#FF8A00", link: "/auth" },
   ]
@@ -613,7 +613,7 @@ function AddedToCartModal({ product, quantity, onClose, onUpdateQuantity, cartCo
       <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.4)" }} onClick={onClose} />
       <div style={{ position: "relative", background: "#fff", borderRadius: "16px", width: "100%", maxWidth: "22rem", padding: "1.5rem", textAlign: "center" }}>
         <div style={{ width: "56px", height: "56px", background: "#dcfce7", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem" }}>
-          <svg style={{ width: "32px", height: "32px", color: "#4194AF" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+          <svg style={{ width: "32px", height: "32px", color: "#319F44" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
         </div>
         <h3 style={{ fontWeight: "bold", fontSize: "1rem", marginBottom: "0.75rem" }}>Added to Cart!</h3>
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", background: "#f9fafb", borderRadius: "12px", padding: "0.75rem" }}>
@@ -622,13 +622,13 @@ function AddedToCartModal({ product, quantity, onClose, onUpdateQuantity, cartCo
           </div>
           <div style={{ flex: 1, textAlign: "left", minWidth: 0 }}>
             <p style={{ fontSize: "0.8rem", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{product.name}</p>
-            <p style={{ color: "#4194AF", fontWeight: "bold", fontSize: "0.875rem" }}>₱{((product.onSale && product.salePrice ? product.salePrice : product.price) * quantity).toFixed(2)}</p>
+            <p style={{ color: "#319F44", fontWeight: "bold", fontSize: "0.875rem" }}>₱{((product.onSale && product.salePrice ? product.salePrice : product.price) * quantity).toFixed(2)}</p>
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", marginTop: "1rem" }}>
           <button onClick={() => { if (quantity <= 1) { onUpdateQuantity(product.id, -1); onClose() } else { onUpdateQuantity(product.id, -1) } }} style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#f3f4f6", border: "none", fontSize: "1.25rem", cursor: "pointer" }}>−</button>
           <span style={{ fontSize: "1.125rem", fontWeight: "bold", width: "32px", textAlign: "center" }}>{quantity}</span>
-          <button onClick={() => onUpdateQuantity(product.id, 1)} style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#4194AF", color: "#fff", border: "none", fontSize: "1.25rem", cursor: "pointer" }}>+</button>
+          <button onClick={() => onUpdateQuantity(product.id, 1)} style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#319F44", color: "#fff", border: "none", fontSize: "1.25rem", cursor: "pointer" }}>+</button>
         </div>
         <div style={{ display: "flex", gap: "0.75rem", marginTop: "1rem" }}>
           <button onClick={onClose} style={{ flex: 1, border: "1px solid #e5e7eb", background: "#fff", padding: "0.625rem", borderRadius: "10px", fontSize: "0.8rem", cursor: "pointer" }}>Continue</button>

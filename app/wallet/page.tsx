@@ -61,7 +61,7 @@ export default function WalletPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F4F5F7] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F5F5DB] flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-3 border-[#7C3AED] border-t-transparent rounded-full" />
       </div>
     )
@@ -69,7 +69,7 @@ export default function WalletPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#F4F5F7] flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-[#F5F5DB] flex flex-col items-center justify-center p-4">
         <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
           <svg className="w-8 h-8 text-[#7C3AED]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
         </div>
@@ -81,7 +81,7 @@ export default function WalletPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F4F5F7] pb-24">
+    <div className="min-h-screen bg-[#F5F5DB] pb-24">
       {/* Header */}
       <header className="bg-[#7C3AED] px-4 pt-12 pb-8">
         <div className="max-w-lg mx-auto">
@@ -111,14 +111,14 @@ export default function WalletPage() {
       <div className="max-w-lg mx-auto px-4 -mt-4">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 grid grid-cols-3 gap-3">
           <button onClick={() => setShowTopUp(true)} className="flex flex-col items-center gap-1.5">
-            <div className="w-10 h-10 bg-[#93D569]/20 rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5 text-[#4194AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            <div className="w-10 h-10 bg-[#59EBC6]/20 rounded-full flex items-center justify-center">
+              <svg className="w-5 h-5 text-[#319F44]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
             </div>
             <span className="text-[10px] font-medium text-gray-600">Top Up</span>
           </button>
           <a href="/grocery" className="flex flex-col items-center gap-1.5">
-            <div className="w-10 h-10 bg-[#93D569]/20 rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5 text-[#3a7d96]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" /></svg>
+            <div className="w-10 h-10 bg-[#59EBC6]/20 rounded-full flex items-center justify-center">
+              <svg className="w-5 h-5 text-[#267a34]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" /></svg>
             </div>
             <span className="text-[10px] font-medium text-gray-600">Shop</span>
           </a>
@@ -143,18 +143,18 @@ export default function WalletPage() {
           <div className="bg-white rounded-xl border border-gray-100 overflow-hidden divide-y divide-gray-50">
             {transactions.map((txn) => (
               <div key={txn.id} className="px-4 py-3 flex items-center gap-3">
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${txn.amount >= 0 ? "bg-[#93D569]/20" : "bg-[#93D569]/20"}`}>
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${txn.amount >= 0 ? "bg-[#59EBC6]/20" : "bg-[#59EBC6]/20"}`}>
                   {txn.amount >= 0 ? (
-                    <svg className="w-4 h-4 text-[#4194AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                    <svg className="w-4 h-4 text-[#319F44]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                   ) : (
-                    <svg className="w-4 h-4 text-[#3a7d96]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" /></svg>
+                    <svg className="w-4 h-4 text-[#267a34]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" /></svg>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-800 truncate">{txn.note || (txn.amount >= 0 ? "Top-up" : "Payment")}</p>
                   <p className="text-[10px] text-gray-400">{txn.createdAt ? new Date(txn.createdAt as any).toLocaleDateString("en-PH", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : ""}</p>
                 </div>
-                <span className={`text-sm font-bold ${txn.amount >= 0 ? "text-[#4194AF]" : "text-[#3a7d96]"}`}>
+                <span className={`text-sm font-bold ${txn.amount >= 0 ? "text-[#319F44]" : "text-[#267a34]"}`}>
                   {txn.amount >= 0 ? "+" : ""}₱{Math.abs(txn.amount).toFixed(2)}
                 </span>
               </div>

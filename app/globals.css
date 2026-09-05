@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --primary: #4194AF;       /* Teal Blue */
-  --secondary: #61B288;     /* Aqua Green */
-  --accent: #93D569;        /* Fresh Green */
+  --primary: #319F44;       /* Main Green */
+  --secondary: #64DEA7;     /* Bright Green */
+  --accent: #59EBC6;        /* Aqua/Turquoise */
   --cta: #FF8A00;           /* Delivery Orange */
   --yellow: #FFD23F;        /* Fresh Yellow */
-  --bg: #F4F5F7;            /* Soft White */
+  --bg: #F5F5DB;            /* Cream Background */
   --text: #1F2937;          /* Charcoal */
   --third: #FFFFFF;
   --sat: env(safe-area-inset-top);

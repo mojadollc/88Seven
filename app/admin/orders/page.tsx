@@ -15,9 +15,9 @@ const STATUS_COLORS: Record<string, string> = {
   rider_at_store: "bg-teal-100 text-teal-800",
   rider_picked_up: "bg-indigo-100 text-indigo-800",
   out_for_delivery: "bg-indigo-100 text-indigo-800",
-  delivered: "bg-[#93D569]/20 text-green-800",
-  cancelled: "bg-[#93D569]/20 text-green-900",
-  rejected: "bg-[#93D569]/20 text-green-900",
+  delivered: "bg-[#59EBC6]/20 text-green-800",
+  cancelled: "bg-[#59EBC6]/20 text-green-900",
+  rejected: "bg-[#59EBC6]/20 text-green-900",
 }
 
 type FilterTab = "incoming" | "active" | "completed" | "all"
@@ -130,7 +130,7 @@ export default function AdminOrdersPage() {
           <h1 className="text-lg font-bold text-[#1F2937]">Order Management</h1>
           <div className="flex items-center gap-2">
             {incoming.length > 0 && (
-              <span className="bg-[#4194AF]/100 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">
+              <span className="bg-[#319F44]/100 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">
                 {incoming.length} new
               </span>
             )}
@@ -150,7 +150,7 @@ export default function AdminOrdersPage() {
             <p className="text-xs text-gray-400">Active</p>
           </div>
           <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-            <p className="text-2xl font-bold text-[#4194AF]">{completed.filter((o) => o.status === "delivered").length}</p>
+            <p className="text-2xl font-bold text-[#319F44]">{completed.filter((o) => o.status === "delivered").length}</p>
             <p className="text-xs text-gray-400">Delivered</p>
           </div>
           <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
@@ -173,16 +173,16 @@ export default function AdminOrdersPage() {
           const totalDeliveryFees = delivered.length * deliveryFeePerOrder
           const todayDeliveryFees = todayDelivered.length * deliveryFeePerOrder
           return (
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-[#4194AF]/20 mb-6">
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-[#319F44]/20 mb-6">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
-                  <p className="text-[10px] text-[#4194AF] font-semibold uppercase">Today Revenue</p>
-                  <p className="text-xl font-black text-[#3a7d96]">₱{todayRevenue.toFixed(0)}</p>
+                  <p className="text-[10px] text-[#319F44] font-semibold uppercase">Today Revenue</p>
+                  <p className="text-xl font-black text-[#267a34]">₱{todayRevenue.toFixed(0)}</p>
                   <p className="text-[10px] text-green-500">{todayDelivered.length} orders</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-[#4194AF] font-semibold uppercase">Total Revenue</p>
-                  <p className="text-xl font-black text-[#3a7d96]">₱{totalRevenue.toFixed(0)}</p>
+                  <p className="text-[10px] text-[#319F44] font-semibold uppercase">Total Revenue</p>
+                  <p className="text-xl font-black text-[#267a34]">₱{totalRevenue.toFixed(0)}</p>
                   <p className="text-[10px] text-green-500">{delivered.length} orders</p>
                 </div>
                 <div>
@@ -212,7 +212,7 @@ export default function AdminOrdersPage() {
               key={key}
               onClick={() => setTab(key)}
               className={`px-4 py-2 text-xs rounded-lg whitespace-nowrap font-medium transition-colors ${
-                tab === key ? "bg-[#4194AF] text-white" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
+                tab === key ? "bg-[#319F44] text-white" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
               }`}
             >
               {label}
@@ -245,7 +245,7 @@ export default function AdminOrdersPage() {
                     <span className="text-xs text-gray-400">{order.createdAt?.toLocaleString?.() || ""}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-[#4194AF] font-bold">₱{order.total.toFixed(2)}</span>
+                    <span className="text-[#319F44] font-bold">₱{order.total.toFixed(2)}</span>
                     <svg className={`w-4 h-4 text-gray-400 transition-transform ${expandedOrder === order.id ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
@@ -260,10 +260,10 @@ export default function AdminOrdersPage() {
                       <p className="text-xs text-gray-500">{order.items.length} items • {order.deliveryAddress.slice(0, 40)}...</p>
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={() => handleReject(order.id)} className="px-4 py-2 text-xs font-bold rounded-lg border border-green-200 text-[#3a7d96] hover:bg-[#4194AF]/10 transition-colors">
+                      <button onClick={() => handleReject(order.id)} className="px-4 py-2 text-xs font-bold rounded-lg border border-green-200 text-[#267a34] hover:bg-[#319F44]/10 transition-colors">
                         ✕ Reject
                       </button>
-                      <button onClick={() => handleAccept(order.id)} className="px-4 py-2 text-xs font-bold rounded-lg bg-[#4194AF]/100 text-white hover:bg-green-600 transition-colors">
+                      <button onClick={() => handleAccept(order.id)} className="px-4 py-2 text-xs font-bold rounded-lg bg-[#319F44]/100 text-white hover:bg-green-600 transition-colors">
                         ✓ Accept
                       </button>
                     </div>
@@ -300,7 +300,7 @@ export default function AdminOrdersPage() {
                       </div>
                       <div className="flex flex-wrap gap-1">
                         {order.items.map((item: any, i: number) => (
-                          <span key={i} className={`text-xs px-2 py-0.5 rounded ${item.outOfStock ? "bg-[#4194AF]/10 text-green-400 line-through" : "bg-gray-100"}`}>
+                          <span key={i} className={`text-xs px-2 py-0.5 rounded ${item.outOfStock ? "bg-[#319F44]/10 text-green-400 line-through" : "bg-gray-100"}`}>
                             {item.name} ×{item.quantity}{item.outOfStock ? " — OUT OF STOCK" : ""}
                           </span>
                         ))}
@@ -344,7 +344,7 @@ export default function AdminOrdersPage() {
                             value={order.driverId || ""}
                             onChange={(e) => handleAssignDriver(order.id, e.target.value)}
                             className={`text-xs px-3 py-2 rounded-lg border outline-none ${
-                              order.driverId ? "border-green-200 bg-[#4194AF]/10 text-[#3a7d96]" : "border-gray-200 bg-white text-gray-600"
+                              order.driverId ? "border-green-200 bg-[#319F44]/10 text-[#267a34]" : "border-gray-200 bg-white text-gray-600"
                             }`}
                           >
                             <option value="">— Manual —</option>
@@ -397,12 +397,12 @@ export default function AdminOrdersPage() {
             </div>
             <div className="p-5 space-y-2 max-h-[50vh] overflow-y-auto">
               {editItems.map((item, i) => (
-                <div key={item.productId} className={`flex items-center gap-3 rounded-lg px-4 py-3 ${item.outOfStock ? "bg-[#4194AF]/10 border border-green-200" : "bg-gray-50"}`}>
+                <div key={item.productId} className={`flex items-center gap-3 rounded-lg px-4 py-3 ${item.outOfStock ? "bg-[#319F44]/10 border border-green-200" : "bg-gray-50"}`}>
                   <div className="flex-1 min-w-0">
                     <p className={`text-sm font-medium truncate ${item.outOfStock ? "text-green-400 line-through" : "text-gray-800"}`}>{item.name}</p>
                     <p className="text-[10px] text-gray-400">₱{item.price} each</p>
                     {item.outOfStock && (
-                      <span className="text-[9px] font-bold text-[#3a7d96] bg-[#93D569]/20 px-1.5 py-0.5 rounded mt-1 inline-block">OUT OF STOCK</span>
+                      <span className="text-[9px] font-bold text-[#267a34] bg-[#59EBC6]/20 px-1.5 py-0.5 rounded mt-1 inline-block">OUT OF STOCK</span>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
@@ -439,8 +439,8 @@ export default function AdminOrdersPage() {
                       }}
                       className={`text-[9px] font-bold px-2 py-1.5 rounded-lg ml-1 transition-colors ${
                         item.outOfStock
-                          ? "bg-[#93D569]/20 text-[#3a7d96] hover:bg-green-200"
-                          : "bg-[#93D569]/20 text-[#3a7d96] hover:bg-green-200"
+                          ? "bg-[#59EBC6]/20 text-[#267a34] hover:bg-green-200"
+                          : "bg-[#59EBC6]/20 text-[#267a34] hover:bg-green-200"
                       }`}
                     >
                       {item.outOfStock ? "✓ Restock" : "✕ Out of Stock"}
@@ -457,13 +457,13 @@ export default function AdminOrdersPage() {
                 </div>
                 <div className="text-right">
                   <p className="text-[10px] text-gray-400">New Total</p>
-                  <p className="text-lg font-bold text-[#4194AF]">₱{editItems.filter((i) => !i.outOfStock).reduce((s, i) => s + i.price * i.quantity, 0).toFixed(2)}</p>
+                  <p className="text-lg font-bold text-[#319F44]">₱{editItems.filter((i) => !i.outOfStock).reduce((s, i) => s + i.price * i.quantity, 0).toFixed(2)}</p>
                 </div>
               </div>
               {editItems.filter((i) => i.outOfStock).length > 0 && (
-                <div className="bg-[#4194AF]/10 border border-green-200 rounded-lg px-3 py-2 mb-3">
+                <div className="bg-[#319F44]/10 border border-green-200 rounded-lg px-3 py-2 mb-3">
                   <p className="text-[10px] text-green-800 font-bold">⚠️ {editItems.filter((i) => i.outOfStock).length} item(s) marked as out of stock:</p>
-                  <p className="text-[10px] text-[#3a7d96] mt-0.5">{editItems.filter((i) => i.outOfStock).map((i) => i.name).join(", ")}</p>
+                  <p className="text-[10px] text-[#267a34] mt-0.5">{editItems.filter((i) => i.outOfStock).map((i) => i.name).join(", ")}</p>
                   <p className="text-[9px] text-green-400 mt-1">Customer will see these items with strikethrough &amp; “Out of Stock” label</p>
                 </div>
               )}
@@ -471,7 +471,7 @@ export default function AdminOrdersPage() {
                 <button onClick={() => setEditingOrder(null)} className="flex-1 border border-gray-200 text-gray-600 py-2.5 rounded-lg text-sm font-medium">
                   Cancel
                 </button>
-                <button onClick={handleSaveEdit} disabled={editItems.filter((i) => !i.outOfStock).length === 0} className="flex-1 bg-[#4194AF] text-white py-2.5 rounded-lg text-sm font-bold hover:bg-[#3a7d96] disabled:opacity-40">
+                <button onClick={handleSaveEdit} disabled={editItems.filter((i) => !i.outOfStock).length === 0} className="flex-1 bg-[#319F44] text-white py-2.5 rounded-lg text-sm font-bold hover:bg-[#267a34] disabled:opacity-40">
                   Save Changes
                 </button>
               </div>

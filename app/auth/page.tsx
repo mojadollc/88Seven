@@ -66,7 +66,7 @@ function AuthPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#4194AF] to-[#3a7d96] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <main className="min-h-screen bg-gradient-to-b from-[#319F44] to-[#267a34] flex flex-col items-center justify-center p-4 relative overflow-hidden">
       <div className="w-full max-w-sm relative z-10">
         <div className="text-center mb-6">
           <a href="/" className="inline-block">
@@ -78,7 +78,7 @@ function AuthPage() {
         <div className="flex bg-white/10 rounded-xl p-1 mb-4">
           {(["login", "register", "partner", "rider"] as const).map((t) => (
             <button key={t} onClick={() => { setTab(t); setError(""); setSuccess("") }}
-              className={`flex-1 py-2 rounded-lg text-[10px] font-bold transition-colors capitalize ${tab === t ? "bg-white text-[#4194AF]" : "text-white/70"}`}>
+              className={`flex-1 py-2 rounded-lg text-[10px] font-bold transition-colors capitalize ${tab === t ? "bg-white text-[#319F44]" : "text-white/70"}`}>
               {t === "login" ? "Sign In" : t === "register" ? "Register" : t === "partner" ? "Partner" : "Rider"}
             </button>
           ))}
@@ -87,11 +87,11 @@ function AuthPage() {
         <div className="bg-white rounded-2xl p-6 shadow-xl">
           {success ? (
             <div className="text-center py-4">
-              <div className="w-14 h-14 bg-[#93D569]/20 rounded-full flex items-center justify-center mx-auto mb-3">
+              <div className="w-14 h-14 bg-[#59EBC6]/20 rounded-full flex items-center justify-center mx-auto mb-3">
                 <svg className="w-7 h-7 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
               </div>
               <p className="text-sm font-bold text-gray-800">{success}</p>
-              <a href="/auth" className="inline-block mt-4 text-xs text-[#4194AF] font-bold">← Back to Sign In</a>
+              <a href="/auth" className="inline-block mt-4 text-xs text-[#319F44] font-bold">← Back to Sign In</a>
             </div>
           ) : tab === "rider" ? (
             <>
@@ -133,7 +133,7 @@ function AuthPage() {
                     {detectingLoc ? "..." : "📍 Detect"}
                   </button>
                 </div>
-                {partnerForm.lat > 0 && <p className="text-[9px] text-[#4194AF]">✓ Location pinned</p>}
+                {partnerForm.lat > 0 && <p className="text-[9px] text-[#319F44]">✓ Location pinned</p>}
                 <input placeholder="Landmark" value={partnerForm.landmark} onChange={(e) => setPartnerForm({ ...partnerForm, landmark: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-600" />
                 <input type="email" placeholder="Email" value={partnerForm.email} onChange={(e) => setPartnerForm({ ...partnerForm, email: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-600" />
                 <input type="password" placeholder="Password" value={partnerForm.password} onChange={(e) => setPartnerForm({ ...partnerForm, password: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-600" />
@@ -150,13 +150,13 @@ function AuthPage() {
               <div className="space-y-3">
                 {tab === "register" && (
                   <>
-                    <input placeholder="Full Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#4194AF]" />
-                    <input placeholder="Phone Number" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/[^0-9]/g, "") })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#4194AF]" />
+                    <input placeholder="Full Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#319F44]" />
+                    <input placeholder="Phone Number" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/[^0-9]/g, "") })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#319F44]" />
                   </>
                 )}
-                <input type="email" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#4194AF]" />
-                <input type="password" placeholder="Password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} onKeyDown={(e) => e.key === "Enter" && handleCustomerAuth()} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#4194AF]" />
-                <button onClick={handleCustomerAuth} disabled={loading || !form.email || !form.password} className="w-full bg-[#4194AF] text-white py-3 rounded-xl font-bold text-sm disabled:opacity-40">
+                <input type="email" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#319F44]" />
+                <input type="password" placeholder="Password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} onKeyDown={(e) => e.key === "Enter" && handleCustomerAuth()} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#319F44]" />
+                <button onClick={handleCustomerAuth} disabled={loading || !form.email || !form.password} className="w-full bg-[#319F44] text-white py-3 rounded-xl font-bold text-sm disabled:opacity-40">
                   {loading ? "Please wait..." : tab === "login" ? "Sign In" : "Create Account"}
                 </button>
               </div>
@@ -173,7 +173,7 @@ function AuthPage() {
 
 export default function AuthWrapper() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#4194AF] flex items-center justify-center"><div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin" /></div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[#319F44] flex items-center justify-center"><div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin" /></div>}>
       <AuthPage />
     </Suspense>
   )

@@ -58,7 +58,7 @@ export default function AdminCustomersPage() {
             <p className="text-xs text-gray-400">Total Customers</p>
           </div>
           <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-            <p className="text-2xl font-bold text-[#4194AF]">{customers.filter((c) => getCustomerStats(c.uid).total > 0).length}</p>
+            <p className="text-2xl font-bold text-[#319F44]">{customers.filter((c) => getCustomerStats(c.uid).total > 0).length}</p>
             <p className="text-xs text-gray-400">With Orders</p>
           </div>
           <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
@@ -66,7 +66,7 @@ export default function AdminCustomersPage() {
             <p className="text-xs text-gray-400">Total Deliveries</p>
           </div>
           <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-            <p className="text-2xl font-bold text-[#4194AF]">₱{orders.filter((o) => o.status === "delivered").reduce((s, o) => s + o.total, 0).toFixed(0)}</p>
+            <p className="text-2xl font-bold text-[#319F44]">₱{orders.filter((o) => o.status === "delivered").reduce((s, o) => s + o.total, 0).toFixed(0)}</p>
             <p className="text-xs text-gray-400">Total Revenue</p>
           </div>
         </div>
@@ -83,7 +83,7 @@ export default function AdminCustomersPage() {
                 placeholder="Search by name, email, or phone..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#4194AF] focus:ring-1 focus:ring-[#4194AF]/20"
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#319F44] focus:ring-1 focus:ring-[#319F44]/20"
               />
             </div>
           </div>
@@ -107,8 +107,8 @@ export default function AdminCustomersPage() {
                 <div key={customer.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                   <div className="px-5 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-[#4194AF]/10 rounded-full flex items-center justify-center">
-                        <svg className="w-5 h-5 text-[#4194AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                      <div className="w-10 h-10 bg-[#319F44]/10 rounded-full flex items-center justify-center">
+                        <svg className="w-5 h-5 text-[#319F44]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                       </div>
                       <div>
                         <p className="font-bold text-sm text-gray-800">{customer.name}</p>
@@ -118,7 +118,7 @@ export default function AdminCustomersPage() {
                     <div className="flex items-center gap-4">
                       <div className="text-right hidden sm:block">
                         <p className="text-xs text-gray-400">{stats.total} orders • {stats.delivered} delivered</p>
-                        <p className="text-sm font-bold text-[#4194AF]">₱{stats.spent.toFixed(0)} spent</p>
+                        <p className="text-sm font-bold text-[#319F44]">₱{stats.spent.toFixed(0)} spent</p>
                       </div>
                       <button
                         onClick={() => setSelectedCustomer(selectedCustomer?.id === customer.id ? null : customer)}
@@ -137,7 +137,7 @@ export default function AdminCustomersPage() {
 
                   {/* Mobile stats */}
                   <div className="px-5 pb-3 sm:hidden">
-                    <p className="text-xs text-gray-400">{stats.total} orders • {stats.delivered} delivered • <span className="text-[#4194AF] font-bold">₱{stats.spent.toFixed(0)}</span></p>
+                    <p className="text-xs text-gray-400">{stats.total} orders • {stats.delivered} delivered • <span className="text-[#319F44] font-bold">₱{stats.spent.toFixed(0)}</span></p>
                   </div>
 
                   {/* Order History */}
@@ -153,8 +153,8 @@ export default function AdminCustomersPage() {
                               <div>
                                 <div className="flex items-center gap-2">
                                   <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase ${
-                                    order.status === "delivered" ? "bg-[#93D569]/20 text-green-800" :
-                                    order.status === "cancelled" || order.status === "rejected" ? "bg-[#93D569]/20 text-green-900" :
+                                    order.status === "delivered" ? "bg-[#59EBC6]/20 text-green-800" :
+                                    order.status === "cancelled" || order.status === "rejected" ? "bg-[#59EBC6]/20 text-green-900" :
                                     "bg-yellow-100 text-yellow-800"
                                   }`}>
                                     {order.status.replace(/_/g, " ")}

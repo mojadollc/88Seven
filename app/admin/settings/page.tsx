@@ -84,7 +84,7 @@ export default function AdminSettingsPage() {
   if (loading) return (
     <div className="flex items-center justify-center h-[60vh]">
       <div className="text-center">
-        <div className="w-8 h-8 border-3 border-[#4194AF] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+        <div className="w-8 h-8 border-3 border-[#319F44] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
         <p className="text-sm text-gray-400">Loading settings...</p>
       </div>
     </div>
@@ -106,7 +106,7 @@ export default function AdminSettingsPage() {
             <h1 className="text-lg font-bold text-[#1F2937]">Settings</h1>
             <p className="text-[11px] text-gray-400 mt-0.5">Configure delivery, payments, and platform settings</p>
           </div>
-          <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 bg-[#4194AF] text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-[#3a7d96] transition-colors disabled:opacity-50 shadow-sm">
+          <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 bg-[#319F44] text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-[#267a34] transition-colors disabled:opacity-50 shadow-sm">
             {saving ? (
               <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Saving...</>
             ) : saved ? (
@@ -137,8 +137,8 @@ export default function AdminSettingsPage() {
 
         {/* Success Banner */}
         {saved && (
-          <div className="mb-4 bg-[#4194AF]/10 border border-green-200 rounded-xl px-4 py-3 flex items-center gap-3 animate-[fadeIn_0.2s_ease-out]">
-            <div className="w-8 h-8 bg-[#4194AF]/100 rounded-full flex items-center justify-center shrink-0">
+          <div className="mb-4 bg-[#319F44]/10 border border-green-200 rounded-xl px-4 py-3 flex items-center gap-3 animate-[fadeIn_0.2s_ease-out]">
+            <div className="w-8 h-8 bg-[#319F44]/100 rounded-full flex items-center justify-center shrink-0">
               <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
             </div>
             <p className="text-sm text-green-800 font-medium">All settings saved successfully!</p>
@@ -162,7 +162,7 @@ export default function AdminSettingsPage() {
                     <button onClick={detectStoreLocation} className="w-full h-[42px] border-2 border-dashed border-blue-300 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium hover:bg-blue-100 transition-colors">📍 Use Current Location</button>
                   </Field>
                 </div>
-                {settings.storeLat > 0 && <p className="text-[10px] text-[#4194AF] mt-2">✓ Location set: {settings.storeLat.toFixed(4)}, {settings.storeLng.toFixed(4)}</p>}
+                {settings.storeLat > 0 && <p className="text-[10px] text-[#319F44] mt-2">✓ Location set: {settings.storeLat.toFixed(4)}, {settings.storeLng.toFixed(4)}</p>}
               </Section>
 
               {/* Grocery Fee */}
@@ -204,17 +204,17 @@ export default function AdminSettingsPage() {
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">%</span>
                     </div>
                   </Field>
-                  <div className="flex-1 bg-gradient-to-r from-green-50 to-emerald-50 border border-[#4194AF]/20 rounded-xl p-4">
+                  <div className="flex-1 bg-gradient-to-r from-green-50 to-emerald-50 border border-[#319F44]/20 rounded-xl p-4">
                     <p className="text-[10px] text-gray-500 uppercase font-semibold mb-2">Example: ₱49 delivery fee</p>
                     <div className="flex items-center gap-4">
                       <div>
                         <p className="text-xs text-gray-500">Rider gets</p>
-                        <p className="text-xl font-bold text-[#4194AF]">₱{Math.round(49 * (100 - settings.riderCommissionPercent) / 100)}</p>
+                        <p className="text-xl font-bold text-[#319F44]">₱{Math.round(49 * (100 - settings.riderCommissionPercent) / 100)}</p>
                       </div>
                       <div className="w-px h-10 bg-gray-200" />
                       <div>
                         <p className="text-xs text-gray-500">Platform gets</p>
-                        <p className="text-xl font-bold text-[#4194AF]">₱{Math.round(49 * settings.riderCommissionPercent / 100)}</p>
+                        <p className="text-xl font-bold text-[#319F44]">₱{Math.round(49 * settings.riderCommissionPercent / 100)}</p>
                       </div>
                     </div>
                   </div>
@@ -235,12 +235,12 @@ export default function AdminSettingsPage() {
                     <div className="flex items-center gap-4">
                       <div>
                         <p className="text-xs text-gray-500">Partner gets</p>
-                        <p className="text-xl font-bold text-[#4194AF]">₱{Math.round(200 * (100 - settings.partnerCommissionPercent) / 100)}</p>
+                        <p className="text-xl font-bold text-[#319F44]">₱{Math.round(200 * (100 - settings.partnerCommissionPercent) / 100)}</p>
                       </div>
                       <div className="w-px h-10 bg-gray-200" />
                       <div>
                         <p className="text-xs text-gray-500">Platform gets</p>
-                        <p className="text-xl font-bold text-[#4194AF]">₱{Math.round(200 * settings.partnerCommissionPercent / 100)}</p>
+                        <p className="text-xl font-bold text-[#319F44]">₱{Math.round(200 * settings.partnerCommissionPercent / 100)}</p>
                       </div>
                     </div>
                   </div>
@@ -269,12 +269,12 @@ export default function AdminSettingsPage() {
                         <p className="text-[11px] text-gray-400">{pm.desc}</p>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${paymentMethods[pm.key] ? "bg-[#93D569]/20 text-[#3a7d96]" : "bg-gray-100 text-gray-400"}`}>
+                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${paymentMethods[pm.key] ? "bg-[#59EBC6]/20 text-[#267a34]" : "bg-gray-100 text-gray-400"}`}>
                           {paymentMethods[pm.key] ? "ACTIVE" : "OFF"}
                         </span>
                         <button
                           onClick={() => setPaymentMethods({ ...paymentMethods, [pm.key]: !paymentMethods[pm.key] })}
-                          className={`relative w-11 h-6 rounded-full transition-colors ${paymentMethods[pm.key] ? "bg-[#4194AF]/100" : "bg-gray-300"}`}
+                          className={`relative w-11 h-6 rounded-full transition-colors ${paymentMethods[pm.key] ? "bg-[#319F44]/100" : "bg-gray-300"}`}
                         >
                           <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${paymentMethods[pm.key] ? "translate-x-5" : ""}`} />
                         </button>
@@ -294,7 +294,7 @@ export default function AdminSettingsPage() {
                 <div className="flex gap-3">
                   <button
                     onClick={() => setListingConfig({ ...listingConfig, defaultMode: "free" })}
-                    className={`flex-1 text-left border-2 rounded-xl px-5 py-4 transition-all ${listingConfig.defaultMode === "free" ? "border-green-500 bg-[#4194AF]/10" : "border-gray-200 hover:border-gray-300"}`}
+                    className={`flex-1 text-left border-2 rounded-xl px-5 py-4 transition-all ${listingConfig.defaultMode === "free" ? "border-green-500 bg-[#319F44]/10" : "border-gray-200 hover:border-gray-300"}`}
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-lg">🆓</span>
@@ -338,26 +338,26 @@ export default function AdminSettingsPage() {
                     const override = partnerOverrides[p.id] || { mode: listingConfig.defaultMode, min: listingConfig.defaultMinBalance }
                     const isVisible = override.mode === "free" || (p.walletBalance || 0) >= override.min
                     return (
-                      <div key={p.id} className={`flex items-center gap-4 border rounded-xl px-5 py-4 transition-all ${override.mode === "wallet_required" ? "border-orange-200 bg-orange-50/30" : "border-green-200 bg-[#4194AF]/10/30"}`}>
+                      <div key={p.id} className={`flex items-center gap-4 border rounded-xl px-5 py-4 transition-all ${override.mode === "wallet_required" ? "border-orange-200 bg-orange-50/30" : "border-green-200 bg-[#319F44]/10/30"}`}>
                         {/* Shop Info */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <p className="text-sm font-semibold text-gray-800 truncate">{p.shopName}</p>
                             {isVisible ? (
-                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#93D569]/20 text-[#3a7d96] shrink-0">✓ VISIBLE</span>
+                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#59EBC6]/20 text-[#267a34] shrink-0">✓ VISIBLE</span>
                             ) : (
-                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#93D569]/20 text-[#3a7d96] shrink-0">✗ HIDDEN</span>
+                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#59EBC6]/20 text-[#267a34] shrink-0">✗ HIDDEN</span>
                             )}
                           </div>
                           <p className="text-[10px] text-gray-400 mt-0.5">
-                            {p.ownerName} • Wallet: <span className={`font-bold ${(p.walletBalance || 0) > 0 ? "text-[#4194AF]" : "text-gray-500"}`}>₱{(p.walletBalance || 0).toLocaleString()}</span>
+                            {p.ownerName} • Wallet: <span className={`font-bold ${(p.walletBalance || 0) > 0 ? "text-[#319F44]" : "text-gray-500"}`}>₱{(p.walletBalance || 0).toLocaleString()}</span>
                           </p>
                         </div>
                         {/* Mode Select */}
                         <select
                           value={override.mode}
                           onChange={(e) => setPartnerOverrides({ ...partnerOverrides, [p.id]: { ...override, mode: e.target.value as any, min: e.target.value === "free" ? 0 : (override.min || listingConfig.defaultMinBalance) } })}
-                          className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-[#4194AF]"
+                          className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-[#319F44]"
                         >
                           <option value="free">Free</option>
                           <option value="wallet_required">Wallet Required</option>
@@ -371,7 +371,7 @@ export default function AdminSettingsPage() {
                               min={0}
                               value={override.min}
                               onChange={(e) => setPartnerOverrides({ ...partnerOverrides, [p.id]: { ...override, min: Number(e.target.value) } })}
-                              className="w-full border border-gray-200 rounded-lg pl-5 pr-2 py-1.5 text-xs font-bold outline-none focus:border-[#4194AF]"
+                              className="w-full border border-gray-200 rounded-lg pl-5 pr-2 py-1.5 text-xs font-bold outline-none focus:border-[#319F44]"
                             />
                           </div>
                         )}
@@ -402,7 +402,7 @@ export default function AdminSettingsPage() {
                           <tr key={p.id} className="border-t border-gray-100">
                             <td className="px-4 py-3 font-medium text-gray-800">{p.shopName}</td>
                             <td className="px-4 py-3">
-                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${override.mode === "free" ? "bg-[#93D569]/20 text-[#3a7d96]" : "bg-orange-100 text-orange-700"}`}>
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${override.mode === "free" ? "bg-[#59EBC6]/20 text-[#267a34]" : "bg-orange-100 text-orange-700"}`}>
                                 {override.mode === "free" ? "FREE" : "WALLET REQ"}
                               </span>
                             </td>
@@ -412,7 +412,7 @@ export default function AdminSettingsPage() {
                             <td className="px-4 py-3 text-right font-bold text-gray-600">₱{(p.walletBalance || 0).toLocaleString()}</td>
                             <td className="px-4 py-3 text-center">
                               {isVisible ? (
-                                <span className="text-[10px] font-bold text-[#4194AF]">🟢 Visible</span>
+                                <span className="text-[10px] font-bold text-[#319F44]">🟢 Visible</span>
                               ) : (
                                 <span className="text-[10px] font-bold text-green-500">🔴 Hidden</span>
                               )}
@@ -443,7 +443,7 @@ export default function AdminSettingsPage() {
           transition: border-color 0.15s, box-shadow 0.15s;
         }
         .input-field:focus {
-          border-color: #4194AF;
+          border-color: #319F44;
           box-shadow: 0 0 0 3px rgba(214, 40, 40, 0.08);
         }
       `}</style>
@@ -502,11 +502,11 @@ function FeeGrid({ config, onChange }: { config: any; onChange: (field: string, 
         <div className="flex items-center gap-3">
           {config.surgeEnabled && (
             <div className="flex items-center gap-2">
-              <input type="number" min={1} step={0.1} value={config.surgeMultiplier} onChange={(e) => onChange("surgeMultiplier", Number(e.target.value))} className="w-16 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-center font-bold outline-none focus:border-[#4194AF]" />
+              <input type="number" min={1} step={0.1} value={config.surgeMultiplier} onChange={(e) => onChange("surgeMultiplier", Number(e.target.value))} className="w-16 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-center font-bold outline-none focus:border-[#319F44]" />
               <span className="text-xs text-gray-400">×</span>
             </div>
           )}
-          <button onClick={() => onChange("surgeEnabled", !config.surgeEnabled)} className={`relative w-11 h-6 rounded-full transition-colors ${config.surgeEnabled ? "bg-[#4194AF]/100" : "bg-gray-300"}`}>
+          <button onClick={() => onChange("surgeEnabled", !config.surgeEnabled)} className={`relative w-11 h-6 rounded-full transition-colors ${config.surgeEnabled ? "bg-[#319F44]/100" : "bg-gray-300"}`}>
             <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${config.surgeEnabled ? "translate-x-5" : ""}`} />
           </button>
         </div>
@@ -522,7 +522,7 @@ function FeeGrid({ config, onChange }: { config: any; onChange: (field: string, 
             return (
               <div key={extra} className="text-center bg-white rounded-lg p-2.5 border border-gray-100">
                 <p className="text-[10px] text-gray-400">{km} km</p>
-                <p className="text-base font-bold text-[#4194AF]">₱{fee}</p>
+                <p className="text-base font-bold text-[#319F44]">₱{fee}</p>
               </div>
             )
           })}

@@ -57,7 +57,7 @@ export default function AdminDriversPage() {
           <h1 className="text-lg font-bold text-[#1F2937]">Riders / Drivers</h1>
           <button
             onClick={() => { resetForm(); setShowForm(true) }}
-            className="text-xs bg-[#4194AF] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#3a7d96] transition-colors"
+            className="text-xs bg-[#319F44] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#267a34] transition-colors"
           >
             + Add Rider
           </button>
@@ -74,31 +74,31 @@ export default function AdminDriversPage() {
                 placeholder="Full Name *"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#4194AF]"
+                className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#319F44]"
               />
               <input
                 placeholder="Phone *"
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#4194AF]"
+                className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#319F44]"
               />
               <input
                 placeholder="Email (for login)"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#4194AF]"
+                className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#319F44]"
               />
               <select
                 value={form.status}
                 onChange={(e) => setForm({ ...form, status: e.target.value as "active" | "inactive" })}
-                className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#4194AF]"
+                className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#319F44]"
               >
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
               </select>
             </div>
             <div className="flex gap-2 mt-4">
-              <button onClick={handleSubmit} className="bg-[#4194AF] text-white px-5 py-2 rounded-lg text-xs font-bold hover:bg-[#3a7d96]">
+              <button onClick={handleSubmit} className="bg-[#319F44] text-white px-5 py-2 rounded-lg text-xs font-bold hover:bg-[#267a34]">
                 {editing ? "Update" : "Add Rider"}
               </button>
               <button onClick={resetForm} className="bg-gray-100 text-gray-600 px-5 py-2 rounded-lg text-xs font-medium">Cancel</button>
@@ -135,13 +135,13 @@ export default function AdminDriversPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${driver.status === "active" ? "bg-[#93D569]/20 text-[#3a7d96]" : (driver.status as string) === "pending" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-500"}`}>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${driver.status === "active" ? "bg-[#59EBC6]/20 text-[#267a34]" : (driver.status as string) === "pending" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-500"}`}>
                       {driver.status}
                     </span>
                     {driver.profileComplete && !(driver as any).profileVerified && (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 animate-pulse">Docs Submitted</span>
                     )}
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full ${(driver.walletBalance || 0) >= 100 ? "bg-[#4194AF]/10 text-[#4194AF]" : "bg-[#4194AF]/10 text-green-500"}`}>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full ${(driver.walletBalance || 0) >= 100 ? "bg-[#319F44]/10 text-[#319F44]" : "bg-[#319F44]/10 text-green-500"}`}>
                       ₱{driver.walletBalance || 0}
                     </span>
                   </div>
@@ -156,14 +156,14 @@ export default function AdminDriversPage() {
                       {driver.nbiUrl && <a href={driver.nbiUrl} target="_blank" className="text-[10px] bg-white border border-gray-200 px-2 py-1 rounded">NBI/Clearance</a>}
                       {driver.vehicleUrl && <a href={driver.vehicleUrl} target="_blank" className="text-[10px] bg-white border border-gray-200 px-2 py-1 rounded">Vehicle Photo</a>}
                     </div>
-                    <button onClick={async () => { await fetch(`/api/partners/${driver.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ profileVerified: true }) }); await loadDrivers() }} className="text-xs bg-[#4194AF]/100 text-white px-4 py-1.5 rounded-lg font-bold hover:bg-green-600">✓ Verify & Approve Documents</button>
+                    <button onClick={async () => { await fetch(`/api/partners/${driver.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ profileVerified: true }) }); await loadDrivers() }} className="text-xs bg-[#319F44]/100 text-white px-4 py-1.5 rounded-lg font-bold hover:bg-green-600">✓ Verify & Approve Documents</button>
                   </div>
                 )}
 
                 {/* Actions */}
                 <div className="px-5 py-3 border-t border-gray-100 flex items-center gap-2">
                   {(driver.status as string) === "pending" && (
-                    <button onClick={async () => { await fetch(`/api/partners/${driver.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "active" }) }); await loadDrivers() }} className="text-xs bg-[#4194AF]/100 text-white px-3 py-1.5 rounded-lg font-bold">Approve Rider</button>
+                    <button onClick={async () => { await fetch(`/api/partners/${driver.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "active" }) }); await loadDrivers() }} className="text-xs bg-[#319F44]/100 text-white px-3 py-1.5 rounded-lg font-bold">Approve Rider</button>
                   )}
                   <button onClick={() => handleEdit(driver)} className="text-xs text-blue-600 hover:underline">Edit</button>
                   {driver.email && <button onClick={() => setResetEmail(driver.email)} className="text-xs text-orange-600 hover:underline">🔑 Reset Password</button>}

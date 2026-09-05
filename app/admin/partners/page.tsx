@@ -34,7 +34,7 @@ export default function AdminPartnersPage() {
       <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-20">
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-bold text-[#1F2937]">Partner Management</h1>
-          {pending.length > 0 && <span className="bg-[#4194AF]/100 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">{pending.length} pending</span>}
+          {pending.length > 0 && <span className="bg-[#319F44]/100 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">{pending.length} pending</span>}
         </div>
       </header>
 
@@ -46,7 +46,7 @@ export default function AdminPartnersPage() {
             <p className="text-xs text-gray-400">Pending</p>
           </div>
           <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-            <p className="text-2xl font-bold text-[#4194AF]">{active.length}</p>
+            <p className="text-2xl font-bold text-[#319F44]">{active.length}</p>
             <p className="text-xs text-gray-400">Active</p>
           </div>
           <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
@@ -84,7 +84,7 @@ export default function AdminPartnersPage() {
                   <div className="flex items-center gap-2">
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
                       partner.status === "pending" ? "bg-yellow-100 text-yellow-800" :
-                      partner.status === "active" ? "bg-[#93D569]/20 text-green-800" :
+                      partner.status === "active" ? "bg-[#59EBC6]/20 text-green-800" :
                       "bg-gray-100 text-gray-600"
                     }`}>
                       {partner.status}
@@ -101,7 +101,7 @@ export default function AdminPartnersPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <h3 className="font-bold text-sm text-gray-800">{partner.shopName}</h3>
-                        <span className={`w-2 h-2 rounded-full ${partner.isOnline !== false ? "bg-[#4194AF]/100" : "bg-gray-400"}`} />
+                        <span className={`w-2 h-2 rounded-full ${partner.isOnline !== false ? "bg-[#319F44]/100" : "bg-gray-400"}`} />
                         <span className="text-[9px] text-gray-400">{partner.isOnline !== false ? "Online" : "Offline"}</span>
                       </div>
                       <div className="grid grid-cols-2 gap-2 mt-2 text-xs text-gray-500">
@@ -127,15 +127,15 @@ export default function AdminPartnersPage() {
                   <div className="flex gap-2 mt-4 pt-3 border-t border-gray-100">
                     {partner.status === "pending" && (
                       <>
-                        <button onClick={() => handleStatus(partner.id, "active")} className="text-xs bg-[#4194AF]/100 text-white px-4 py-2 rounded-lg font-bold hover:bg-green-600">✓ Approve</button>
-                        <button onClick={() => handleStatus(partner.id, "inactive")} className="text-xs border border-green-200 text-[#3a7d96] px-4 py-2 rounded-lg font-medium hover:bg-[#4194AF]/10">✕ Reject</button>
+                        <button onClick={() => handleStatus(partner.id, "active")} className="text-xs bg-[#319F44]/100 text-white px-4 py-2 rounded-lg font-bold hover:bg-green-600">✓ Approve</button>
+                        <button onClick={() => handleStatus(partner.id, "inactive")} className="text-xs border border-green-200 text-[#267a34] px-4 py-2 rounded-lg font-medium hover:bg-[#319F44]/10">✕ Reject</button>
                       </>
                     )}
                     {partner.status === "active" && (
                       <button onClick={() => handleStatus(partner.id, "inactive")} className="text-xs border border-gray-200 text-gray-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-50">Deactivate</button>
                     )}
                     {partner.status === "inactive" && (
-                      <button onClick={() => handleStatus(partner.id, "active")} className="text-xs bg-[#4194AF]/100 text-white px-4 py-2 rounded-lg font-bold hover:bg-green-600">Reactivate</button>
+                      <button onClick={() => handleStatus(partner.id, "active")} className="text-xs bg-[#319F44]/100 text-white px-4 py-2 rounded-lg font-bold hover:bg-green-600">Reactivate</button>
                     )}
                     <button onClick={() => setResetEmail(partner.email)} className="text-xs bg-orange-100 text-orange-700 px-4 py-2 rounded-lg font-medium hover:bg-orange-200">🔑 Reset Password</button>
                   </div>

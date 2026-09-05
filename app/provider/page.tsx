@@ -213,7 +213,7 @@ function ServiceManagementTab({ provider, onUpdate }: { provider: any; onUpdate:
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-bold text-blue-600">₱{s.price}</span>
-                  <button onClick={() => removeService(s.id)} className="text-green-400 hover:text-[#3a7d96]">
+                  <button onClick={() => removeService(s.id)} className="text-green-400 hover:text-[#267a34]">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                   </button>
                 </div>
@@ -419,7 +419,7 @@ export default function ProviderPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={handleToggleOnline} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${isOnline ? "bg-[#4194AF]/100" : "bg-[#4194AF]/100/80"}`}>
+            <button onClick={handleToggleOnline} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${isOnline ? "bg-[#319F44]/100" : "bg-[#319F44]/100/80"}`}>
               <span className={`w-2 h-2 rounded-full ${isOnline ? "bg-white animate-pulse" : "bg-white/60"}`} />
               {isOnline ? "ONLINE" : "OFFLINE"}
             </button>
@@ -443,7 +443,7 @@ export default function ProviderPage() {
                 <p className="text-[9px] text-gray-400">New Jobs</p>
               </div>
               <div className="bg-white rounded-xl p-3 border border-gray-100 text-center">
-                <p className="text-lg font-bold text-[#4194AF]">{completedCount}</p>
+                <p className="text-lg font-bold text-[#319F44]">{completedCount}</p>
                 <p className="text-[9px] text-gray-400">Completed</p>
               </div>
               <div className="bg-white rounded-xl p-3 border border-gray-100 text-center">
@@ -498,8 +498,8 @@ export default function ProviderPage() {
                         job.status === "pending" ? "bg-yellow-100 text-yellow-800" :
                         job.status === "accepted" ? "bg-blue-100 text-blue-800" :
                         job.status === "in_progress" ? "bg-purple-100 text-purple-800" :
-                        job.status === "completed" ? "bg-[#93D569]/20 text-green-800" :
-                        "bg-[#93D569]/20 text-green-900"
+                        job.status === "completed" ? "bg-[#59EBC6]/20 text-green-800" :
+                        "bg-[#59EBC6]/20 text-green-900"
                       }`}>
                         {job.status}
                       </span>
@@ -518,7 +518,7 @@ export default function ProviderPage() {
                     </div>
                     {job.status === "pending" && (
                       <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
-                        <button onClick={() => handleRejectJob(job.id)} className="flex-1 border border-green-200 text-[#3a7d96] py-2.5 rounded-lg text-xs font-bold hover:bg-[#4194AF]/10">Decline</button>
+                        <button onClick={() => handleRejectJob(job.id)} className="flex-1 border border-green-200 text-[#267a34] py-2.5 rounded-lg text-xs font-bold hover:bg-[#319F44]/10">Decline</button>
                         {isOnline && (
                           <button onClick={() => handleAcceptJob(job)} className="flex-1 bg-blue-600 text-white py-2.5 rounded-lg text-xs font-bold hover:bg-blue-700">Accept Job</button>
                         )}
@@ -533,7 +533,7 @@ export default function ProviderPage() {
                         <button onClick={() => handleCompleteJob(job)} className="w-full bg-green-600 text-white py-2 rounded-lg text-xs font-bold hover:bg-green-700">Mark as Complete</button>
                       </div>
                     )}
-                    {job.status === "completed" && <p className="text-xs text-[#4194AF] font-medium mt-3 pt-3 border-t border-gray-100">✓ Completed</p>}
+                    {job.status === "completed" && <p className="text-xs text-[#319F44] font-medium mt-3 pt-3 border-t border-gray-100">✓ Completed</p>}
                   </div>
                 </div>
               ))
@@ -567,7 +567,7 @@ export default function ProviderPage() {
               {/* Earnings Breakdown */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-white rounded-xl border border-gray-100 p-3 text-center">
-                  <p className="text-sm font-bold text-[#4194AF]">₱{earnings.toFixed(0)}</p>
+                  <p className="text-sm font-bold text-[#319F44]">₱{earnings.toFixed(0)}</p>
                   <p className="text-[10px] text-gray-400">Total Earned</p>
                 </div>
                 <div className="bg-white rounded-xl border border-gray-100 p-3 text-center">
@@ -597,12 +597,12 @@ export default function ProviderPage() {
                     {transactions.slice(0, 5).map((txn) => (
                       <div key={txn.id} className="px-4 py-3 flex items-center justify-between">
                         <div>
-                          <p className={`text-xs font-semibold ${txn.type === "topup" ? "text-blue-600" : txn.type === "earning" ? "text-[#4194AF]" : "text-green-500"}`}>
+                          <p className={`text-xs font-semibold ${txn.type === "topup" ? "text-blue-600" : txn.type === "earning" ? "text-[#319F44]" : "text-green-500"}`}>
                             {txn.type === "topup" ? "💳 Top-Up" : txn.type === "earning" ? "💰 Earning" : "📊 Commission"}
                           </p>
                           <p className="text-[10px] text-gray-400 mt-0.5">{txn.note || ""}</p>
                         </div>
-                        <span className={`text-sm font-bold ${txn.amount >= 0 ? "text-[#4194AF]" : "text-green-500"}`}>
+                        <span className={`text-sm font-bold ${txn.amount >= 0 ? "text-[#319F44]" : "text-green-500"}`}>
                           {txn.amount >= 0 ? "+" : ""}₱{Math.abs(txn.amount).toFixed(2)}
                         </span>
                       </div>
@@ -624,8 +624,8 @@ export default function ProviderPage() {
       {successMsg && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 pointer-events-none">
           <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 p-6 max-w-xs w-full text-center pointer-events-auto animate-[fadeIn_0.2s_ease-out]">
-            <div className="w-14 h-14 bg-[#93D569]/20 rounded-full flex items-center justify-center mx-auto mb-3">
-              <svg className="w-7 h-7 text-[#4194AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+            <div className="w-14 h-14 bg-[#59EBC6]/20 rounded-full flex items-center justify-center mx-auto mb-3">
+              <svg className="w-7 h-7 text-[#319F44]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
             </div>
             <p className="font-bold text-sm text-gray-800">{successMsg}</p>
           </div>

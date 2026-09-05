@@ -101,7 +101,7 @@ function OrderTracker() {
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center">
-        <div className="w-12 h-12 border-4 border-[#4194AF] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+        <div className="w-12 h-12 border-4 border-[#319F44] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
         <p className="text-gray-500 text-sm">Loading your order...</p>
       </div>
     </div>
@@ -129,7 +129,7 @@ function OrderTracker() {
   return (
     <main className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-[#4194AF] text-white px-4 py-3 sticky top-0 z-50">
+      <header className="bg-[#319F44] text-white px-4 py-3 sticky top-0 z-50">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <a href="/" className="flex items-center gap-2">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
@@ -145,14 +145,14 @@ function OrderTracker() {
           <div className="bg-white border-b border-gray-100 px-4 py-4 text-center">
             <p className="text-xs text-gray-400 uppercase tracking-wide">Estimated Delivery</p>
             <p className="text-3xl font-black text-[#1F2937] mt-1">{getETA()}</p>
-            {order.status === "out_for_delivery" && <p className="text-xs text-[#4194AF] mt-1 font-medium">🛵 Rider is on the way!</p>}
+            {order.status === "out_for_delivery" && <p className="text-xs text-[#319F44] mt-1 font-medium">🛵 Rider is on the way!</p>}
           </div>
         )}
 
         {/* Cancelled/Rejected Banner */}
         {(order.status === "cancelled" || order.status === "rejected") && (
-          <div className="bg-[#4194AF]/10 border-b border-[#4194AF]/20 px-4 py-4 text-center">
-            <p className="text-[#3a7d96] font-bold">{order.status === "rejected" ? "Order Rejected" : "Order Cancelled"}</p>
+          <div className="bg-[#319F44]/10 border-b border-[#319F44]/20 px-4 py-4 text-center">
+            <p className="text-[#267a34] font-bold">{order.status === "rejected" ? "Order Rejected" : "Order Cancelled"}</p>
             <p className="text-xs text-green-400 mt-1">Please contact support if you need help</p>
           </div>
         )}
@@ -187,8 +187,8 @@ function OrderTracker() {
                   </div>
                 </div>
                 {order.customerPhone && (
-                  <a href={`tel:${order.customerPhone}`} className="w-10 h-10 bg-[#4194AF]/10 border border-green-200 rounded-full flex items-center justify-center">
-                    <svg className="w-5 h-5 text-[#4194AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                  <a href={`tel:${order.customerPhone}`} className="w-10 h-10 bg-[#319F44]/10 border border-green-200 rounded-full flex items-center justify-center">
+                    <svg className="w-5 h-5 text-[#319F44]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
                   </a>
                 )}
               </div>
@@ -209,7 +209,7 @@ function OrderTracker() {
                   {/* Line + Dot */}
                   <div className="flex flex-col items-center">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0 ${
-                      isCompleted ? "bg-[#4194AF]/100 text-white" : isCurrent ? "bg-[#4194AF] text-white ring-4 ring-green-100" : "bg-gray-200 text-gray-400"
+                      isCompleted ? "bg-[#319F44]/100 text-white" : isCurrent ? "bg-[#319F44] text-white ring-4 ring-green-100" : "bg-gray-200 text-gray-400"
                     }`}>
                       {isCompleted ? (
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
@@ -218,12 +218,12 @@ function OrderTracker() {
                       )}
                     </div>
                     {i < STATUS_STEPS.length - 1 && (
-                      <div className={`w-0.5 h-8 ${isCompleted ? "bg-[#4194AF]/100" : "bg-gray-200"}`} />
+                      <div className={`w-0.5 h-8 ${isCompleted ? "bg-[#319F44]/100" : "bg-gray-200"}`} />
                     )}
                   </div>
                   {/* Text */}
                   <div className="pt-1 pb-4">
-                    <p className={`text-sm font-medium ${isCurrent ? "text-[#4194AF]" : isCompleted ? "text-[#3a7d96]" : "text-gray-400"}`}>
+                    <p className={`text-sm font-medium ${isCurrent ? "text-[#319F44]" : isCompleted ? "text-[#267a34]" : "text-gray-400"}`}>
                       {step.label}
                     </p>
                     {(isCurrent || isCompleted) && (
@@ -244,12 +244,12 @@ function OrderTracker() {
               <div key={i} className={`flex items-center gap-3 ${item.outOfStock ? "opacity-60" : ""}`}>
                 <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 relative">
                   {item.imageUrl ? <img src={item.imageUrl} className="w-8 h-8 object-contain" /> : <span className="text-sm">📦</span>}
-                  {item.outOfStock && <div className="absolute inset-0 bg-[#4194AF]/100/10 rounded-lg" />}
+                  {item.outOfStock && <div className="absolute inset-0 bg-[#319F44]/100/10 rounded-lg" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className={`text-sm truncate ${item.outOfStock ? "text-green-400 line-through" : "text-gray-800"}`}>{item.name}</p>
                   {item.outOfStock ? (
-                    <span className="text-[9px] font-bold text-[#3a7d96] bg-[#93D569]/20 px-1.5 py-0.5 rounded">OUT OF STOCK</span>
+                    <span className="text-[9px] font-bold text-[#267a34] bg-[#59EBC6]/20 px-1.5 py-0.5 rounded">OUT OF STOCK</span>
                   ) : (
                     <p className="text-xs text-gray-400">×{item.quantity}</p>
                   )}
@@ -259,13 +259,13 @@ function OrderTracker() {
             ))}
           </div>
           {order.items.some((i: any) => i.outOfStock) && (
-            <div className="mt-3 bg-[#4194AF]/10 border border-green-200 rounded-lg px-3 py-2">
+            <div className="mt-3 bg-[#319F44]/10 border border-green-200 rounded-lg px-3 py-2">
               <p className="text-[10px] text-green-800 font-bold">⚠️ Some items are out of stock and have been removed from your total.</p>
             </div>
           )}
           <div className="border-t border-gray-100 mt-3 pt-3 flex justify-between">
             <span className="font-bold text-sm">Total</span>
-            <span className="font-bold text-[#4194AF] text-lg">₱{order.total.toFixed(2)}</span>
+            <span className="font-bold text-[#319F44] text-lg">₱{order.total.toFixed(2)}</span>
           </div>
         </div>
 
@@ -336,7 +336,7 @@ function OrderTracker() {
               placeholder="Write a review (optional)"
               value={review}
               onChange={(e) => setReview(e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#4194AF] resize-none mb-3"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#319F44] resize-none mb-3"
               rows={2}
             />
 
@@ -347,7 +347,7 @@ function OrderTracker() {
                 setRatingSubmitted(true)
               }}
               disabled={!riderRating && !storeRating}
-              className="w-full bg-[#4194AF] text-white py-2.5 rounded-lg font-bold text-sm hover:bg-[#3a7d96] transition-colors disabled:opacity-40"
+              className="w-full bg-[#319F44] text-white py-2.5 rounded-lg font-bold text-sm hover:bg-[#267a34] transition-colors disabled:opacity-40"
             >
               Submit Rating
             </button>
@@ -357,7 +357,7 @@ function OrderTracker() {
         {/* Rating Already Submitted */}
         {(order.riderRating || ratingSubmitted) && order.status === "delivered" && (
           <div className="bg-white px-4 py-5 text-center">
-            <p className="text-[#4194AF] font-bold text-sm">✓ Thank you for your feedback!</p>
+            <p className="text-[#319F44] font-bold text-sm">✓ Thank you for your feedback!</p>
             {order.riderRating && <p className="text-xs text-gray-400 mt-1">Rider: {"★".repeat(order.riderRating)} | Store: {"★".repeat(order.storeRating || 0)}</p>}
           </div>
         )}
@@ -374,7 +374,7 @@ function OrderTracker() {
       {/* Status Toast */}
       {statusToast && (
         <div className="fixed top-16 left-1/2 -translate-x-1/2 z-[200] animate-[fadeIn_0.2s_ease-out]">
-          <div className="bg-[#4194AF] text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-2">
+          <div className="bg-[#319F44] text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-2">
             <span className="text-sm">🔔</span>
             <span className="text-sm font-bold capitalize">{statusToast}</span>
           </div>
@@ -385,11 +385,11 @@ function OrderTracker() {
       {isActive && order.driverName && (
         <button
           onClick={() => setShowChat(true)}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-[#4194AF] text-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#3a7d96] transition-colors z-40"
+          className="fixed bottom-6 right-6 w-14 h-14 bg-[#319F44] text-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#267a34] transition-colors z-40"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
           {chatMessages.length > 0 && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#4194AF]/100 text-white text-[10px] font-bold rounded-full flex items-center justify-center">{chatMessages.length}</span>
+            <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#319F44]/100 text-white text-[10px] font-bold rounded-full flex items-center justify-center">{chatMessages.length}</span>
           )}
         </button>
       )}
@@ -400,7 +400,7 @@ function OrderTracker() {
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowChat(false)} />
           <div className="relative mt-auto bg-white rounded-t-2xl w-full max-w-2xl mx-auto h-[70vh] flex flex-col overflow-hidden animate-[slideUp_0.2s_ease-out]">
             {/* Chat Header */}
-            <div className="bg-[#4194AF] px-4 py-3 flex items-center justify-between flex-shrink-0">
+            <div className="bg-[#319F44] px-4 py-3 flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" /></svg>
@@ -424,7 +424,7 @@ function OrderTracker() {
               ) : (
                 chatMessages.map((msg) => (
                   <div key={msg.id} className={`flex ${msg.senderRole === "customer" ? "justify-end" : "justify-start"}`}>
-                    <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${msg.senderRole === "customer" ? "bg-[#4194AF] text-white rounded-br-md" : "bg-white text-gray-800 border border-gray-200 rounded-bl-md"}`}>
+                    <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${msg.senderRole === "customer" ? "bg-[#319F44] text-white rounded-br-md" : "bg-white text-gray-800 border border-gray-200 rounded-bl-md"}`}>
                       {msg.senderRole !== "customer" && <p className="text-[10px] font-bold mb-0.5 text-gray-400">{msg.senderName}</p>}
                       <p className="text-sm">{msg.message}</p>
                       <p className={`text-[9px] mt-1 ${msg.senderRole === "customer" ? "text-white/50" : "text-gray-300"}`}>
@@ -445,12 +445,12 @@ function OrderTracker() {
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSendChat()}
-                className="flex-1 border border-gray-200 rounded-full px-4 py-2.5 text-sm outline-none focus:border-[#4194AF]"
+                className="flex-1 border border-gray-200 rounded-full px-4 py-2.5 text-sm outline-none focus:border-[#319F44]"
               />
               <button
                 onClick={handleSendChat}
                 disabled={!chatInput.trim()}
-                className="w-10 h-10 bg-[#4194AF] text-white rounded-full flex items-center justify-center hover:bg-[#3a7d96] transition-colors disabled:opacity-40"
+                className="w-10 h-10 bg-[#319F44] text-white rounded-full flex items-center justify-center hover:bg-[#267a34] transition-colors disabled:opacity-40"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
               </button>
@@ -474,7 +474,7 @@ function OrderTracker() {
 
             {reportSubmitted ? (
               <div className="p-8 text-center">
-                <div className="w-16 h-16 bg-[#93D569]/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-[#59EBC6]/20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                 </div>
                 <h3 className="font-bold text-lg text-gray-800">Report Submitted</h3>
@@ -494,7 +494,7 @@ function OrderTracker() {
                         key={type}
                         onClick={() => setReportForm({ ...reportForm, type })}
                         className={`px-3 py-2.5 rounded-lg text-xs font-medium capitalize border transition-colors ${
-                          reportForm.type === type ? "border-[#4194AF] bg-[#4194AF]/10 text-[#4194AF]" : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                          reportForm.type === type ? "border-[#319F44] bg-[#319F44]/10 text-[#319F44]" : "border-gray-200 text-gray-600 hover:bg-gray-50"
                         }`}
                       >
                         {type === "order" && "📦 "}
@@ -514,7 +514,7 @@ function OrderTracker() {
                     placeholder="Brief description of the issue"
                     value={reportForm.subject}
                     onChange={(e) => setReportForm({ ...reportForm, subject: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm mt-2 outline-none focus:border-[#4194AF]"
+                    className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm mt-2 outline-none focus:border-[#319F44]"
                   />
                 </div>
 
@@ -525,7 +525,7 @@ function OrderTracker() {
                     placeholder="Tell us more about what happened..."
                     value={reportForm.description}
                     onChange={(e) => setReportForm({ ...reportForm, description: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm mt-2 outline-none focus:border-[#4194AF] resize-none"
+                    className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm mt-2 outline-none focus:border-[#319F44] resize-none"
                     rows={4}
                   />
                 </div>
@@ -533,7 +533,7 @@ function OrderTracker() {
                 <button
                   onClick={handleSubmitReport}
                   disabled={reportSubmitting || !reportForm.subject || !reportForm.description}
-                  className="w-full bg-[#4194AF] text-white py-3 rounded-lg font-bold text-sm hover:bg-[#3a7d96] transition-colors disabled:opacity-40"
+                  className="w-full bg-[#319F44] text-white py-3 rounded-lg font-bold text-sm hover:bg-[#267a34] transition-colors disabled:opacity-40"
                 >
                   {reportSubmitting ? "Submitting..." : "Submit Report"}
                 </button>
@@ -548,7 +548,7 @@ function OrderTracker() {
 
 export default function OrderTrackingPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-10 h-10 border-4 border-[#4194AF] border-t-transparent rounded-full animate-spin" /></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-10 h-10 border-4 border-[#319F44] border-t-transparent rounded-full animate-spin" /></div>}>
       <OrderTracker />
     </Suspense>
   )

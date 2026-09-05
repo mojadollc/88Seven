@@ -49,7 +49,7 @@ const SERVICE_CATEGORIES = [
   { id: "aircon", name: "Aircon", icon: "❄️", color: "bg-cyan-50 text-cyan-700" },
   { id: "plumbing", name: "Plumbing", icon: "🔧", color: "bg-blue-50 text-blue-700" },
   { id: "electrical", name: "Electrical", icon: "⚡", color: "bg-yellow-50 text-yellow-700" },
-  { id: "cleaning", name: "Cleaning", icon: "🧹", color: "bg-[#4194AF]/10 text-[#3a7d96]" },
+  { id: "cleaning", name: "Cleaning", icon: "🧹", color: "bg-[#319F44]/10 text-[#267a34]" },
   { id: "carpentry", name: "Carpentry", icon: "🪚", color: "bg-amber-50 text-amber-700" },
   { id: "painting", name: "Painting", icon: "🎨", color: "bg-purple-50 text-purple-700" },
 ]
@@ -189,7 +189,7 @@ export default function HomeServicesPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="font-bold text-sm text-gray-800 truncate">{provider.name}</p>
-                        {provider.available && <span className="w-2 h-2 bg-[#4194AF]/100 rounded-full shrink-0" />}
+                        {provider.available && <span className="w-2 h-2 bg-[#319F44]/100 rounded-full shrink-0" />}
                       </div>
                       {/* Skills */}
                       <div className="flex flex-wrap gap-1 mt-1.5">
@@ -206,7 +206,7 @@ export default function HomeServicesPage() {
                         {provider.completedJobs > 0 && (
                           <span className="text-[10px] text-gray-400">{provider.completedJobs} jobs done</span>
                         )}
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${provider.available ? "bg-[#93D569]/20 text-[#3a7d96]" : "bg-gray-100 text-gray-500"}`}>
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${provider.available ? "bg-[#59EBC6]/20 text-[#267a34]" : "bg-gray-100 text-gray-500"}`}>
                           {provider.available ? "AVAILABLE" : "BUSY"}
                         </span>
                       </div>
@@ -243,7 +243,7 @@ export default function HomeServicesPage() {
 
         {/* Become a Provider CTA */}
         <div className="px-4 mt-8">
-          <div className="bg-gradient-to-br from-[#4194AF] to-[#1F2937] rounded-2xl p-6 text-white text-center">
+          <div className="bg-gradient-to-br from-[#319F44] to-[#1F2937] rounded-2xl p-6 text-white text-center">
             <span className="text-4xl">💰</span>
             <h3 className="font-black text-lg mt-3">Earn with your skills</h3>
             <p className="text-white/60 text-xs mt-1">Kumita sa imong bakanteng oras gamit ang imong skills</p>

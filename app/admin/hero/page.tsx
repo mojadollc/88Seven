@@ -9,7 +9,7 @@ const defaultSlide = {
   highlight: "",
   description: "",
   imageUrl: "",
-  bgColor: "#4194AF",
+  bgColor: "#319F44",
   link: "",
   order: 0,
   enabled: true,
@@ -80,7 +80,7 @@ export default function AdminHero() {
       <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-20">
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-bold text-[#1F2937]">Hero Slides Management</h1>
-          <button onClick={handleNew} className="bg-[#4194AF] text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-[#3a7d96] transition-colors">+ Add Slide</button>
+          <button onClick={handleNew} className="bg-[#319F44] text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-[#267a34] transition-colors">+ Add Slide</button>
         </div>
       </header>
 
@@ -106,45 +106,45 @@ export default function AdminHero() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-1">Badge Text</label>
-                    <input type="text" value={form.badge} onChange={(e) => setForm({ ...form, badge: e.target.value })} placeholder="e.g. Express Delivery" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#4194AF]" />
+                    <input type="text" value={form.badge} onChange={(e) => setForm({ ...form, badge: e.target.value })} placeholder="e.g. Express Delivery" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#319F44]" />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-1">Background Color</label>
                     <div className="flex gap-2">
                       <input type="color" value={form.bgColor} onChange={(e) => setForm({ ...form, bgColor: e.target.value })} className="w-10 h-10 rounded border border-gray-200 cursor-pointer" />
-                      <input type="text" value={form.bgColor} onChange={(e) => setForm({ ...form, bgColor: e.target.value })} className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#4194AF]" />
+                      <input type="text" value={form.bgColor} onChange={(e) => setForm({ ...form, bgColor: e.target.value })} className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#319F44]" />
                     </div>
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">Title</label>
-                  <input type="text" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Fast Delivery" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#4194AF]" />
+                  <input type="text" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Fast Delivery" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#319F44]" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">Highlight Text</label>
-                  <input type="text" value={form.highlight} onChange={(e) => setForm({ ...form, highlight: e.target.value })} placeholder="e.g. To Your Doorstep" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#4194AF]" />
+                  <input type="text" value={form.highlight} onChange={(e) => setForm({ ...form, highlight: e.target.value })} placeholder="e.g. To Your Doorstep" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#319F44]" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">Description</label>
-                  <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Short description" rows={2} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#4194AF] resize-none" />
+                  <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Short description" rows={2} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#319F44] resize-none" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">Image URL</label>
-                  <input type="text" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} placeholder="https://example.com/image.png" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#4194AF]" />
+                  <input type="text" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} placeholder="https://example.com/image.png" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#319F44]" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">Link URL (optional)</label>
-                  <input type="text" value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} placeholder="https://... or /grocery (leave empty for no link)" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#4194AF]" />
+                  <input type="text" value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} placeholder="https://... or /grocery (leave empty for no link)" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#319F44]" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-1">Order</label>
-                    <input type="number" value={form.order} onChange={(e) => setForm({ ...form, order: parseInt(e.target.value) || 0 })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#4194AF]" />
+                    <input type="number" value={form.order} onChange={(e) => setForm({ ...form, order: parseInt(e.target.value) || 0 })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#319F44]" />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-1">Status</label>
-                    <select value={form.enabled ? "enabled" : "disabled"} onChange={(e) => setForm({ ...form, enabled: e.target.value === "enabled" })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#4194AF]">
+                    <select value={form.enabled ? "enabled" : "disabled"} onChange={(e) => setForm({ ...form, enabled: e.target.value === "enabled" })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#319F44]">
                       <option value="enabled">Enabled</option>
                       <option value="disabled">Disabled</option>
                     </select>
@@ -153,7 +153,7 @@ export default function AdminHero() {
               </div>
               <div className="p-6 border-t border-gray-100 flex justify-end gap-3">
                 <button onClick={() => { setShowForm(false); setEditing(null) }} className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
-                <button onClick={handleSave} disabled={saving} className="bg-[#4194AF] text-white text-sm font-medium px-5 py-2 rounded-lg hover:bg-[#3a7d96] disabled:opacity-50">{saving ? "Saving..." : editing ? "Update" : "Create"}</button>
+                <button onClick={handleSave} disabled={saving} className="bg-[#319F44] text-white text-sm font-medium px-5 py-2 rounded-lg hover:bg-[#267a34] disabled:opacity-50">{saving ? "Saving..." : editing ? "Update" : "Create"}</button>
               </div>
             </div>
           </div>
@@ -183,19 +183,19 @@ export default function AdminHero() {
                   <div className="flex-1 p-5 flex items-center justify-between">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${slide.enabled ? "bg-[#4194AF]/10 text-[#3a7d96]" : "bg-gray-100 text-gray-500"}`}>{slide.enabled ? "Active" : "Disabled"}</span>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${slide.enabled ? "bg-[#319F44]/10 text-[#267a34]" : "bg-gray-100 text-gray-500"}`}>{slide.enabled ? "Active" : "Disabled"}</span>
                         <span className="text-[10px] text-gray-400">Order: {slide.order}</span>
                       </div>
                       <p className="font-medium text-sm text-[#1F2937]">{slide.title} — {slide.highlight}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button onClick={() => handleToggle(slide)} className={`relative w-11 h-6 rounded-full transition-colors ${slide.enabled ? "bg-[#4194AF]/100" : "bg-gray-300"}`}>
+                      <button onClick={() => handleToggle(slide)} className={`relative w-11 h-6 rounded-full transition-colors ${slide.enabled ? "bg-[#319F44]/100" : "bg-gray-300"}`}>
                         <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${slide.enabled ? "translate-x-5" : ""}`} />
                       </button>
-                      <button onClick={() => handleEdit(slide)} className="p-2 text-gray-400 hover:text-[#4194AF] hover:bg-[#4194AF]/10 rounded-lg transition-colors">
+                      <button onClick={() => handleEdit(slide)} className="p-2 text-gray-400 hover:text-[#319F44] hover:bg-[#319F44]/10 rounded-lg transition-colors">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                       </button>
-                      <button onClick={() => handleDelete(slide.id)} className="p-2 text-gray-400 hover:text-[#3a7d96] hover:bg-[#4194AF]/10 rounded-lg transition-colors">
+                      <button onClick={() => handleDelete(slide.id)} className="p-2 text-gray-400 hover:text-[#267a34] hover:bg-[#319F44]/10 rounded-lg transition-colors">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
                     </div>
