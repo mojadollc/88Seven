@@ -5,6 +5,26 @@ import PullToRefresh from "./components/PullToRefresh"
 import { ThemeProvider } from "./components/ThemeProvider"
 import "./globals.css"
 
+async function getTheme() {
+  try {
+    const { prisma } = await import("@/lib/prisma")
+    const rows = await (prisma as any).$queryRaw`
+      SELECT "themeType", "themeColor", "themeColorTo", "themeTextColor", "themeBgColor"
+      FROM "AppSettings" WHERE key = 'global' LIMIT 1
+    `
+    const row = Array.isArray(rows) ? rows[0] : null
+    return {
+      themeType: row?.themeType ?? "solid",
+      themeColor: row?.themeColor ?? "#319F44",
+      themeColorTo: row?.themeColorTo ?? "#59EBC6",
+      themeTextColor: row?.themeTextColor ?? "#ffffff",
+      themeBgColor: row?.themeBgColor ?? "#F5F5DB",
+    }
+  } catch {
+    return { themeType: "solid", themeColor: "#319F44", themeColorTo: "#59EBC6", themeTextColor: "#ffffff", themeBgColor: "#F5F5DB" }
+  }
+}
+
 const font = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] })
 
 export const metadata: Metadata = {
@@ -44,10 +64,24 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const theme = await getTheme()
+  const themeBg = theme.themeType === "gradient"
+    ? `linear-gradient(135deg, ${theme.themeColor}, ${theme.themeColorTo})`
+    : theme.themeColor
+  const inlineTheme = `
+    document.documentElement.style.setProperty('--theme-color', '${theme.themeColor}');
+    document.documentElement.style.setProperty('--theme-color-to', '${theme.themeColorTo}');
+    document.documentElement.style.setProperty('--theme-text', '${theme.themeTextColor}');
+    document.documentElement.style.setProperty('--theme-bg', '${themeBg}');
+    document.documentElement.style.setProperty('--theme-page-bg', '${theme.themeBgColor}');
+    document.documentElement.style.setProperty('--primary', '${theme.themeColor}');
+    document.body.style.backgroundColor = '${theme.themeBgColor}';
+  `
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: inlineTheme }} />
         <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192.png" />
         <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
         <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-192.png" />
