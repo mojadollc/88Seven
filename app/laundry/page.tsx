@@ -251,7 +251,7 @@ export default function LaundryPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 pb-20">
+    <main className="min-h-screen pb-20" style={{ backgroundColor: "var(--theme-page-bg, #F5F5DB)" }}>
       {/* Header */}
       <header className="text-white px-4 py-3 sticky top-0 z-50" style={{ background: "var(--theme-color)" }}>
         <div className="max-w-2xl mx-auto flex items-center justify-between">

@@ -58,7 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* TWA: Digital Asset Links verification */}
         <link rel="assetlinks.json" href="/.well-known/assetlinks.json" />
       </head>
-      <body className={`${font.className} bg-[#F5F5DB] antialiased`} suppressHydrationWarning>
+      <body className={`${font.className} antialiased`} suppressHydrationWarning>
         <ThemeProvider>
           <PullToRefresh>
             {children}

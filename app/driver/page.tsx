@@ -282,7 +282,7 @@ export default function DriverPage() {
   // ═══ RIDER DASHBOARD ═══
   const canAcceptTasks = driver?.profileComplete && driver?.profileVerified && (driver?.walletBalance || 0) >= 100
   return (
-    <main className="min-h-screen bg-gray-100 max-w-lg mx-auto flex flex-col">
+    <main className="min-h-screen bg-gray-100 max-w-lg mx-auto flex flex-col" style={{ backgroundColor: "var(--theme-page-bg, #F5F5DB)" }}>
       {/* Header */}
       <header className="text-white px-4 py-3 sticky top-0 z-30" style={{ background: "var(--theme-bg)" }}>
         <div className="flex items-center justify-between">

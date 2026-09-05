@@ -235,7 +235,7 @@ export default function GroceryPage() {
 
   return (
     <>
-    <main className="min-h-screen bg-[#F5F5DB] pb-20">
+    <main className="min-h-screen pb-20" style={{ backgroundColor: "var(--theme-page-bg, #F5F5DB)" }}>
 
       {/* ── HEADER ── */}
       <header className="sticky top-0 z-50 shadow-sm" style={{ background: "var(--theme-color)" }}>

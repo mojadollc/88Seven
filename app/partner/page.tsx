@@ -287,7 +287,7 @@ export default function PartnerPage() {
   const totalEarnings = completedOrders.reduce((s, o) => s + Math.round(o.price * (100 - commissionPercent) / 100), 0)
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen" style={{ backgroundColor: "var(--theme-page-bg, #F5F5DB)" }}>
       {/* Header with Online Toggle */}
       <header className="text-white px-4 py-3 sticky top-0 z-30" style={{ background: "var(--theme-bg)" }}>
         <div className="max-w-2xl mx-auto flex items-center justify-between">

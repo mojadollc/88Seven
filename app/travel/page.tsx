@@ -13,7 +13,7 @@ const CATEGORIES = [
 
 export default function TravelPage() {
   return (
-    <div className="min-h-screen bg-[#F5F5DB] pb-20">
+    <div className="min-h-screen pb-20" style={{ backgroundColor: "var(--theme-page-bg, #F5F5DB)" }}>
       {/* Header */}
       <header className="bg-[#003580] px-4 pt-12 pb-8">
         <div className="max-w-lg mx-auto">

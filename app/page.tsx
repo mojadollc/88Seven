@@ -195,7 +195,7 @@ export default function HomePage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50" suppressHydrationWarning>
+    <main className="min-h-screen" suppressHydrationWarning style={{ backgroundColor: "var(--theme-page-bg, #F5F5DB)" }}>
 
       {/* ── NAVBAR ── */}
       <header className="sticky top-0 z-50 shadow-sm" style={{ background: "var(--theme-color)" }}>

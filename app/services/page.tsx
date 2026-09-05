@@ -195,7 +195,7 @@ export default function ServicesPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen" style={{ backgroundColor: "var(--theme-page-bg, #F5F5DB)" }}>
       <header className="text-white px-4 py-3 sticky top-0 z-50" style={{ background: "var(--theme-bg)" }}>
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <a href="/" className="flex items-center gap-2">
