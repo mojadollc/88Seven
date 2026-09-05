@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useLayoutEffect } from "react"
 import { createPortal } from "react-dom"
+import { useLogo } from "@/app/components/useLogo"
 
 const CATEGORY_ICONS: Record<string, string> = {
   "all": "🛒",
@@ -57,6 +58,7 @@ function getCatColor(name: string) {
 }
 
 export default function GroceryPage() {
+  const logoUrl = useLogo()
   const [products, setProducts] = useState<any[]>([])
   const [categories, setCategories] = useState<string[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string>("All")
@@ -241,10 +243,16 @@ export default function GroceryPage() {
       <header className="sticky top-0 z-50 shadow-sm" style={{ background: "var(--theme-bg)" }}>
         <div className="max-w-6xl mx-auto px-3 md:px-6 py-2.5 flex items-center gap-3">
           <a href="/" className="flex items-center gap-1.5 shrink-0">
-            <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
-              <span className="text-white font-black text-xs">G</span>
-            </div>
-            <span className="text-white font-black text-base tracking-tight hidden sm:block">Gruwcer</span>
+            {logoUrl ? (
+              <img src={logoUrl} alt="Logo" className="h-8 w-auto object-contain" />
+            ) : (
+              <>
+                <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-black text-xs">G</span>
+                </div>
+                <span className="text-white font-black text-base tracking-tight hidden sm:block">Gruwcer</span>
+              </>
+            )}
           </a>
 
           {/* Search */}
@@ -382,7 +390,13 @@ export default function GroceryPage() {
         {/* Footer */}
         <div className="mt-10 pb-4">
           <div className="rounded-2xl px-5 py-4 flex items-center justify-between" style={{ backgroundColor: "var(--theme-footer-bg, #1a1a1a)" }}>
-            <a href="/" className="font-black tracking-tight" style={{ color: "var(--theme-footer-text, #ffffff)" }}>Gruwcer</a>
+            <a href="/" className="flex items-center gap-2">
+              {logoUrl ? (
+                <img src={logoUrl} alt="Logo" className="h-8 w-auto object-contain" />
+              ) : (
+                <span className="font-black tracking-tight" style={{ color: "var(--theme-footer-text, #ffffff)" }}>Gruwcer</span>
+              )}
+            </a>
             <p className="text-xs" style={{ color: "var(--theme-footer-text, #ffffff)", opacity: 0.6 }}>© {new Date().getFullYear()} Gruwcer. All rights reserved.</p>
           </div>
         </div>

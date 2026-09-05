@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { getUser, getToken } from "@/lib/auth"
+import { useLogo } from "@/app/components/useLogo"
 
 const SERVICES = [
   { id: "grocery", name: "Grocery", icon: "🛒", href: "/grocery", available: true, color: "from-teal-500 to-cyan-500", desc: "Fresh produce & daily essentials", badge: "Same-day delivery" },
@@ -20,6 +21,7 @@ const NAV_ITEMS = [
 ]
 
 export default function HomePage() {
+  const logoUrl = useLogo()
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
   const [banners, setBanners] = useState<{ id: string; title: string; subtitle: string; imageUrl: string; bgColor: string; link: string }[]>([])
@@ -202,10 +204,16 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between gap-4">
           {/* Logo */}
           <a href="/" className="flex items-center gap-2 shrink-0">
-            <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center shadow-sm">
-              <span className="text-white font-black text-sm">G</span>
-            </div>
-            <span className="font-black text-xl text-white tracking-tight">Gruwcer</span>
+            {logoUrl ? (
+              <img src={logoUrl} alt="Logo" className="h-9 w-auto object-contain" />
+            ) : (
+              <>
+                <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center shadow-sm">
+                  <span className="text-white font-black text-sm">G</span>
+                </div>
+                <span className="font-black text-xl text-white tracking-tight">Gruwcer</span>
+              </>
+            )}
           </a>
 
           {/* Desktop Nav */}
@@ -472,10 +480,16 @@ export default function HomePage() {
       <footer className="max-w-7xl mx-auto px-4 md:px-8 py-10 md:py-12">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-teal-600 rounded-xl flex items-center justify-center">
-              <span className="text-white font-black text-sm">G</span>
-            </div>
-            <span className="font-black text-xl text-gray-900 tracking-tight">Gruwcer</span>
+            {logoUrl ? (
+              <img src={logoUrl} alt="Logo" className="h-9 w-auto object-contain" />
+            ) : (
+              <>
+                <div className="w-8 h-8 bg-teal-600 rounded-xl flex items-center justify-center">
+                  <span className="text-white font-black text-sm">G</span>
+                </div>
+                <span className="font-black text-xl text-gray-900 tracking-tight">Gruwcer</span>
+              </>
+            )}
             <span className="text-gray-300 text-sm ml-1">— Your everyday super app</span>
           </div>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
