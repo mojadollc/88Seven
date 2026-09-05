@@ -22,7 +22,7 @@ const FALLBACK_SLIDES = [
   {
     title: "Earn your spare time using your skills",
     subtitle: "Kumita sa imong bakanteng oras gamit ang imong skills",
-    bg: "from-teal-600 to-emerald-700",
+    bg: "from-[#319F44] to-[#59EBC6]",
     cta: "Become a Provider",
     ctaLink: "/auth?tab=provider",
     icon: "💪",
@@ -117,7 +117,7 @@ export default function HomeServicesPage() {
 
         {/* Earn CTA Banner */}
         <div className="px-4 mt-4">
-          <a href="/auth?tab=provider" className="block bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl p-4 text-white relative overflow-hidden">
+          <a href="/auth?tab=provider" className="block bg-gradient-to-r from-[#319F44] via-[#64DEA7] to-[#59EBC6] rounded-xl p-4 text-white relative overflow-hidden">
             <div className="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full" />
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-2xl shrink-0">🛠️</div>

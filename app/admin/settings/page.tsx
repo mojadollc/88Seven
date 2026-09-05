@@ -204,7 +204,7 @@ export default function AdminSettingsPage() {
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">%</span>
                     </div>
                   </Field>
-                  <div className="flex-1 bg-gradient-to-r from-green-50 to-emerald-50 border border-[#319F44]/20 rounded-xl p-4">
+                  <div className="flex-1 bg-gradient-to-r from-[#319F44]/10 to-[#59EBC6]/10 border border-[#319F44]/20 rounded-xl p-4">
                     <p className="text-[10px] text-gray-500 uppercase font-semibold mb-2">Example: ₱49 delivery fee</p>
                     <div className="flex items-center gap-4">
                       <div>

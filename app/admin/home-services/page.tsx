@@ -35,7 +35,7 @@ export default function AdminHomeServicesPage() {
   const [slides, setSlides] = useState<HeroSlide[]>([])
   const [showSlideForm, setShowSlideForm] = useState(false)
   const [editingSlide, setEditingSlide] = useState<HeroSlide | null>(null)
-  const [slideForm, setSlideForm] = useState({ title: "", subtitle: "", bg: "from-teal-600 to-emerald-700", cta: "Book Now", ctaLink: "/services", icon: "🛠️", order: 0, enabled: true })
+  const [slideForm, setSlideForm] = useState({ title: "", subtitle: "", bg: "from-[#319F44] to-[#59EBC6]", cta: "Book Now", ctaLink: "/services", icon: "🛠️", order: 0, enabled: true })
 
   // Providers
   const [providers, setProviders] = useState<ServiceProvider[]>([])
@@ -65,7 +65,7 @@ export default function AdminHomeServicesPage() {
       await fetch("/api/hero-slides", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(slideForm) })
     }
     setShowSlideForm(false); setEditingSlide(null)
-    setSlideForm({ title: "", subtitle: "", bg: "from-teal-600 to-emerald-700", cta: "Book Now", ctaLink: "/services", icon: "🛠️", order: 0, enabled: true })
+    setSlideForm({ title: "", subtitle: "", bg: "from-[#319F44] to-[#59EBC6]", cta: "Book Now", ctaLink: "/services", icon: "🛠️", order: 0, enabled: true })
     await loadAll()
   }
 
@@ -122,7 +122,7 @@ export default function AdminHomeServicesPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-bold text-[#1F2937]">Home Services</h1>
           <button
-            onClick={() => tab === "sliders" ? (() => { setEditingSlide(null); setSlideForm({ title: "", subtitle: "", bg: "from-teal-600 to-emerald-700", cta: "Book Now", ctaLink: "/services", icon: "🛠️", order: slides.length + 1, enabled: true }); setShowSlideForm(true) })() : (() => { setEditingProvider(null); setProviderForm({ name: "", phone: "", skills: "", bio: "", rating: 0, completedJobs: 0, photoUrl: "", available: true }); setShowProviderForm(true) })()}
+            onClick={() => tab === "sliders" ? (() => { setEditingSlide(null); setSlideForm({ title: "", subtitle: "", bg: "from-[#319F44] to-[#59EBC6]", cta: "Book Now", ctaLink: "/services", icon: "🛠️", order: slides.length + 1, enabled: true }); setShowSlideForm(true) })() : (() => { setEditingProvider(null); setProviderForm({ name: "", phone: "", skills: "", bio: "", rating: 0, completedJobs: 0, photoUrl: "", available: true }); setShowProviderForm(true) })()}
             className="text-xs bg-[#319F44] text-white px-4 py-2 rounded-lg font-bold"
           >
             + Add {tab === "sliders" ? "Slide" : "Provider"}
@@ -288,7 +288,7 @@ export default function AdminHomeServicesPage() {
               <div>
                 <label className="text-xs font-semibold text-gray-500 uppercase">Gradient Background</label>
                 <select value={slideForm.bg} onChange={(e) => setSlideForm({ ...slideForm, bg: e.target.value })} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm mt-1 outline-none focus:border-teal-600">
-                  <option value="from-teal-600 to-emerald-700">Teal → Emerald</option>
+                  <option value="from-[#319F44] to-[#59EBC6]">Teal → Emerald</option>
                   <option value="from-blue-600 to-indigo-700">Blue → Indigo</option>
                   <option value="from-orange-500 to-green-700">Orange → Red</option>
                   <option value="from-purple-600 to-pink-600">Purple → Pink</option>

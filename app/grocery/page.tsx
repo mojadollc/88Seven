@@ -235,7 +235,7 @@ export default function GroceryPage() {
 
   return (
     <>
-    <main className="min-h-screen bg-gray-50 pb-20">
+    <main className="min-h-screen bg-[#F5F5DB] pb-20">
 
       {/* ── HEADER ── */}
       <header className="bg-[#319F44] sticky top-0 z-50 shadow-sm">
@@ -303,7 +303,7 @@ export default function GroceryPage() {
         {(() => {
           const isSameDay = new Date().getHours() < 15
           return (
-            <div className={`${isSameDay ? "bg-emerald-600" : "bg-blue-600"} py-1 text-center`}>
+            <div className={`${isSameDay ? "bg-[#267a34]" : "bg-blue-600"} py-1 text-center`}>
               <p className="text-white text-[11px] font-medium">
                 {isSameDay ? "⚡ Same-Day Delivery — Order before 3:00 PM" : "🌙 Next-Day Delivery — Orders after 3PM delivered tomorrow"}
               </p>

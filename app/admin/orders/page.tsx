@@ -173,7 +173,7 @@ export default function AdminOrdersPage() {
           const totalDeliveryFees = delivered.length * deliveryFeePerOrder
           const todayDeliveryFees = todayDelivered.length * deliveryFeePerOrder
           return (
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-[#319F44]/20 mb-6">
+            <div className="bg-gradient-to-r from-[#319F44]/10 to-[#59EBC6]/10 rounded-xl p-4 border border-[#319F44]/20 mb-6">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                   <p className="text-[10px] text-[#319F44] font-semibold uppercase">Today Revenue</p>

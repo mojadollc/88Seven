@@ -404,7 +404,7 @@ export default function DriverPage() {
               </div>
             </div>
             {/* Earnings */}
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-3 border border-[#319F44]/20">
+            <div className="bg-gradient-to-r from-[#319F44]/10 to-[#59EBC6]/10 rounded-xl p-3 border border-[#319F44]/20">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-[10px] text-[#319F44] font-semibold uppercase">Today's Earnings</p>
