@@ -8,12 +8,15 @@ const DEFAULTS = {
   themeTextColor: "#ffffff",
   themeBgColor: "#F5F5DB",
   themeDeliveryBannerColor: "#267a34",
+  themeDeliveryBannerTextColor: "#ffffff",
+  themeFooterBgColor: "#1a1a1a",
+  themeFooterTextColor: "#ffffff",
 }
 
 export async function GET() {
   try {
     const rows = await (prisma as any).$queryRaw`
-      SELECT "themeType", "themeColor", "themeColorTo", "themeTextColor", "themeBgColor", "themeDeliveryBannerColor"
+      SELECT "themeType", "themeColor", "themeColorTo", "themeTextColor", "themeBgColor", "themeDeliveryBannerColor", "themeDeliveryBannerTextColor", "themeFooterBgColor", "themeFooterTextColor"
       FROM "AppSettings" WHERE key = 'global' LIMIT 1
     `
     const row = Array.isArray(rows) ? rows[0] : null
@@ -24,6 +27,9 @@ export async function GET() {
       themeTextColor: row?.themeTextColor ?? DEFAULTS.themeTextColor,
       themeBgColor: row?.themeBgColor ?? DEFAULTS.themeBgColor,
       themeDeliveryBannerColor: row?.themeDeliveryBannerColor ?? DEFAULTS.themeDeliveryBannerColor,
+      themeDeliveryBannerTextColor: row?.themeDeliveryBannerTextColor ?? DEFAULTS.themeDeliveryBannerTextColor,
+      themeFooterBgColor: row?.themeFooterBgColor ?? DEFAULTS.themeFooterBgColor,
+      themeFooterTextColor: row?.themeFooterTextColor ?? DEFAULTS.themeFooterTextColor,
     })
   } catch {
     return NextResponse.json(DEFAULTS)
@@ -33,7 +39,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { themeType, themeColor, themeColorTo, themeTextColor, themeBgColor, themeDeliveryBannerColor } = body
+    const { themeType, themeColor, themeColorTo, themeTextColor, themeBgColor, themeDeliveryBannerColor, themeDeliveryBannerTextColor, themeFooterBgColor, themeFooterTextColor } = body
 
     await (prisma as any).$executeRawUnsafe(`
       ALTER TABLE "AppSettings"
@@ -42,12 +48,15 @@ export async function POST(req: Request) {
         ADD COLUMN IF NOT EXISTS "themeColorTo" TEXT NOT NULL DEFAULT '#59EBC6',
         ADD COLUMN IF NOT EXISTS "themeTextColor" TEXT NOT NULL DEFAULT '#ffffff',
         ADD COLUMN IF NOT EXISTS "themeBgColor" TEXT NOT NULL DEFAULT '#F5F5DB',
-        ADD COLUMN IF NOT EXISTS "themeDeliveryBannerColor" TEXT NOT NULL DEFAULT '#267a34'
+        ADD COLUMN IF NOT EXISTS "themeDeliveryBannerColor" TEXT NOT NULL DEFAULT '#267a34',
+        ADD COLUMN IF NOT EXISTS "themeDeliveryBannerTextColor" TEXT NOT NULL DEFAULT '#ffffff',
+        ADD COLUMN IF NOT EXISTS "themeFooterBgColor" TEXT NOT NULL DEFAULT '#1a1a1a',
+        ADD COLUMN IF NOT EXISTS "themeFooterTextColor" TEXT NOT NULL DEFAULT '#ffffff'
     `)
 
     await (prisma as any).$executeRaw`
-      INSERT INTO "AppSettings" (id, key, "themeType", "themeColor", "themeColorTo", "themeTextColor", "themeBgColor", "themeDeliveryBannerColor", "updatedAt")
-      VALUES (gen_random_uuid(), 'global', ${themeType}, ${themeColor}, ${themeColorTo}, ${themeTextColor}, ${themeBgColor}, ${themeDeliveryBannerColor ?? DEFAULTS.themeDeliveryBannerColor}, NOW())
+      INSERT INTO "AppSettings" (id, key, "themeType", "themeColor", "themeColorTo", "themeTextColor", "themeBgColor", "themeDeliveryBannerColor", "themeDeliveryBannerTextColor", "themeFooterBgColor", "themeFooterTextColor", "updatedAt")
+      VALUES (gen_random_uuid(), 'global', ${themeType}, ${themeColor}, ${themeColorTo}, ${themeTextColor}, ${themeBgColor}, ${themeDeliveryBannerColor ?? DEFAULTS.themeDeliveryBannerColor}, ${themeDeliveryBannerTextColor ?? DEFAULTS.themeDeliveryBannerTextColor}, ${themeFooterBgColor ?? DEFAULTS.themeFooterBgColor}, ${themeFooterTextColor ?? DEFAULTS.themeFooterTextColor}, NOW())
       ON CONFLICT (key) DO UPDATE SET
         "themeType" = EXCLUDED."themeType",
         "themeColor" = EXCLUDED."themeColor",
@@ -55,6 +64,9 @@ export async function POST(req: Request) {
         "themeTextColor" = EXCLUDED."themeTextColor",
         "themeBgColor" = EXCLUDED."themeBgColor",
         "themeDeliveryBannerColor" = EXCLUDED."themeDeliveryBannerColor",
+        "themeDeliveryBannerTextColor" = EXCLUDED."themeDeliveryBannerTextColor",
+        "themeFooterBgColor" = EXCLUDED."themeFooterBgColor",
+        "themeFooterTextColor" = EXCLUDED."themeFooterTextColor",
         "updatedAt" = NOW()
     `
 

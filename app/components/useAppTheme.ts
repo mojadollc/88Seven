@@ -17,6 +17,9 @@ export function useAppTheme() {
         root.style.setProperty("--theme-bg", bg)
         root.style.setProperty("--theme-page-bg", t.themeBgColor)
         root.style.setProperty("--theme-delivery-banner", t.themeDeliveryBannerColor ?? "#267a34")
+        root.style.setProperty("--theme-delivery-banner-text", t.themeDeliveryBannerTextColor ?? "#ffffff")
+        root.style.setProperty("--theme-footer-bg", t.themeFooterBgColor ?? "#1a1a1a")
+        root.style.setProperty("--theme-footer-text", t.themeFooterTextColor ?? "#ffffff")
         root.style.setProperty("--primary", t.themeColor)
         document.body.style.backgroundColor = t.themeBgColor
       })

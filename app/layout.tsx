@@ -9,7 +9,7 @@ async function getTheme() {
   try {
     const { prisma } = await import("@/lib/prisma")
     const rows = await (prisma as any).$queryRaw`
-      SELECT "themeType", "themeColor", "themeColorTo", "themeTextColor", "themeBgColor", "themeDeliveryBannerColor"
+      SELECT "themeType", "themeColor", "themeColorTo", "themeTextColor", "themeBgColor", "themeDeliveryBannerColor", "themeDeliveryBannerTextColor", "themeFooterBgColor", "themeFooterTextColor"
       FROM "AppSettings" WHERE key = 'global' LIMIT 1
     `
     const row = Array.isArray(rows) ? rows[0] : null
@@ -20,9 +20,12 @@ async function getTheme() {
       themeTextColor: row?.themeTextColor ?? "#ffffff",
       themeBgColor: row?.themeBgColor ?? "#F5F5DB",
       themeDeliveryBannerColor: row?.themeDeliveryBannerColor ?? "#267a34",
+      themeDeliveryBannerTextColor: row?.themeDeliveryBannerTextColor ?? "#ffffff",
+      themeFooterBgColor: row?.themeFooterBgColor ?? "#1a1a1a",
+      themeFooterTextColor: row?.themeFooterTextColor ?? "#ffffff",
     }
   } catch {
-    return { themeType: "solid", themeColor: "#319F44", themeColorTo: "#59EBC6", themeTextColor: "#ffffff", themeBgColor: "#F5F5DB", themeDeliveryBannerColor: "#267a34" }
+    return { themeType: "solid", themeColor: "#319F44", themeColorTo: "#59EBC6", themeTextColor: "#ffffff", themeBgColor: "#F5F5DB", themeDeliveryBannerColor: "#267a34", themeDeliveryBannerTextColor: "#ffffff", themeFooterBgColor: "#1a1a1a", themeFooterTextColor: "#ffffff" }
   }
 }
 
@@ -77,6 +80,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     document.documentElement.style.setProperty('--theme-bg', '${themeBg}');
     document.documentElement.style.setProperty('--theme-page-bg', '${theme.themeBgColor}');
     document.documentElement.style.setProperty('--theme-delivery-banner', '${theme.themeDeliveryBannerColor}');
+    document.documentElement.style.setProperty('--theme-delivery-banner-text', '${theme.themeDeliveryBannerTextColor}');
+    document.documentElement.style.setProperty('--theme-footer-bg', '${theme.themeFooterBgColor}');
+    document.documentElement.style.setProperty('--theme-footer-text', '${theme.themeFooterTextColor}');
     document.documentElement.style.setProperty('--primary', '${theme.themeColor}');
     document.body.style.backgroundColor = '${theme.themeBgColor}';
   `

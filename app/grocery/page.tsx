@@ -304,7 +304,7 @@ export default function GroceryPage() {
           const isSameDay = new Date().getHours() < 15
           return (
             <div className="py-1 text-center" style={{ backgroundColor: "var(--theme-delivery-banner, #267a34)" }}>
-              <p className="text-white text-[11px] font-medium">
+              <p className="text-[11px] font-medium" style={{ color: "var(--theme-delivery-banner-text, #ffffff)" }}>
                 {isSameDay ? "⚡ Same-Day Delivery — Order before 3:00 PM" : "🌙 Next-Day Delivery — Orders after 3PM delivered tomorrow"}
               </p>
             </div>
@@ -380,10 +380,10 @@ export default function GroceryPage() {
         </div>
 
         {/* Footer */}
-        <div className="mt-10 pt-6 border-t border-gray-200 pb-4">
-          <div className="flex items-center justify-between">
-            <a href="/" className="font-black text-gray-800 tracking-tight">Gruwcer</a>
-            <p className="text-xs text-gray-400">© {new Date().getFullYear()} Gruwcer. All rights reserved.</p>
+        <div className="mt-10 pb-4">
+          <div className="rounded-2xl px-5 py-4 flex items-center justify-between" style={{ backgroundColor: "var(--theme-footer-bg, #1a1a1a)" }}>
+            <a href="/" className="font-black tracking-tight" style={{ color: "var(--theme-footer-text, #ffffff)" }}>Gruwcer</a>
+            <p className="text-xs" style={{ color: "var(--theme-footer-text, #ffffff)", opacity: 0.6 }}>© {new Date().getFullYear()} Gruwcer. All rights reserved.</p>
           </div>
         </div>
       </div>
@@ -456,9 +456,9 @@ export default function GroceryPage() {
         <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowCheckout(false)} />
           <div className="relative bg-white rounded-t-3xl md:rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
-            <div className="bg-[#319F44] px-5 py-4 flex items-center justify-between">
-              <div><h2 className="font-bold text-lg text-white">Checkout</h2><p className="text-white/70 text-xs">Complete your delivery details</p></div>
-              <button onClick={() => setShowCheckout(false)} className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-white">&times;</button>
+            <div className="px-5 py-4 flex items-center justify-between" style={{ background: "var(--theme-bg)" }}>
+              <div><h2 className="font-bold text-lg" style={{ color: "var(--theme-text)" }}>Checkout</h2><p className="text-xs" style={{ color: "var(--theme-text)", opacity: 0.7 }}>Complete your delivery details</p></div>
+              <button onClick={() => setShowCheckout(false)} className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center" style={{ color: "var(--theme-text)" }}>&times;</button>
             </div>
             <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
               <div className="space-y-3">
