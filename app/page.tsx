@@ -4,14 +4,19 @@ import { useEffect, useState } from "react"
 import { getUser, getToken } from "@/lib/auth"
 
 const SERVICES = [
-  { id: "grocery", name: "Grocery", icon: "https://img.icons8.com/3d-fluency/94/shopping-cart.png", href: "/grocery", available: true },
-  { id: "laundry", name: "Laundry", icon: "https://img.icons8.com/3d-fluency/94/washing-machine.png", href: "/laundry", available: true },
-  { id: "services", name: "Services", icon: "https://img.icons8.com/3d-fluency/94/maintenance.png", href: "/home-services", available: true },
-  { id: "travel", name: "Travel", icon: "https://img.icons8.com/3d-fluency/94/airplane-mode-on.png", href: "/travel", available: true },
-  { id: "healthcare", name: "Clinics", icon: "https://img.icons8.com/3d-fluency/94/hospital.png", href: "#", available: false },
-  { id: "food", name: "Food", icon: "https://img.icons8.com/3d-fluency/94/hamburger.png", href: "#", available: false },
-  { id: "bills", name: "Bills", icon: "https://img.icons8.com/3d-fluency/94/bill.png", href: "#", available: false },
-  { id: "more", name: "More", icon: "https://img.icons8.com/3d-fluency/94/menu.png", href: "#", available: false },
+  { id: "grocery", name: "Grocery", icon: "🛒", href: "/grocery", available: true, color: "from-emerald-500 to-green-600", desc: "Fresh produce & daily essentials", badge: "Same-day delivery" },
+  { id: "laundry", name: "Laundry", icon: "👕", href: "/laundry", available: true, color: "from-blue-500 to-indigo-600", desc: "Wash, dry & fold service", badge: "Pickup & delivery" },
+  { id: "services", name: "Home Services", icon: "🔧", href: "/home-services", available: true, color: "from-teal-500 to-cyan-600", desc: "Aircon, plumbing, electrical", badge: "Book a pro" },
+  { id: "travel", name: "Hotel & Flights", icon: "✈️", href: "/travel", available: true, color: "from-sky-500 to-blue-600", desc: "Hotels, flights & packages", badge: "Best rates" },
+  { id: "food", name: "Food To Go", icon: "🍔", href: "#", available: false, color: "from-orange-500 to-red-500", desc: "Restaurant delivery", badge: "Coming soon" },
+  { id: "bills", name: "Bills Payment", icon: "💳", href: "#", available: false, color: "from-purple-500 to-violet-600", desc: "Pay bills & load credits", badge: "Coming soon" },
+]
+
+const NAV_ITEMS = [
+  { label: "Grocery", href: "/grocery" },
+  { label: "Laundry", href: "/laundry" },
+  { label: "Services", href: "/home-services" },
+  { label: "Travel", href: "/travel" },
 ]
 
 export default function HomePage() {
@@ -37,8 +42,16 @@ export default function HomePage() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
   const [showInstall, setShowInstall] = useState(false)
   const [isStandalone, setIsStandalone] = useState(false)
+  const [activeService, setActiveService] = useState(0)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => setMounted(true), [])
+
+  // Auto-slide hero service
+  useEffect(() => {
+    const t = setInterval(() => setActiveService(c => (c + 1) % SERVICES.length), 3500)
+    return () => clearInterval(t)
+  }, [])
 
   useEffect(() => {
     const dismissed = sessionStorage.getItem("install-dismissed")
@@ -175,302 +188,336 @@ export default function HomePage() {
     if (user) await fetch("/api/users/me", { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` }, body: JSON.stringify({ savedAddresses: updated }) })
   }
 
-  return (
-    <main className="min-h-screen bg-gray-50" suppressHydrationWarning>
+  const currentService = SERVICES[activeService]
 
-      {/* ── HEADER ── */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 md:px-6">
-          {/* Desktop */}
-          <div className="hidden md:flex items-center justify-between h-16">
-            <a href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-[#16A34A] rounded-lg flex items-center justify-center">
-                <span className="text-white font-black text-sm">G</span>
-              </div>
-              <span className="font-black text-xl text-gray-900 tracking-tight">Gruwcer</span>
-            </a>
-            <div className="flex-1 max-w-md mx-8">
-              <a href="/grocery" className="flex items-center gap-2.5 bg-gray-100 hover:bg-gray-200 transition-colors rounded-xl px-4 py-2.5">
-                <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                <span className="text-sm text-gray-400">Search groceries, services...</span>
-              </a>
+  return (
+    <main className="min-h-screen bg-white" suppressHydrationWarning>
+
+      {/* ── NAVBAR ── */}
+      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-100 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between gap-4">
+          {/* Logo */}
+          <a href="/" className="flex items-center gap-2 shrink-0">
+            <div className="w-8 h-8 bg-[#16A34A] rounded-xl flex items-center justify-center shadow-sm">
+              <span className="text-white font-black text-sm">G</span>
             </div>
-            <div className="flex items-center gap-2">
-              <button onClick={() => setShowAddressModal(true)} className="flex items-center gap-1.5 text-gray-600 hover:text-[#16A34A] text-sm px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
-                <svg className="w-4 h-4 text-[#16A34A] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                <span className="max-w-[140px] truncate">{detecting ? "Detecting..." : address || "Set location"}</span>
-              </button>
-              <div className="w-px h-5 bg-gray-200" />
-              <button onClick={() => setShowNotifs(!showNotifs)} className="relative p-2 rounded-lg hover:bg-gray-50 transition-colors">
+            <span className="font-black text-xl text-gray-900 tracking-tight">Gruwcer</span>
+          </a>
+
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex items-center gap-1">
+            {NAV_ITEMS.map(item => (
+              <a key={item.label} href={item.href} className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-[#16A34A] hover:bg-green-50 rounded-lg transition-colors">{item.label}</a>
+            ))}
+          </nav>
+
+          {/* Search */}
+          <div className="hidden md:flex flex-1 max-w-sm mx-4">
+            <a href="/grocery" className="w-full flex items-center gap-2 bg-gray-100 hover:bg-gray-200 transition-colors rounded-xl px-4 py-2.5">
+              <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              <span className="text-sm text-gray-400">Search services...</span>
+            </a>
+          </div>
+
+          {/* Right actions */}
+          <div className="flex items-center gap-2">
+            <button onClick={() => setShowAddressModal(true)} className="hidden md:flex items-center gap-1.5 text-sm text-gray-600 hover:text-[#16A34A] px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+              <svg className="w-4 h-4 text-[#16A34A] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              <span className="max-w-[120px] truncate">{detecting ? "Detecting..." : address || "Set location"}</span>
+            </button>
+
+            <div className="relative">
+              <button onClick={() => setShowNotifs(!showNotifs)} className="relative p-2 rounded-xl hover:bg-gray-100 transition-colors">
                 <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
                 {mounted && unread > 0 && <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">{unread}</span>}
               </button>
-              <a href="/account" className="flex items-center gap-2 bg-[#16A34A] hover:bg-[#15803d] text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                {mounted && profile?.name ? profile.name.split(" ")[0] : "Account"}
-              </a>
+              {showNotifs && (
+                <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden">
+                  <div className="px-4 py-3 border-b flex items-center justify-between">
+                    <span className="text-sm font-bold text-gray-800">Notifications</span>
+                    {mounted && unread > 0 && user && <button onClick={markAllRead} className="text-xs text-[#16A34A] font-semibold">Mark all read</button>}
+                  </div>
+                  <div className="max-h-64 overflow-y-auto">
+                    {notifications.length === 0 ? <p className="p-6 text-sm text-gray-400 text-center">No notifications yet</p> : notifications.slice(0, 8).map(n => (
+                      <div key={n.id} className={`px-4 py-3 border-b border-gray-50 ${!n.read ? "bg-green-50/60" : ""}`}>
+                        <p className="text-xs font-semibold text-gray-800">{n.title}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{n.message}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
 
-          {/* Mobile */}
-          <div className="md:hidden flex items-center justify-between h-14">
-            <a href="/" className="flex items-center gap-1.5">
-              <div className="w-7 h-7 bg-[#16A34A] rounded-lg flex items-center justify-center">
-                <span className="text-white font-black text-xs">G</span>
-              </div>
-              <span className="font-black text-lg text-gray-900 tracking-tight">Gruwcer</span>
+            <a href="/account" className="hidden md:flex items-center gap-2 bg-[#16A34A] hover:bg-[#15803d] text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+              {mounted && profile?.name ? profile.name.split(" ")[0] : "Account"}
             </a>
-            <div className="flex items-center gap-2">
-              <button onClick={() => setShowAddressModal(true)} className="flex items-center gap-1 text-gray-500 text-xs max-w-[120px]">
-                <svg className="w-3.5 h-3.5 text-[#16A34A] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                <span className="truncate">{detecting ? "Detecting..." : address || "Set location"}</span>
-              </button>
-              <button onClick={() => setShowNotifs(!showNotifs)} className="relative p-1.5">
-                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-                {mounted && unread > 0 && <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">{unread}</span>}
-              </button>
-              <a href="/account" className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-              </a>
-            </div>
-          </div>
 
-          {/* Mobile search bar */}
-          <div className="md:hidden pb-3">
-            <a href="/grocery" className="flex items-center gap-2.5 bg-gray-100 rounded-xl px-4 py-2.5">
-              <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-              <span className="text-sm text-gray-400">Search groceries, services...</span>
-            </a>
+            {/* Mobile menu toggle */}
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-2 rounded-xl hover:bg-gray-100 transition-colors">
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={mobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} /></svg>
+            </button>
           </div>
         </div>
 
-        {/* Notifications dropdown */}
-        {showNotifs && (
-          <div className="absolute right-4 md:right-6 top-full mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-              <span className="text-sm font-bold text-gray-800">Notifications</span>
-              {mounted && unread > 0 && user && <button onClick={markAllRead} className="text-xs text-[#16A34A] font-semibold">Mark all read</button>}
-            </div>
-            <div className="max-h-64 overflow-y-auto">
-              {notifications.length === 0 ? (
-                <p className="p-6 text-sm text-gray-400 text-center">No notifications yet</p>
-              ) : (
-                notifications.slice(0, 8).map((n) => (
-                  <div key={n.id} className={`px-4 py-3 border-b border-gray-50 ${!n.read ? "bg-green-50/60" : ""}`}>
-                    <p className="text-xs font-semibold text-gray-800">{n.title}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{n.message}</p>
-                  </div>
-                ))
-              )}
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-1">
+            {NAV_ITEMS.map(item => (
+              <a key={item.label} href={item.href} className="block px-3 py-2.5 text-sm font-medium text-gray-700 hover:text-[#16A34A] hover:bg-green-50 rounded-xl transition-colors">{item.label}</a>
+            ))}
+            <div className="pt-2 border-t border-gray-100 mt-2">
+              <button onClick={() => { setShowAddressModal(true); setMobileMenuOpen(false) }} className="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-gray-600 hover:bg-gray-50 rounded-xl">
+                <svg className="w-4 h-4 text-[#16A34A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                {detecting ? "Detecting..." : address || "Set location"}
+              </button>
+              <a href="/account" className="flex items-center gap-2 px-3 py-2.5 text-sm font-semibold text-[#16A34A] hover:bg-green-50 rounded-xl">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                {mounted && profile?.name ? profile.name : "My Account"}
+              </a>
             </div>
           </div>
         )}
       </header>
 
-      {/* ── HERO BANNER ── */}
-      {mounted && banners.length > 0 && (
-        <div className="bg-white border-b border-gray-100">
-          <div className="max-w-6xl mx-auto px-4 md:px-6 py-4 md:py-6">
-            <div
-              className="relative rounded-2xl overflow-hidden h-[180px] md:h-[340px] cursor-pointer"
-              style={{
-                backgroundColor: banners[currentBanner]?.bgColor || "#16A34A",
-                backgroundImage: banners[currentBanner]?.imageUrl
-                  ? `linear-gradient(105deg,rgba(0,0,0,0.65) 0%,rgba(0,0,0,0.1) 60%),url(${banners[currentBanner].imageUrl})`
-                  : `linear-gradient(135deg, ${banners[currentBanner]?.bgColor || "#16A34A"} 0%, rgba(0,0,0,0.3) 100%)`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }}
-            >
-              {/* Decorative circles */}
-              <div className="absolute -right-16 -top-16 w-64 h-64 bg-white/5 rounded-full" />
-              <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-white/5 rounded-full" />
+      {/* ── HERO SECTION: Left text + Right sliding service card ── */}
+      <section className="bg-gradient-to-br from-gray-50 to-white border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-20">
+          <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
 
-              <a href={banners[currentBanner]?.link || "#"} className="absolute inset-0 flex flex-col justify-center p-6 md:p-12">
-                <span className="inline-flex self-start items-center bg-white/20 backdrop-blur-sm border border-white/30 rounded-full px-3 py-1 mb-3 text-white text-[10px] md:text-xs font-bold uppercase tracking-widest">
-                  ✦ Featured
-                </span>
-                <h2 className="text-white font-black text-2xl md:text-5xl leading-tight drop-shadow-sm max-w-lg">
-                  {banners[currentBanner]?.title}
-                </h2>
-                <p className="text-white/80 text-sm md:text-lg mt-2 max-w-sm drop-shadow">
-                  {banners[currentBanner]?.subtitle}
-                </p>
-                <span className="mt-4 self-start bg-white text-gray-900 text-xs md:text-sm font-bold px-5 py-2.5 rounded-xl shadow-lg hover:bg-gray-50 transition-colors">
-                  Order now →
-                </span>
-              </a>
+            {/* LEFT: Text content */}
+            <div>
+              <div className="inline-flex items-center gap-2 bg-green-100 text-[#16A34A] text-xs font-bold px-3 py-1.5 rounded-full mb-5">
+                <span className="w-1.5 h-1.5 bg-[#16A34A] rounded-full animate-pulse" />
+                Your everyday super app
+              </div>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 leading-tight tracking-tight">
+                Everything<br />
+                <span className="text-[#16A34A]">delivered</span><br />
+                to your door.
+              </h1>
+              <p className="mt-5 text-gray-500 text-lg leading-relaxed max-w-md">
+                Grocery, laundry, home services and more — all in one app. Fast, reliable, and always nearby.
+              </p>
 
-              {banners.length > 1 && (
-                <div className="absolute bottom-4 right-4 flex gap-1.5">
-                  {banners.map((_, i) => (
-                    <button key={i} onClick={() => setCurrentBanner(i)} className={`h-1.5 rounded-full transition-all duration-300 ${i === currentBanner ? "bg-white w-6" : "bg-white/40 w-1.5"}`} />
-                  ))}
+              {/* Location + CTA */}
+              <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                <button onClick={() => setShowAddressModal(true)} className="flex items-center gap-2 bg-white border-2 border-gray-200 hover:border-[#16A34A] rounded-xl px-4 py-3 text-sm text-gray-600 transition-colors flex-1 sm:flex-none sm:min-w-[200px]">
+                  <svg className="w-4 h-4 text-[#16A34A] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                  <span className="truncate">{detecting ? "Detecting..." : address || "Set your location"}</span>
+                </button>
+                <a href="/grocery" className="flex items-center justify-center gap-2 bg-[#16A34A] hover:bg-[#15803d] text-white font-bold px-6 py-3 rounded-xl transition-colors shadow-lg shadow-green-200 text-sm">
+                  Order Now
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                </a>
+              </div>
+
+              {/* Stats */}
+              <div className="mt-10 flex items-center gap-8">
+                {[["10K+", "Happy customers"], ["4.9★", "App rating"], ["30min", "Avg delivery"]].map(([val, label]) => (
+                  <div key={label}>
+                    <p className="text-xl font-black text-gray-900">{val}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* RIGHT: Sliding service showcase */}
+            <div className="relative">
+              {/* Main service card */}
+              <div className={`relative rounded-3xl overflow-hidden bg-gradient-to-br ${currentService.color} p-8 md:p-10 shadow-2xl min-h-[340px] flex flex-col justify-between transition-all duration-500`}>
+                {/* Decorative circles */}
+                <div className="absolute -right-12 -top-12 w-48 h-48 bg-white/10 rounded-full" />
+                <div className="absolute -right-4 -bottom-8 w-32 h-32 bg-black/10 rounded-full" />
+
+                <div className="relative">
+                  <span className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur border border-white/30 text-white text-xs font-bold px-3 py-1.5 rounded-full">
+                    ✦ {currentService.badge}
+                  </span>
+                  <div className="mt-6 text-6xl">{currentService.icon}</div>
+                  <h2 className="mt-4 text-white font-black text-3xl md:text-4xl leading-tight">{currentService.name}</h2>
+                  <p className="mt-2 text-white/80 text-base">{currentService.desc}</p>
                 </div>
-              )}
+
+                <div className="relative mt-8 flex items-center justify-between">
+                  {currentService.available ? (
+                    <a href={currentService.href} className="inline-flex items-center gap-2 bg-white text-gray-900 font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-gray-50 transition-colors shadow-md">
+                      Order now
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                    </a>
+                  ) : (
+                    <span className="inline-flex items-center gap-2 bg-white/20 text-white font-bold px-5 py-2.5 rounded-xl text-sm">Coming soon</span>
+                  )}
+                  {/* Dot indicators */}
+                  <div className="flex gap-1.5">
+                    {SERVICES.map((_, i) => (
+                      <button key={i} onClick={() => setActiveService(i)} className={`h-1.5 rounded-full transition-all duration-300 ${i === activeService ? "bg-white w-5" : "bg-white/40 w-1.5"}`} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Floating mini cards */}
+              <div className="absolute -left-4 top-8 bg-white rounded-2xl shadow-xl p-3 flex items-center gap-2.5 border border-gray-100">
+                <div className="w-9 h-9 bg-green-100 rounded-xl flex items-center justify-center text-lg">🛒</div>
+                <div>
+                  <p className="text-xs font-bold text-gray-800">Grocery</p>
+                  <p className="text-[10px] text-gray-400">Same-day</p>
+                </div>
+              </div>
+              <div className="absolute -right-4 bottom-16 bg-white rounded-2xl shadow-xl p-3 flex items-center gap-2.5 border border-gray-100">
+                <div className="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center text-lg">👕</div>
+                <div>
+                  <p className="text-xs font-bold text-gray-800">Laundry</p>
+                  <p className="text-[10px] text-gray-400">Pickup today</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+      </section>
+
+      {/* ── SERVICES GRID ── */}
+      <section className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-16">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-black text-gray-900">Our Services</h2>
+            <p className="text-gray-400 text-sm mt-1">Everything you need, delivered fast</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+          {SERVICES.map((s, i) => (
+            <a key={s.id} href={s.available ? s.href : undefined}
+              className={`relative group bg-white rounded-2xl border border-gray-100 p-4 md:p-5 flex flex-col items-center gap-3 shadow-sm transition-all ${s.available ? "hover:shadow-lg hover:-translate-y-1 hover:border-[#16A34A]/30 cursor-pointer" : "opacity-50 cursor-default"}`}>
+              {!s.available && <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-amber-400 text-gray-900 text-[9px] font-black px-2 py-0.5 rounded-full whitespace-nowrap">SOON</span>}
+              <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${s.color} flex items-center justify-center text-2xl shadow-sm`}>{s.icon}</div>
+              <div className="text-center">
+                <p className="text-xs font-bold text-gray-800">{s.name}</p>
+                <p className="text-[10px] text-gray-400 mt-0.5 leading-tight hidden md:block">{s.desc}</p>
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      {/* ── BANNER CAROUSEL ── */}
+      {mounted && banners.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 md:px-8 pb-12">
+          <div className="relative rounded-3xl overflow-hidden h-[180px] md:h-[300px] shadow-lg cursor-pointer"
+            style={{
+              backgroundColor: banners[currentBanner]?.bgColor || "#16A34A",
+              backgroundImage: banners[currentBanner]?.imageUrl ? `linear-gradient(105deg,rgba(0,0,0,0.65) 0%,rgba(0,0,0,0.1) 60%),url(${banners[currentBanner].imageUrl})` : undefined,
+              backgroundSize: "cover", backgroundPosition: "center",
+            }}>
+            <div className="absolute -right-16 -top-16 w-64 h-64 bg-white/5 rounded-full" />
+            <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-white/5 rounded-full" />
+            <a href={banners[currentBanner]?.link || "#"} className="absolute inset-0 flex flex-col justify-center p-6 md:p-12">
+              <span className="self-start bg-white/20 backdrop-blur border border-white/30 rounded-full px-3 py-1 text-white text-[10px] font-bold uppercase tracking-widest mb-3">✦ Featured</span>
+              <h2 className="text-white font-black text-2xl md:text-5xl leading-tight drop-shadow max-w-lg">{banners[currentBanner]?.title}</h2>
+              <p className="text-white/80 text-sm md:text-lg mt-2 max-w-sm">{banners[currentBanner]?.subtitle}</p>
+              <span className="self-start mt-4 bg-white text-gray-900 text-xs md:text-sm font-bold px-5 py-2.5 rounded-xl shadow-lg hover:bg-gray-50 transition-colors">Order now →</span>
+            </a>
+            {banners.length > 1 && (
+              <div className="absolute bottom-4 right-4 flex gap-1.5">
+                {banners.map((_, i) => <button key={i} onClick={() => setCurrentBanner(i)} className={`h-1.5 rounded-full transition-all ${i === currentBanner ? "bg-white w-6" : "bg-white/40 w-1.5"}`} />)}
+              </div>
+            )}
+          </div>
+        </section>
       )}
 
-      {/* ── MAIN CONTENT ── */}
-      <div className="max-w-6xl mx-auto px-4 md:px-6 pb-24 md:pb-16">
-
-        {/* ── SERVICES ── */}
-        <div className="mt-6 md:mt-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base md:text-lg font-bold text-gray-900">Our Services</h2>
+      {/* ── PROMOS ── */}
+      {mounted && promos.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 md:px-8 pb-12">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-xl md:text-2xl font-black text-gray-900">Deals for you</h2>
+            <span className="text-xs text-[#16A34A] font-semibold bg-green-50 px-3 py-1 rounded-full">Limited time</span>
           </div>
-          <div className="grid grid-cols-4 md:grid-cols-8 gap-2 md:gap-3">
-            {SERVICES.map((s) => (
-              <a
-                key={s.id}
-                href={s.available ? s.href : undefined}
-                className={`relative flex flex-col items-center gap-2 p-3 md:p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all ${s.available ? "hover:shadow-md hover:-translate-y-0.5 hover:border-[#16A34A]/20 cursor-pointer" : "opacity-50 cursor-default"}`}
-              >
-                {!s.available && (
-                  <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 bg-amber-400 text-gray-900 text-[8px] font-black px-1.5 py-0.5 rounded-full whitespace-nowrap">SOON</span>
-                )}
-                <img src={s.icon} alt={s.name} className="w-8 h-8 md:w-10 md:h-10 object-contain" />
-                <span className="text-[10px] md:text-xs text-gray-600 font-medium text-center leading-tight">{s.name}</span>
+          <div className="flex md:grid md:grid-cols-3 gap-3 overflow-x-auto md:overflow-visible scrollbar-hide pb-1">
+            {promos.map((p) => (
+              <div key={p.id} className="flex-shrink-0 min-w-[220px] md:min-w-0 bg-white rounded-2xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#16A34A] to-emerald-600 rounded-xl flex items-center justify-center shrink-0 shadow-sm">
+                    <span className="text-white font-black text-sm">{p.discountPercent}%</span>
+                  </div>
+                  <div>
+                    <p className="font-bold text-sm text-gray-900">{p.title}</p>
+                    {p.description && <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{p.description}</p>}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── PARTNERS ── */}
+      {mounted && partners.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 md:px-8 pb-12">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-xl md:text-2xl font-black text-gray-900">Laundry Partners</h2>
+            <a href="/laundry" className="text-xs text-[#16A34A] font-semibold hover:underline">See all</a>
+          </div>
+          <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-1">
+            {partners.map((p) => (
+              <a key={p.id} href="/laundry" className="flex flex-col items-center gap-2 min-w-[72px] group">
+                <div className="w-14 h-14 rounded-2xl overflow-hidden bg-blue-50 border border-gray-100 shadow-sm flex items-center justify-center group-hover:shadow-md transition-shadow">
+                  {p.logoUrl ? <img src={p.logoUrl} alt={p.shopName} className="w-full h-full object-cover" /> : <span className="text-blue-600 font-black text-lg">{p.shopName.charAt(0)}</span>}
+                </div>
+                <p className="text-[10px] text-gray-600 font-medium text-center leading-tight line-clamp-2 max-w-[72px]">{p.shopName}</p>
               </a>
             ))}
           </div>
-        </div>
+        </section>
+      )}
 
-        {/* ── FEATURED CARDS ── */}
-        <div className="mt-6 md:mt-8">
-          <h2 className="text-base md:text-lg font-bold text-gray-900 mb-4">Quick Order</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-            <a href="/grocery" className="group relative bg-gradient-to-br from-emerald-500 to-green-700 rounded-2xl p-5 md:p-6 text-white overflow-hidden hover:shadow-xl transition-all hover:-translate-y-0.5">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-              <div className="absolute bottom-0 left-0 w-20 h-20 bg-black/10 rounded-full translate-y-1/2 -translate-x-1/2" />
-              <div className="relative">
-                <img src="https://img.icons8.com/3d-fluency/94/shopping-cart.png" className="w-10 h-10 mb-3 object-contain" alt="Grocery" />
-                <p className="text-white/70 text-xs font-semibold uppercase tracking-wider">Same-day delivery</p>
-                <p className="text-xl font-black mt-1">Grocery</p>
-                <p className="text-white/80 text-sm mt-1">Fresh produce & daily essentials</p>
-                <span className="inline-flex items-center gap-1 mt-4 bg-white/20 hover:bg-white/30 backdrop-blur text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors">
-                  Shop now <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
-                </span>
-              </div>
-            </a>
-
-            <a href="/laundry" className="group relative bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-5 md:p-6 text-white overflow-hidden hover:shadow-xl transition-all hover:-translate-y-0.5">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-              <div className="absolute bottom-0 left-0 w-20 h-20 bg-black/10 rounded-full translate-y-1/2 -translate-x-1/2" />
-              <div className="relative">
-                <img src="https://img.icons8.com/3d-fluency/94/washing-machine.png" className="w-10 h-10 mb-3 object-contain" alt="Laundry" />
-                <p className="text-white/70 text-xs font-semibold uppercase tracking-wider">Pickup & delivery</p>
-                <p className="text-xl font-black mt-1">Laundry</p>
-                <p className="text-white/80 text-sm mt-1">Wash, dry & fold service</p>
-                <span className="inline-flex items-center gap-1 mt-4 bg-white/20 hover:bg-white/30 backdrop-blur text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors">
-                  Book now <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
-                </span>
-              </div>
-            </a>
-
-            <a href="/home-services" className="group relative bg-gradient-to-br from-teal-500 to-cyan-700 rounded-2xl p-5 md:p-6 text-white overflow-hidden hover:shadow-xl transition-all hover:-translate-y-0.5">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-              <div className="absolute bottom-0 left-0 w-20 h-20 bg-black/10 rounded-full translate-y-1/2 -translate-x-1/2" />
-              <div className="relative">
-                <img src="https://img.icons8.com/3d-fluency/94/maintenance.png" className="w-10 h-10 mb-3 object-contain" alt="Services" />
-                <p className="text-white/70 text-xs font-semibold uppercase tracking-wider">Book a pro</p>
-                <p className="text-xl font-black mt-1">Home Services</p>
-                <p className="text-white/80 text-sm mt-1">Aircon, plumbing, electrical</p>
-                <span className="inline-flex items-center gap-1 mt-4 bg-white/20 hover:bg-white/30 backdrop-blur text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors">
-                  Book now <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
-                </span>
-              </div>
-            </a>
+      {/* ── HOW IT WORKS ── */}
+      <section className="bg-gray-50 border-y border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-16">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl md:text-3xl font-black text-gray-900">How it works</h2>
+            <p className="text-gray-400 text-sm mt-2">Simple, fast, and reliable</p>
           </div>
-        </div>
-
-        {/* ── PROMOS ── */}
-        {mounted && promos.length > 0 && (
-          <div className="mt-6 md:mt-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base md:text-lg font-bold text-gray-900">Deals for you</h2>
-              <span className="text-xs text-[#16A34A] font-semibold">Limited time</span>
-            </div>
-            <div className="flex md:grid md:grid-cols-3 gap-3 overflow-x-auto md:overflow-visible scrollbar-hide pb-1">
-              {promos.map((p) => (
-                <div key={p.id} className="flex-shrink-0 min-w-[220px] md:min-w-0 bg-white rounded-2xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-[#16A34A] to-emerald-600 rounded-xl flex items-center justify-center shrink-0 shadow-sm">
-                      <span className="text-white font-black text-sm">{p.discountPercent}%</span>
-                    </div>
-                    <div>
-                      <p className="font-bold text-sm text-gray-900">{p.title}</p>
-                      {p.description && <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{p.description}</p>}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── PARTNERS ── */}
-        {mounted && partners.length > 0 && (
-          <div className="mt-6 md:mt-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base md:text-lg font-bold text-gray-900">Laundry Partners</h2>
-              <a href="/laundry" className="text-xs text-[#16A34A] font-semibold hover:underline">See all</a>
-            </div>
-            <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-1">
-              {partners.map((p) => (
-                <a key={p.id} href="/laundry" className="flex flex-col items-center gap-2 min-w-[72px] group">
-                  <div className="w-14 h-14 rounded-2xl overflow-hidden bg-blue-50 border border-gray-100 shadow-sm flex items-center justify-center group-hover:shadow-md transition-shadow">
-                    {p.logoUrl ? <img src={p.logoUrl} alt={p.shopName} className="w-full h-full object-cover" /> : <span className="text-blue-600 font-black text-lg">{p.shopName.charAt(0)}</span>}
-                  </div>
-                  <p className="text-[10px] text-gray-600 font-medium text-center leading-tight line-clamp-2 max-w-[72px]">{p.shopName}</p>
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── HOW IT WORKS ── */}
-        <div className="mt-8 md:mt-10">
-          <h2 className="text-base md:text-lg font-bold text-gray-900 mb-4">How it works</h2>
-          <div className="grid grid-cols-3 gap-3 md:gap-4">
+          <div className="grid grid-cols-3 gap-4 md:gap-8">
             {[
-              { step: "01", title: "Choose", desc: "Pick a service or browse products", icon: "https://img.icons8.com/3d-fluency/94/finger.png" },
-              { step: "02", title: "Order", desc: "Add to cart and pay securely", icon: "https://img.icons8.com/3d-fluency/94/shopping-cart.png" },
-              { step: "03", title: "Enjoy", desc: "Delivered fast to your door", icon: "https://img.icons8.com/3d-fluency/94/rocket.png" },
-            ].map((s, i) => (
-              <div key={s.step} className="bg-white rounded-2xl p-4 md:p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 text-center">
-                <div className="w-10 h-10 md:w-12 md:h-12 bg-gray-50 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <img src={s.icon} alt={s.title} className="w-7 h-7 md:w-8 md:h-8 object-contain" />
-                </div>
+              { step: "01", title: "Choose", desc: "Pick a service or browse products", emoji: "👆" },
+              { step: "02", title: "Order", desc: "Add to cart and pay securely", emoji: "🛒" },
+              { step: "03", title: "Enjoy", desc: "Delivered fast to your door", emoji: "🚀" },
+            ].map((s) => (
+              <div key={s.step} className="bg-white rounded-2xl p-5 md:p-8 border border-gray-100 shadow-sm text-center hover:shadow-md transition-all hover:-translate-y-0.5">
+                <div className="w-12 h-12 md:w-14 md:h-14 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl md:text-3xl">{s.emoji}</div>
                 <span className="text-[10px] font-black text-[#16A34A] tracking-widest">{s.step}</span>
-                <p className="font-bold text-sm md:text-base text-gray-900 mt-0.5">{s.title}</p>
-                <p className="text-[10px] md:text-xs text-gray-400 mt-1 leading-snug">{s.desc}</p>
+                <p className="font-black text-sm md:text-lg text-gray-900 mt-1">{s.title}</p>
+                <p className="text-[10px] md:text-sm text-gray-400 mt-1 leading-snug">{s.desc}</p>
               </div>
             ))}
           </div>
         </div>
+      </section>
 
-        {/* ── FOOTER ── */}
-        <div className="mt-10 md:mt-12 pt-8 border-t border-gray-200">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-[#16A34A] rounded-lg flex items-center justify-center">
-                <span className="text-white font-black text-xs">G</span>
-              </div>
-              <span className="font-black text-lg text-gray-900 tracking-tight">Gruwcer</span>
-              <span className="text-gray-300 text-sm ml-1">— Your everyday super app</span>
+      {/* ── FOOTER ── */}
+      <footer className="max-w-7xl mx-auto px-4 md:px-8 py-10 md:py-12">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-[#16A34A] rounded-xl flex items-center justify-center">
+              <span className="text-white font-black text-sm">G</span>
             </div>
-            <div className="flex items-center gap-6">
-              {[["Grocery", "/grocery"], ["Laundry", "/laundry"], ["Services", "/home-services"], ["Account", "/account"], ["Sign In", "/auth"]].map(([label, href]) => (
-                <a key={label} href={href} className="text-sm text-gray-400 hover:text-[#16A34A] transition-colors">{label}</a>
-              ))}
-            </div>
+            <span className="font-black text-xl text-gray-900 tracking-tight">Gruwcer</span>
+            <span className="text-gray-300 text-sm ml-1">— Your everyday super app</span>
           </div>
-          <p className="text-xs text-gray-300 mt-6 text-center md:text-left">© {new Date().getFullYear()} Gruwcer. All rights reserved.</p>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+            {[["Grocery", "/grocery"], ["Laundry", "/laundry"], ["Services", "/home-services"], ["Account", "/account"], ["Sign In", "/auth"]].map(([label, href]) => (
+              <a key={label} href={href} className="text-sm text-gray-400 hover:text-[#16A34A] transition-colors">{label}</a>
+            ))}
+          </div>
         </div>
-      </div>
+        <div className="border-t border-gray-100 mt-8 pt-6 flex flex-col md:flex-row items-center justify-between gap-2">
+          <p className="text-xs text-gray-300">© {new Date().getFullYear()} Gruwcer. All rights reserved.</p>
+          <p className="text-xs text-gray-300">Made with ❤️ in Cebu, Philippines</p>
+        </div>
+      </footer>
 
       {/* ── BOTTOM NAV (mobile) ── */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-50 safe-bottom" suppressHydrationWarning>
@@ -481,15 +528,15 @@ export default function HomePage() {
           </a>
           <a href="/grocery" className="flex flex-col items-center gap-0.5 py-1 text-gray-400">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" /></svg>
-            <span className="text-[10px] font-medium">Grocery</span>
+            <span className="text-[10px]">Grocery</span>
           </a>
           <a href="/laundry" className="flex flex-col items-center gap-0.5 py-1 text-gray-400">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
-            <span className="text-[10px] font-medium">Laundry</span>
+            <span className="text-[10px]">Laundry</span>
           </a>
           <a href="/account" className="flex flex-col items-center gap-0.5 py-1 text-gray-400">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-            <span className="text-[10px] font-medium">Account</span>
+            <span className="text-[10px]">Account</span>
           </a>
         </div>
       </nav>
@@ -500,12 +547,8 @@ export default function HomePage() {
           {!showOrderTracker && (
             <button onClick={() => setShowOrderTracker(true)} className="fixed bottom-20 md:bottom-8 left-1/2 -translate-x-1/2 z-[60] bg-white border border-gray-200 shadow-2xl rounded-full pl-14 pr-5 py-3 flex items-center gap-3 hover:shadow-xl transition-shadow">
               <div className="absolute left-2 top-1/2 -translate-y-1/2 flex">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#16A34A] to-emerald-600 border-2 border-white flex items-center justify-center z-30 shadow-md">
-                  <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M18 6h-2c0-2.21-1.79-4-4-4S8 3.79 8 6H6c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2c1.1 0 2 .9 2 2h-4c0-1.1.9-2 2-2zm6 16H6V8h2v2c0 .55.45 1 1 1s1-.45 1-1V8h4v2c0 .55.45 1 1 1s1-.45 1-1V8h2v12z"/></svg>
-                </div>
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 border-2 border-white flex items-center justify-center -ml-2 z-20 shadow-md">
-                  <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M19.5 3.5L18 2l-1.5 1.5L15 2l-1.5 1.5L12 2l-1.5 1.5L9 2 7.5 3.5 6 2 4.5 3.5 3 2v20l1.5-1.5L6 22l1.5-1.5L9 22l1.5-1.5L12 22l1.5-1.5L15 22l1.5-1.5L18 22l1.5-1.5L21 22V2l-1.5 1.5zM19 19H5V5h14v14zM6 15h12v2H6zm0-4h12v2H6zm0-4h12v2H6z"/></svg>
-                </div>
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#16A34A] to-emerald-600 border-2 border-white flex items-center justify-center z-30 shadow-md text-lg">🛒</div>
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 border-2 border-white flex items-center justify-center -ml-2 z-20 shadow-md text-sm">👕</div>
               </div>
               <div>
                 <p className="text-sm font-bold text-gray-900 leading-tight">{activeOrders.length} Active Order{activeOrders.length > 1 ? "s" : ""}</p>
@@ -528,12 +571,13 @@ export default function HomePage() {
               <div className="max-h-72 overflow-y-auto divide-y divide-gray-50">
                 {activeOrders.map((order) => {
                   const href = order.type === "grocery" ? `/order?id=${order.id}` : order.type === "laundry" ? "/laundry" : "/home-services"
-                  const icon = order.type === "grocery" ? "https://img.icons8.com/3d-fluency/94/shopping-cart.png" : order.type === "laundry" ? "https://img.icons8.com/3d-fluency/94/washing-machine.png" : "https://img.icons8.com/3d-fluency/94/maintenance.png"
                   const progressMap: Record<string, number> = { pending: 15, confirmed: 30, preparing: 45, ready_for_pickup: 60, rider_picked_up: 75, out_for_delivery: 85, washing: 65 }
                   const progress = progressMap[order.status] || 20
                   return (
                     <a key={`${order.type}-${order.id}`} href={href} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors">
-                      <img src={icon} alt={order.type} className="w-8 h-8 object-contain shrink-0" />
+                      <div className="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center text-lg shrink-0">
+                        {order.type === "grocery" ? "🛒" : order.type === "laundry" ? "👕" : "🔧"}
+                      </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <p className="text-sm font-semibold text-gray-800 truncate">{order.name}</p>
@@ -576,17 +620,16 @@ export default function HomePage() {
                   <p className="text-xs text-gray-400">Detect via GPS</p>
                 </div>
               </button>
-
               {savedAddresses.length > 0 && (
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Saved</p>
                   <div className="space-y-2">
                     {savedAddresses.map((addr) => {
-                      const icons: Record<string, string> = { Home: "https://img.icons8.com/3d-fluency/94/home.png", Office: "https://img.icons8.com/3d-fluency/94/office-building.png", Work: "https://img.icons8.com/3d-fluency/94/briefcase.png", Other: "https://img.icons8.com/3d-fluency/94/map-pin.png" }
+                      const icons: Record<string, string> = { Home: "🏠", Office: "🏢", Work: "💼", Other: "📍" }
                       const active = address === addr.address
                       return (
                         <div key={addr.id} onClick={() => selectAddress(addr)} className={`flex items-center gap-3 border rounded-xl px-4 py-3 cursor-pointer transition-colors ${active ? "border-[#16A34A] bg-green-50" : "border-gray-200 hover:border-gray-300"}`}>
-                          <img src={icons[addr.label] || icons.Other} alt={addr.label} className="w-7 h-7 shrink-0 object-contain" />
+                          <span className="text-xl shrink-0">{icons[addr.label] || "📍"}</span>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-bold text-gray-800">{addr.label}</p>
                             <p className="text-xs text-gray-500 truncate">{addr.address}</p>
@@ -599,7 +642,6 @@ export default function HomePage() {
                   </div>
                 </div>
               )}
-
               {!addingNew ? (
                 <button onClick={() => setAddingNew(true)} className="w-full flex items-center gap-3 border-2 border-dashed border-gray-200 rounded-xl px-4 py-3 hover:border-[#16A34A] transition-colors">
                   <div className="w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center shrink-0">
@@ -612,10 +654,10 @@ export default function HomePage() {
                   <p className="text-xs font-bold text-gray-700">New Address</p>
                   <div className="grid grid-cols-4 gap-2">
                     {(["Home", "Office", "Work", "Other"] as const).map((lbl) => {
-                      const lblIcons: Record<string, string> = { Home: "https://img.icons8.com/3d-fluency/94/home.png", Office: "https://img.icons8.com/3d-fluency/94/office-building.png", Work: "https://img.icons8.com/3d-fluency/94/briefcase.png", Other: "https://img.icons8.com/3d-fluency/94/map-pin.png" }
+                      const lblIcons: Record<string, string> = { Home: "🏠", Office: "🏢", Work: "💼", Other: "📍" }
                       return (
                         <button key={lbl} onClick={() => setNewAddr((p) => ({ ...p, label: lbl }))} className={`py-2 rounded-xl text-xs font-bold border transition-colors ${newAddr.label === lbl ? "bg-[#16A34A] text-white border-[#16A34A]" : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"}`}>
-                          <img src={lblIcons[lbl]} alt={lbl} className="w-5 h-5 mx-auto mb-0.5 object-contain" />{lbl}
+                          <span className="block text-base mb-0.5">{lblIcons[lbl]}</span>{lbl}
                         </button>
                       )
                     })}
@@ -630,9 +672,7 @@ export default function HomePage() {
                   </div>
                 </div>
               )}
-              {mounted && !user && (
-                <p className="text-xs text-center text-gray-400 pb-2"><a href="/auth" className="text-[#16A34A] font-bold">Sign in</a> to save addresses across devices</p>
-              )}
+              {mounted && !user && <p className="text-xs text-center text-gray-400 pb-2"><a href="/auth" className="text-[#16A34A] font-bold">Sign in</a> to save addresses across devices</p>}
             </div>
           </div>
         </div>
@@ -646,22 +686,16 @@ export default function HomePage() {
             <div className="bg-gradient-to-br from-[#16A34A] to-[#15803d] px-6 pt-8 pb-10 text-center relative overflow-hidden">
               <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/5 rounded-full" />
               <div className="w-14 h-14 bg-white rounded-2xl shadow-xl flex items-center justify-center mx-auto mb-4">
-                <div className="w-8 h-8 bg-[#16A34A] rounded-lg flex items-center justify-center">
-                  <span className="text-white font-black text-sm">G</span>
-                </div>
+                <div className="w-8 h-8 bg-[#16A34A] rounded-lg flex items-center justify-center"><span className="text-white font-black text-sm">G</span></div>
               </div>
               <h2 className="text-white font-black text-xl">Install Gruwcer</h2>
               <p className="text-white/70 text-xs mt-1">Get the full app experience</p>
             </div>
             <div className="px-6 -mt-5 relative">
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
-                {[
-                  { icon: "https://img.icons8.com/3d-fluency/94/lightning-bolt.png", text: "Faster loading & instant access" },
-                  { icon: "https://img.icons8.com/3d-fluency/94/appointment-reminders.png", text: "Order notifications & updates" },
-                  { icon: "https://img.icons8.com/3d-fluency/94/home.png", text: "Launch from your home screen" },
-                ].map((b) => (
+                {[{ emoji: "⚡", text: "Faster loading & instant access" }, { emoji: "🔔", text: "Order notifications & updates" }, { emoji: "🏠", text: "Launch from your home screen" }].map((b) => (
                   <div key={b.text} className="flex items-center gap-3">
-                    <img src={b.icon} alt="" className="w-7 h-7 object-contain shrink-0" />
+                    <span className="text-xl shrink-0">{b.emoji}</span>
                     <p className="text-sm text-gray-700">{b.text}</p>
                   </div>
                 ))}
