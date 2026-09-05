@@ -71,8 +71,6 @@ export default function AdminThemePage() {
       const data = await res.json()
       if (!res.ok || data.error) throw new Error(data.error || "Failed")
       applyThemeLive(theme)
-      // Clear cache so all pages pick up new theme on next load
-      try { localStorage.removeItem("__gruwcer_theme") } catch {}
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
     } catch (e: any) {

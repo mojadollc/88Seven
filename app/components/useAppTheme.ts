@@ -2,8 +2,6 @@
 
 import { useEffect } from "react"
 
-const CACHE_KEY = "__gruwcer_theme"
-
 function applyVars(t: any) {
   const bg = t.themeType === "gradient"
     ? `linear-gradient(135deg, ${t.themeColor}, ${t.themeColorTo})`
@@ -24,22 +22,10 @@ function applyVars(t: any) {
 
 export function useAppTheme() {
   useEffect(() => {
-    // Don't apply theme vars on admin pages
     if (window.location.pathname.startsWith("/admin")) return
-
-    // 1. Apply cached theme instantly (no flash)
-    try {
-      const cached = localStorage.getItem(CACHE_KEY)
-      if (cached) applyVars(JSON.parse(cached))
-    } catch {}
-
-    // 2. Fetch fresh from DB, update DOM + cache
     fetch("/api/settings/theme")
       .then(r => r.json())
-      .then((t: any) => {
-        applyVars(t)
-        try { localStorage.setItem(CACHE_KEY, JSON.stringify(t)) } catch {}
-      })
+      .then(applyVars)
       .catch(() => {})
   }, [])
 }
