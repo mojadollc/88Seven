@@ -5,7 +5,7 @@ import { getUser, getToken } from "@/lib/auth"
 
 // ↓ Add your image URLs here per service (leave empty to use gradient)
 const SERVICES = [
-  { id: "grocery", name: "Grocery", icon: "🛒", href: "/grocery", available: true, color: "from-emerald-500 to-green-600", desc: "Fresh produce & daily essentials", badge: "Same-day delivery", image: "" },
+  { id: "grocery", name: "Grocery", icon: "🛒", href: "/grocery", available: true, color: "from-emerald-500 to-green-600", desc: "Fresh produce & daily essentials", badge: "Same-day delivery", image: "https://pos.payroo.xyz/api/image/FeFKxWmBQcXyhtXisNAS_1787493435818.jpg" },
   { id: "laundry", name: "Laundry", icon: "👕", href: "/laundry", available: true, color: "from-blue-500 to-indigo-600", desc: "Wash, dry & fold service", badge: "Pickup & delivery", image: "" },
   { id: "services", name: "Home Services", icon: "🔧", href: "/home-services", available: true, color: "from-teal-500 to-cyan-600", desc: "Aircon, plumbing, electrical", badge: "Book a pro", image: "" },
   { id: "travel", name: "Hotel & Flights", icon: "✈️", href: "/travel", available: true, color: "from-sky-500 to-blue-600", desc: "Hotels, flights & packages", badge: "Best rates", image: "" },
