@@ -42,7 +42,7 @@ function FailedContent() {
           </div>
           <h1 className="font-bold text-2xl text-gray-800 mb-2">Order Cancelled</h1>
           <p className="text-sm text-gray-500 mb-6">Your order has been cancelled successfully.</p>
-          <a href="/" className="block bg-[#16A34A] text-white px-6 py-3 rounded-xl font-bold text-sm">
+          <a href="/" className="block bg-[#4194AF] text-white px-6 py-3 rounded-xl font-bold text-sm">
             Go to Home
           </a>
         </div>
@@ -53,7 +53,7 @@ function FailedContent() {
   return (
     <main className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="text-center max-w-sm w-full">
-        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-20 h-20 bg-[#93D569]/20 rounded-full flex items-center justify-center mx-auto mb-4">
           <svg className="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -61,7 +61,7 @@ function FailedContent() {
         <h1 className="font-bold text-2xl text-gray-800 mb-2">Payment Failed</h1>
         <p className="text-sm text-gray-500 mb-6">Something went wrong with your payment. Your order has not been confirmed.</p>
         <div className="space-y-3">
-          <a href={`/${service}`} className="block bg-[#16A34A] text-white px-6 py-3 rounded-xl font-bold text-sm">
+          <a href={`/${service}`} className="block bg-[#4194AF] text-white px-6 py-3 rounded-xl font-bold text-sm">
             Try Again
           </a>
           <button
@@ -79,7 +79,7 @@ function FailedContent() {
 
 export default function PaymentFailed() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-10 h-10 border-4 border-[#16A34A] border-t-transparent rounded-full animate-spin" /></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-10 h-10 border-4 border-[#4194AF] border-t-transparent rounded-full animate-spin" /></div>}>
       <FailedContent />
     </Suspense>
   )

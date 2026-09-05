@@ -242,11 +242,11 @@ export default function DriverPage() {
   // ═══ LOGIN SCREEN ═══
   if (!driver) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-[#16A34A] to-[#15803d] flex flex-col items-center justify-center p-4">
+      <main className="min-h-screen bg-gradient-to-b from-[#4194AF] to-[#3a7d96] flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
             <div className="w-20 h-20 bg-white rounded-full mx-auto flex items-center justify-center shadow-lg mb-4">
-              <svg className="w-10 h-10 text-[#16A34A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" /></svg>
+              <svg className="w-10 h-10 text-[#4194AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" /></svg>
             </div>
             <h1 className="text-white text-2xl font-bold tracking-tight">Gruwcer Rider</h1>
             <p className="text-white/70 text-sm mt-1">Delivery Partner App</p>
@@ -263,13 +263,13 @@ export default function DriverPage() {
             <div className="space-y-3">
               <div>
                 <label className="text-xs font-medium text-gray-500">Email</label>
-                <input type="email" placeholder="rider@payroo.com" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm mt-1 outline-none focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A]" />
+                <input type="email" placeholder="rider@payroo.com" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm mt-1 outline-none focus:border-[#4194AF] focus:ring-1 focus:ring-[#4194AF]" />
               </div>
               <div>
                 <label className="text-xs font-medium text-gray-500">Password</label>
-                <input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && login()} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm mt-1 outline-none focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A]" />
+                <input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && login()} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm mt-1 outline-none focus:border-[#4194AF] focus:ring-1 focus:ring-[#4194AF]" />
               </div>
-              <button onClick={login} className="w-full bg-[#16A34A] text-white py-3.5 rounded-xl font-bold text-sm hover:bg-[#15803d] transition-colors mt-2">
+              <button onClick={login} className="w-full bg-[#4194AF] text-white py-3.5 rounded-xl font-bold text-sm hover:bg-[#3a7d96] transition-colors mt-2">
                 Login
               </button>
             </div>
@@ -284,7 +284,7 @@ export default function DriverPage() {
   return (
     <main className="min-h-screen bg-gray-100 max-w-lg mx-auto flex flex-col">
       {/* Header */}
-      <header className="bg-[#16A34A] text-white px-4 py-3 sticky top-0 z-30">
+      <header className="bg-[#4194AF] text-white px-4 py-3 sticky top-0 z-30">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
@@ -309,7 +309,7 @@ export default function DriverPage() {
                   <div className="px-3 py-2 border-b flex items-center justify-between bg-gray-50">
                     <span className="text-xs font-bold text-gray-800">Notifications</span>
                     {driverNotifs.filter((n) => !n.read).length > 0 && driver && (
-                      <button onClick={() => fetch("/api/notifications", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "markAllRead", recipientType: "driver", recipientId: driver.id }) }).then(() => setDriverNotifs((n: any[]) => n.map(x => ({...x, read: true}))))} className="text-[10px] text-[#16A34A] font-medium">Mark read</button>
+                      <button onClick={() => fetch("/api/notifications", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "markAllRead", recipientType: "driver", recipientId: driver.id }) }).then(() => setDriverNotifs((n: any[]) => n.map(x => ({...x, read: true}))))} className="text-[10px] text-[#4194AF] font-medium">Mark read</button>
                     )}
                   </div>
                   <div className="max-h-48 overflow-y-auto">
@@ -346,7 +346,7 @@ export default function DriverPage() {
         <div className="bg-gray-800 text-white text-center py-4 px-4">
           <p className="font-bold text-sm">You are offline</p>
           <p className="text-xs text-gray-400 mt-1">Go online to receive delivery tasks</p>
-          <button onClick={toggleOnline} className="mt-3 bg-green-500 text-white px-6 py-2 rounded-full text-xs font-bold">
+          <button onClick={toggleOnline} className="mt-3 bg-[#4194AF]/100 text-white px-6 py-2 rounded-full text-xs font-bold">
             Go Online
           </button>
         </div>
@@ -399,16 +399,16 @@ export default function DriverPage() {
                 <p className="text-[10px] text-gray-400">Active</p>
               </div>
               <div className="text-center">
-                <p className="text-lg font-bold text-green-600">{allHistory.length}</p>
+                <p className="text-lg font-bold text-[#4194AF]">{allHistory.length}</p>
                 <p className="text-[10px] text-gray-400">Completed</p>
               </div>
             </div>
             {/* Earnings */}
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-3 border border-green-100">
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-3 border border-[#4194AF]/20">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] text-green-600 font-semibold uppercase">Today's Earnings</p>
-                  <p className="text-xl font-black text-green-700">₱{todayEarnings.toFixed(2)}</p>
+                  <p className="text-[10px] text-[#4194AF] font-semibold uppercase">Today's Earnings</p>
+                  <p className="text-xl font-black text-[#3a7d96]">₱{todayEarnings.toFixed(2)}</p>
                   <p className="text-[10px] text-green-500">{todayDelivered.length} deliveries today</p>
                 </div>
                 <div className="text-right">
@@ -426,13 +426,13 @@ export default function DriverPage() {
               <button
                 key={key}
                 onClick={() => setTab(key)}
-                className={`flex-1 py-3 text-xs font-bold transition-colors relative ${tab === key ? "text-[#16A34A]" : "text-gray-400"}`}
+                className={`flex-1 py-3 text-xs font-bold transition-colors relative ${tab === key ? "text-[#4194AF]" : "text-gray-400"}`}
               >
                 {label}
                 {key === "available" && availableOrders.length > 0 && (
-                  <span className="absolute top-2 right-1/4 w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  <span className="absolute top-2 right-1/4 w-2 h-2 bg-[#4194AF]/100 rounded-full animate-pulse" />
                 )}
-                {tab === key && <span className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-[#16A34A] rounded-full" />}
+                {tab === key && <span className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-[#4194AF] rounded-full" />}
               </button>
             ))}
           </div>
@@ -457,13 +457,13 @@ export default function DriverPage() {
                       <p className="text-[10px] text-gray-400">{order.createdAt?.toLocaleString?.() || "Just now"}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-[#16A34A]">₱{(order.total || (order as any).totalPrice || 0).toFixed(2)}</span>
+                      <span className="text-sm font-bold text-[#4194AF]">₱{(order.total || (order as any).totalPrice || 0).toFixed(2)}</span>
                       <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full capitalize ${
                         order.status === "ready_for_pickup" ? "bg-orange-100 text-orange-700" :
                         order.status === "rider_accepted" ? "bg-cyan-100 text-cyan-700" :
                         order.status === "rider_at_store" ? "bg-teal-100 text-teal-700" :
                         order.status === "rider_picked_up" || order.status === "out_for_delivery" ? "bg-blue-100 text-blue-700" :
-                        order.status === "delivered" ? "bg-green-100 text-green-700" :
+                        order.status === "delivered" ? "bg-[#93D569]/20 text-[#3a7d96]" :
                         "bg-gray-100 text-gray-600"
                       }`}>
                         {order.status.replace(/_/g, " ")}
@@ -480,7 +480,7 @@ export default function DriverPage() {
                         <p className="text-xs text-gray-500">{order.customerPhone}</p>
                       </div>
                       {order.customerPhone && (
-                        <a href={`tel:${order.customerPhone}`} className="w-8 h-8 bg-green-50 rounded-full flex items-center justify-center text-sm shrink-0">📞</a>
+                        <a href={`tel:${order.customerPhone}`} className="w-8 h-8 bg-[#4194AF]/10 rounded-full flex items-center justify-center text-sm shrink-0">📞</a>
                       )}
                     </div>
 
@@ -520,11 +520,11 @@ export default function DriverPage() {
                       <a
                         href={order.deliveryLat && order.deliveryLng ? `https://www.google.com/maps/search/?api=1&query=${order.deliveryLat},${order.deliveryLng}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.deliveryAddress || (order as any).pickupAddress || "")}`}
                         target="_blank"
-                        className="flex items-start gap-2 bg-green-50 rounded-xl p-3 hover:bg-green-100 transition-colors"
+                        className="flex items-start gap-2 bg-[#4194AF]/10 rounded-xl p-3 hover:bg-[#93D569]/20 transition-colors"
                       >
                         <svg className="w-4 h-4 text-green-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                         <div className="flex-1">
-                          <p className="text-[10px] font-bold text-green-700 uppercase">Drop-off / Delivery</p>
+                          <p className="text-[10px] font-bold text-[#3a7d96] uppercase">Drop-off / Delivery</p>
                           <p className="text-xs text-green-800">{order.deliveryAddress || (order as any).pickupAddress || ""}</p>
                         </div>
                         <svg className="w-4 h-4 text-green-400 mt-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
@@ -562,7 +562,7 @@ export default function DriverPage() {
                       <button
                         onClick={() => canAcceptTasks && acceptOrder(order.id)}
                         disabled={!canAcceptTasks}
-                        className={`w-full py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 ${canAcceptTasks ? "bg-[#16A34A] text-white hover:bg-[#15803d]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
+                        className={`w-full py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 ${canAcceptTasks ? "bg-[#4194AF] text-white hover:bg-[#3a7d96]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
                       >
                         {canAcceptTasks ? "✓ Accept Delivery Task" : "🔒 Complete profile & top up to accept"}
                       </button>
@@ -601,7 +601,7 @@ export default function DriverPage() {
                           <button
                             onClick={() => toggleLocation(order.id)}
                             className={`flex-1 py-3 rounded-xl text-xs font-bold transition-colors ${
-                              sharing === order.id ? "bg-green-100 text-green-800 border border-green-200" : "bg-blue-50 text-blue-700 border border-blue-200"
+                              sharing === order.id ? "bg-[#93D569]/20 text-green-800 border border-green-200" : "bg-blue-50 text-blue-700 border border-blue-200"
                             }`}
                           >
                             {sharing === order.id ? "⏹ Stop Sharing" : "📡 Share Location"}
@@ -628,7 +628,7 @@ export default function DriverPage() {
                     {/* Delivered */}
                     {order.status === "delivered" && (
                       <div className="text-center py-2">
-                        <span className="text-green-600 text-xs font-bold">✓ Delivery Completed</span>
+                        <span className="text-[#4194AF] text-xs font-bold">✓ Delivery Completed</span>
                       </div>
                     )}
 
@@ -705,7 +705,7 @@ export default function DriverPage() {
             <div className="fixed inset-0 z-[100] flex flex-col">
               <div className="absolute inset-0 bg-black/50" onClick={() => setChatOrderId(null)} />
               <div className="relative mt-auto bg-white rounded-t-2xl w-full max-w-lg mx-auto h-[65vh] flex flex-col overflow-hidden">
-                <div className="bg-[#16A34A] px-4 py-3 flex items-center justify-between flex-shrink-0">
+                <div className="bg-[#4194AF] px-4 py-3 flex items-center justify-between flex-shrink-0">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
@@ -726,7 +726,7 @@ export default function DriverPage() {
                   ) : (
                     chatMessages.map((msg) => (
                       <div key={msg.id} className={`flex ${msg.senderRole === "driver" ? "justify-end" : "justify-start"}`}>
-                        <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${msg.senderRole === "driver" ? "bg-[#16A34A] text-white rounded-br-md" : "bg-white text-gray-800 border border-gray-200 rounded-bl-md"}`}>
+                        <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${msg.senderRole === "driver" ? "bg-[#4194AF] text-white rounded-br-md" : "bg-white text-gray-800 border border-gray-200 rounded-bl-md"}`}>
                           {msg.senderRole !== "driver" && <p className="text-[10px] font-bold mb-0.5 text-gray-400">{msg.senderName}</p>}
                           <p className="text-sm">{msg.message}</p>
                           <p className={`text-[9px] mt-1 ${msg.senderRole === "driver" ? "text-white/50" : "text-gray-300"}`}>
@@ -745,12 +745,12 @@ export default function DriverPage() {
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleSendChat()}
-                    className="flex-1 border border-gray-200 rounded-full px-4 py-2.5 text-sm outline-none focus:border-[#16A34A]"
+                    className="flex-1 border border-gray-200 rounded-full px-4 py-2.5 text-sm outline-none focus:border-[#4194AF]"
                   />
                   <button
                     onClick={handleSendChat}
                     disabled={!chatInput.trim()}
-                    className="w-10 h-10 bg-[#16A34A] text-white rounded-full flex items-center justify-center hover:bg-[#15803d] transition-colors disabled:opacity-40"
+                    className="w-10 h-10 bg-[#4194AF] text-white rounded-full flex items-center justify-center hover:bg-[#3a7d96] transition-colors disabled:opacity-40"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
                   </button>
@@ -761,15 +761,15 @@ export default function DriverPage() {
 
           {/* Bottom Nav */}
           <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg bg-white border-t border-gray-200 grid grid-cols-3 py-2 z-30">
-            <button onClick={() => setTab("available")} className={`flex flex-col items-center gap-0.5 py-1 ${tab === "available" ? "text-[#16A34A]" : "text-gray-400"}`}>
+            <button onClick={() => setTab("available")} className={`flex flex-col items-center gap-0.5 py-1 ${tab === "available" ? "text-[#4194AF]" : "text-gray-400"}`}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
               <span className="text-[10px] font-medium">Available</span>
             </button>
-            <button onClick={() => setTab("active")} className={`flex flex-col items-center gap-0.5 py-1 ${tab === "active" ? "text-[#16A34A]" : "text-gray-400"}`}>
+            <button onClick={() => setTab("active")} className={`flex flex-col items-center gap-0.5 py-1 ${tab === "active" ? "text-[#4194AF]" : "text-gray-400"}`}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" /></svg>
               <span className="text-[10px] font-medium">Active</span>
             </button>
-            <button onClick={() => setTab("history")} className={`flex flex-col items-center gap-0.5 py-1 ${tab === "history" ? "text-[#16A34A]" : "text-gray-400"}`}>
+            <button onClick={() => setTab("history")} className={`flex flex-col items-center gap-0.5 py-1 ${tab === "history" ? "text-[#4194AF]" : "text-gray-400"}`}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
               <span className="text-[10px] font-medium">History</span>
             </button>

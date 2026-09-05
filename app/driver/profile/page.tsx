@@ -71,11 +71,11 @@ export default function DriverProfilePage() {
     }
   }
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="w-10 h-10 border-4 border-[#16A34A] border-t-transparent rounded-full animate-spin" /></div>
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="w-10 h-10 border-4 border-[#4194AF] border-t-transparent rounded-full animate-spin" /></div>
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <header className="bg-[#16A34A] text-white px-4 py-3 sticky top-0 z-50">
+      <header className="bg-[#4194AF] text-white px-4 py-3 sticky top-0 z-50">
         <div className="max-w-lg mx-auto">
           <h1 className="font-bold text-sm">Complete Your Profile</h1>
           <p className="text-white/60 text-[10px]">Required before you can accept deliveries</p>
@@ -126,12 +126,12 @@ export default function DriverProfilePage() {
           <h3 className="font-bold text-sm text-gray-800 mb-1">3. Vehicle Information</h3>
           <p className="text-[10px] text-gray-400 mb-3">Photo of your motorcycle/e-bike with visible plate number</p>
           <div className="space-y-3">
-            <select value={form.vehicleType} onChange={(e) => setForm({ ...form, vehicleType: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#16A34A]">
+            <select value={form.vehicleType} onChange={(e) => setForm({ ...form, vehicleType: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#4194AF]">
               <option value="motorcycle">Motorcycle</option>
               <option value="ebike">E-Bike</option>
               <option value="bicycle">Bicycle</option>
             </select>
-            <input placeholder="Plate Number" value={form.plateNumber} onChange={(e) => setForm({ ...form, plateNumber: e.target.value.toUpperCase() })} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#16A34A]" />
+            <input placeholder="Plate Number" value={form.plateNumber} onChange={(e) => setForm({ ...form, plateNumber: e.target.value.toUpperCase() })} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#4194AF]" />
             {vehiclePreview && <img src={vehiclePreview} className="w-full h-32 object-cover rounded-lg border border-gray-200" />}
             <label className="block cursor-pointer">
               <div className="border-2 border-dashed border-gray-300 rounded-lg py-3 text-center hover:bg-gray-50 transition-colors">
@@ -145,13 +145,13 @@ export default function DriverProfilePage() {
         {/* 4. Phone */}
         <div className="bg-white rounded-xl border border-gray-100 p-4">
           <h3 className="font-bold text-sm text-gray-800 mb-1">4. Contact Number</h3>
-          <input type="tel" placeholder="09xxxxxxxxx" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/[^0-9]/g, "") })} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#16A34A]" />
+          <input type="tel" placeholder="09xxxxxxxxx" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/[^0-9]/g, "") })} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#4194AF]" />
         </div>
       </div>
 
       {/* Save Button */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 max-w-lg mx-auto">
-        <button onClick={handleSave} disabled={saving} className="w-full bg-[#16A34A] text-white py-3.5 rounded-xl font-bold text-sm hover:bg-[#15803d] transition-colors disabled:opacity-50">
+        <button onClick={handleSave} disabled={saving} className="w-full bg-[#4194AF] text-white py-3.5 rounded-xl font-bold text-sm hover:bg-[#3a7d96] transition-colors disabled:opacity-50">
           {saving ? "Saving..." : "Complete Profile"}
         </button>
       </div>

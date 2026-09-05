@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react"
 
 const SERVICES = [
-  { id: "grocery", label: "Grocery", link: "/grocery", color: "from-emerald-500 to-green-600", icon: "🛒" },
+  { id: "grocery", label: "Grocery", link: "/grocery", color: "from-[#4194AF] via-[#61B288] to-[#93D569]", icon: "🛒" },
   { id: "laundry", label: "Laundry", link: "/laundry", color: "from-blue-500 to-indigo-600", icon: "👕" },
   { id: "services", label: "Home Services", link: "/home-services", color: "from-teal-500 to-cyan-600", icon: "🔧" },
   { id: "travel", label: "Hotel & Flights", link: "/travel", color: "from-sky-500 to-blue-600", icon: "✈️" },
@@ -51,7 +51,7 @@ export default function HeroImagesAdmin() {
       await fetch(`/api/hero/${existing.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ imageUrl }) })
       setSlides(p => ({ ...p, [serviceId]: { ...existing, imageUrl } }))
     } else {
-      const res = await fetch("/api/hero", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ badge: svc.label, title: svc.label, highlight: "", description: "", imageUrl, bgColor: "#16A34A", link: svc.link, order: 0, enabled: true }) })
+      const res = await fetch("/api/hero", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ badge: svc.label, title: svc.label, highlight: "", description: "", imageUrl, bgColor: "#4194AF", link: svc.link, order: 0, enabled: true }) })
       const created = await res.json()
       setSlides(p => ({ ...p, [serviceId]: created }))
     }
@@ -96,16 +96,16 @@ export default function HeroImagesAdmin() {
                   onChange={e => { if (e.target.files?.[0]) handleUpload(svc.id, e.target.files[0]) }} />
 
                 <button onClick={() => fileRefs.current[svc.id]?.click()} disabled={isUploading}
-                  className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-gray-200 hover:border-[#16A34A] rounded-lg py-2 text-sm text-gray-500 hover:text-[#16A34A] transition-colors disabled:opacity-50">
+                  className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-gray-200 hover:border-[#4194AF] rounded-lg py-2 text-sm text-gray-500 hover:text-[#4194AF] transition-colors disabled:opacity-50">
                   {isUploading ? "Uploading..." : "📁 Upload Image"}
                 </button>
                 <p className="text-[10px] text-gray-400 text-center -mt-1">Recommended: 900 × 700px • JPG or PNG</p>
 
                 <input type="text" value={currentImage} onChange={e => setUrls(p => ({ ...p, [svc.id]: e.target.value }))}
-                  placeholder="Or paste image URL..." className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-[#16A34A]" />
+                  placeholder="Or paste image URL..." className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-[#4194AF]" />
 
                 <button onClick={() => handleSave(svc.id)} disabled={isSaving}
-                  className="w-full bg-[#16A34A] text-white text-sm font-semibold py-2 rounded-lg hover:bg-[#15803d] disabled:opacity-50 transition-colors">
+                  className="w-full bg-[#4194AF] text-white text-sm font-semibold py-2 rounded-lg hover:bg-[#3a7d96] disabled:opacity-50 transition-colors">
                   {isSaving ? "Saving..." : "Save"}
                 </button>
               </div>

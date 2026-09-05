@@ -19,7 +19,7 @@ export default function AdminBannersPage() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Banner | null>(null)
-  const [form, setForm] = useState({ title: "", subtitle: "", imageUrl: "", bgColor: "#16A34A", link: "/grocery", order: 0, enabled: true })
+  const [form, setForm] = useState({ title: "", subtitle: "", imageUrl: "", bgColor: "#4194AF", link: "/grocery", order: 0, enabled: true })
 
   useEffect(() => { loadBanners() }, [])
 
@@ -36,7 +36,7 @@ export default function AdminBannersPage() {
       await fetch("/api/banners", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) })
     }
     setShowForm(false); setEditing(null)
-    setForm({ title: "", subtitle: "", imageUrl: "", bgColor: "#16A34A", link: "/grocery", order: 0, enabled: true })
+    setForm({ title: "", subtitle: "", imageUrl: "", bgColor: "#4194AF", link: "/grocery", order: 0, enabled: true })
     await loadBanners()
   }
 
@@ -62,7 +62,7 @@ export default function AdminBannersPage() {
       <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-20">
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-bold text-[#1F2937]">App Banners</h1>
-          <button onClick={() => { setEditing(null); setForm({ title: "", subtitle: "", imageUrl: "", bgColor: "#16A34A", link: "/grocery", order: banners.length + 1, enabled: true }); setShowForm(true) }} className="text-xs bg-[#16A34A] text-white px-4 py-2 rounded-lg font-bold">+ Add Banner</button>
+          <button onClick={() => { setEditing(null); setForm({ title: "", subtitle: "", imageUrl: "", bgColor: "#4194AF", link: "/grocery", order: banners.length + 1, enabled: true }); setShowForm(true) }} className="text-xs bg-[#4194AF] text-white px-4 py-2 rounded-lg font-bold">+ Add Banner</button>
         </div>
       </header>
 
@@ -90,13 +90,13 @@ export default function AdminBannersPage() {
                   <div className="flex-1 p-4 flex items-center justify-between">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${banner.enabled ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>{banner.enabled ? "Active" : "Disabled"}</span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${banner.enabled ? "bg-[#93D569]/20 text-[#3a7d96]" : "bg-gray-100 text-gray-500"}`}>{banner.enabled ? "Active" : "Disabled"}</span>
                         <span className="text-[10px] text-gray-400">Order: {banner.order}</span>
                       </div>
                       <p className="text-xs text-gray-500">Link: {banner.link}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button onClick={() => handleToggle(banner)} className={`w-10 h-5 rounded-full transition-colors ${banner.enabled ? "bg-green-500" : "bg-gray-300"}`}>
+                      <button onClick={() => handleToggle(banner)} className={`w-10 h-5 rounded-full transition-colors ${banner.enabled ? "bg-[#4194AF]/100" : "bg-gray-300"}`}>
                         <span className={`block w-4 h-4 bg-white rounded-full shadow-sm transition-transform ml-0.5 ${banner.enabled ? "translate-x-5" : ""}`} />
                       </button>
                       <button onClick={() => handleEdit(banner)} className="text-xs text-blue-600 hover:underline">Edit</button>
@@ -131,11 +131,11 @@ export default function AdminBannersPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-semibold text-gray-500">Title</label>
-                  <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 outline-none focus:border-[#16A34A]" />
+                  <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 outline-none focus:border-[#4194AF]" />
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500">Subtitle</label>
-                  <input value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 outline-none focus:border-[#16A34A]" />
+                  <input value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 outline-none focus:border-[#4194AF]" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -148,10 +148,10 @@ export default function AdminBannersPage() {
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500">Link URL (optional)</label>
-                  <input value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} placeholder="/grocery or https://... (leave empty for no link)" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 outline-none focus:border-[#16A34A]" />
+                  <input value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} placeholder="/grocery or https://... (leave empty for no link)" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 outline-none focus:border-[#4194AF]" />
                   <div className="flex gap-1 mt-1.5">
                     {["/grocery", "/laundry", "/services", "/travel"].map((l) => (
-                      <button key={l} type="button" onClick={() => setForm({ ...form, link: l })} className={`text-[10px] px-2 py-0.5 rounded border ${form.link === l ? "bg-[#16A34A] text-white border-[#16A34A]" : "bg-gray-50 text-gray-500 border-gray-200"}`}>{l.replace("/", "")}</button>
+                      <button key={l} type="button" onClick={() => setForm({ ...form, link: l })} className={`text-[10px] px-2 py-0.5 rounded border ${form.link === l ? "bg-[#4194AF] text-white border-[#4194AF]" : "bg-gray-50 text-gray-500 border-gray-200"}`}>{l.replace("/", "")}</button>
                     ))}
                   </div>
                 </div>
@@ -176,7 +176,7 @@ export default function AdminBannersPage() {
             </div>
             <div className="px-6 py-4 border-t flex justify-end gap-3">
               <button onClick={() => setShowForm(false)} className="px-4 py-2 text-sm text-gray-600">Cancel</button>
-              <button onClick={handleSave} className="bg-[#16A34A] text-white px-5 py-2 rounded-lg text-sm font-bold">Save</button>
+              <button onClick={handleSave} className="bg-[#4194AF] text-white px-5 py-2 rounded-lg text-sm font-bold">Save</button>
             </div>
           </div>
         </div>

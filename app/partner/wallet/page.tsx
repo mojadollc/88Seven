@@ -141,13 +141,13 @@ export default function PartnerWalletPage() {
               {entries.map((txn) => (
                 <div key={txn.id} className="px-4 py-3 flex items-center justify-between">
                   <div>
-                    <p className={`text-xs font-medium ${txn.type === "topup" ? "text-green-700" : "text-green-700"}`}>
+                    <p className={`text-xs font-medium ${txn.type === "topup" ? "text-[#3a7d96]" : "text-[#3a7d96]"}`}>
                       {txn.type === "topup" ? "Wallet Top-Up" : "Deduction"}
                     </p>
                     <p className="text-[10px] text-gray-400">{txn.note}</p>
                     <p className="text-[10px] text-gray-300">{txn.createdAt?.toLocaleString?.() || ""}</p>
                   </div>
-                  <span className={`text-sm font-bold ${txn.amount >= 0 ? "text-green-600" : "text-green-500"}`}>
+                  <span className={`text-sm font-bold ${txn.amount >= 0 ? "text-[#4194AF]" : "text-green-500"}`}>
                     {txn.amount >= 0 ? "+" : ""}₱{Math.abs(txn.amount)}
                   </span>
                 </div>

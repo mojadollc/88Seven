@@ -79,7 +79,7 @@ export default function ProviderWalletPage() {
         {/* Earnings Summary */}
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-white rounded-xl border border-gray-100 p-3 text-center">
-            <p className="text-sm font-bold text-green-600">₱{earnings.toFixed(0)}</p>
+            <p className="text-sm font-bold text-[#4194AF]">₱{earnings.toFixed(0)}</p>
             <p className="text-[10px] text-gray-400 mt-0.5">Total Earned</p>
           </div>
           <div className="bg-white rounded-xl border border-gray-100 p-3 text-center">
@@ -104,13 +104,13 @@ export default function ProviderWalletPage() {
               {transactions.map((txn) => (
                 <div key={txn.id} className="px-4 py-3 flex items-center justify-between">
                   <div>
-                    <p className={`text-xs font-semibold ${txn.type === "topup" ? "text-blue-600" : txn.type === "earning" ? "text-green-600" : txn.type === "commission" ? "text-green-500" : "text-gray-600"}`}>
+                    <p className={`text-xs font-semibold ${txn.type === "topup" ? "text-blue-600" : txn.type === "earning" ? "text-[#4194AF]" : txn.type === "commission" ? "text-green-500" : "text-gray-600"}`}>
                       {txn.type === "topup" ? "💳 Top-Up" : txn.type === "earning" ? "💰 Earning" : txn.type === "commission" ? "📊 Commission" : "📤 Deduction"}
                     </p>
                     <p className="text-[10px] text-gray-400 mt-0.5">{txn.note || ""}</p>
                     <p className="text-[10px] text-gray-300">{txn.createdAt?.toLocaleDateString?.() || "Recently"}</p>
                   </div>
-                  <span className={`text-sm font-bold ${txn.amount >= 0 ? "text-green-600" : "text-green-500"}`}>
+                  <span className={`text-sm font-bold ${txn.amount >= 0 ? "text-[#4194AF]" : "text-green-500"}`}>
                     {txn.amount >= 0 ? "+" : ""}₱{Math.abs(txn.amount).toFixed(2)}
                   </span>
                 </div>

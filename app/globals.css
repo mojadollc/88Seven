@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --primary: #16A34A;       /* Fresh Green */
-  --secondary: #84E13A;     /* Lime Green */
-  --accent: #0B5E34;        /* Deep Forest Green */
+  --primary: #4194AF;       /* Teal Blue */
+  --secondary: #61B288;     /* Aqua Green */
+  --accent: #93D569;        /* Fresh Green */
   --cta: #FF8A00;           /* Delivery Orange */
   --yellow: #FFD23F;        /* Fresh Yellow */
   --bg: #F4F5F7;            /* Soft White */

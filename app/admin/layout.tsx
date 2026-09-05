@@ -111,7 +111,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 key={item.href}
                 href={item.href}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm mt-1 transition-colors ${
-                  active ? "bg-[#16A34A]/10 text-[#16A34A] font-medium" : "text-gray-600 hover:bg-gray-50"
+                  active ? "bg-[#4194AF]/10 text-[#4194AF] font-medium" : "text-gray-600 hover:bg-gray-50"
                 }`}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -119,14 +119,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </svg>
                 <span className="flex-1">{item.label}</span>
                 {badge > 0 && (
-                  <span className="bg-green-500 text-white text-[9px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1 animate-pulse">{badge}</span>
+                  <span className="bg-[#4194AF]/100 text-white text-[9px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1 animate-pulse">{badge}</span>
                 )}
               </Link>
             )
           })}
         </nav>
         <div className="p-3 border-t border-gray-100">
-          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-green-50 hover:text-[#16A34A] text-sm transition-colors">
+          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-[#4194AF]/10 hover:text-[#4194AF] text-sm transition-colors">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
             Logout
           </button>
@@ -136,7 +136,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* MOBILE HEADER */}
       <div className="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-30 px-4 py-3 flex items-center justify-between">
         <a href="/" className="font-black text-sm text-[#1F2937] tracking-tight">Gruwcer</a>
-        <button onClick={handleLogout} className="text-xs text-gray-500 hover:text-[#16A34A]">Logout</button>
+        <button onClick={handleLogout} className="text-xs text-gray-500 hover:text-[#4194AF]">Logout</button>
       </div>
 
       {/* MOBILE BOTTOM NAV */}
@@ -145,13 +145,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           const active = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href)) || (item.href === "/admin" && pathname === "/admin")
           const badge = item.href === "/admin/orders" ? pendingGrocery : item.href === "/admin/laundry" ? pendingLaundry : item.href === "/admin/partners" ? pendingPartners : item.href === "/admin/drivers" ? pendingRiders : 0
           return (
-            <Link key={item.href} href={item.href} className={`flex-1 flex flex-col items-center py-2 relative ${active ? "text-[#16A34A]" : "text-gray-400"}`}>
+            <Link key={item.href} href={item.href} className={`flex-1 flex flex-col items-center py-2 relative ${active ? "text-[#4194AF]" : "text-gray-400"}`}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
               </svg>
               <span className="text-[9px] mt-0.5">{item.label}</span>
               {badge > 0 && (
-                <span className="absolute top-1 right-1/4 bg-green-500 text-white text-[8px] font-bold min-w-[14px] h-[14px] rounded-full flex items-center justify-center px-0.5">{badge}</span>
+                <span className="absolute top-1 right-1/4 bg-[#4194AF]/100 text-white text-[8px] font-bold min-w-[14px] h-[14px] rounded-full flex items-center justify-center px-0.5">{badge}</span>
               )}
             </Link>
           )
@@ -163,10 +163,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Admin Notification Bar */}
         <div className="hidden md:flex items-center justify-end px-6 py-2 bg-white border-b border-gray-100">
           <div className="relative">
-            <button onClick={() => setShowNotifs(!showNotifs)} className="relative p-2 text-gray-500 hover:text-[#16A34A] transition-colors">
+            <button onClick={() => setShowNotifs(!showNotifs)} className="relative p-2 text-gray-500 hover:text-[#4194AF] transition-colors">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
               {notifications.filter((n) => !n.read).length > 0 && (
-                <span className="absolute top-1 right-1 bg-green-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">{notifications.filter((n) => !n.read).length}</span>
+                <span className="absolute top-1 right-1 bg-[#4194AF]/100 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">{notifications.filter((n) => !n.read).length}</span>
               )}
             </button>
             {showNotifs && (
@@ -174,7 +174,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <div className="px-4 py-2.5 border-b flex items-center justify-between bg-gray-50">
                   <span className="text-sm font-bold text-gray-800">Notifications</span>
                   {notifications.filter((n) => !n.read).length > 0 && (
-                    <button onClick={() => fetch("/api/notifications", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ action: "markAllRead", recipientType: "admin" }) }).then(() => setNotifications(n => n.map(x => ({...x, read: true}))))} className="text-[10px] text-[#16A34A] font-medium">Mark all read</button>
+                    <button onClick={() => fetch("/api/notifications", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ action: "markAllRead", recipientType: "admin" }) }).then(() => setNotifications(n => n.map(x => ({...x, read: true}))))} className="text-[10px] text-[#4194AF] font-medium">Mark all read</button>
                   )}
                 </div>
                 <div className="max-h-72 overflow-y-auto">

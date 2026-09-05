@@ -71,7 +71,7 @@ export default function AdminCategories() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Categories</h1>
-        <button onClick={() => setShowAdd(true)} className="bg-[#16A34A] text-white px-4 py-2 rounded-lg text-sm font-medium">+ Add Category</button>
+        <button onClick={() => setShowAdd(true)} className="bg-[#4194AF] text-white px-4 py-2 rounded-lg text-sm font-medium">+ Add Category</button>
       </div>
 
       {loading ? (
@@ -97,11 +97,11 @@ export default function AdminCategories() {
               </div>
               <div className="flex gap-2">
                 <button onClick={() => handleEdit(cat)} className="flex-1 text-xs bg-blue-50 text-blue-600 py-1.5 rounded-lg font-medium">Edit</button>
-                <label className="flex-1 text-xs bg-green-50 text-green-600 py-1.5 rounded-lg font-medium text-center cursor-pointer">
+                <label className="flex-1 text-xs bg-[#4194AF]/10 text-[#4194AF] py-1.5 rounded-lg font-medium text-center cursor-pointer">
                   {uploading ? "..." : "Image"}
                   <input type="file" accept="image/*" className="hidden" onChange={(e) => { if (e.target.files?.[0]) handleImageUpload(cat.id, e.target.files[0]) }} />
                 </label>
-                <button onClick={() => handleDelete(cat.id)} className="text-xs bg-green-50 text-green-700 py-1.5 px-3 rounded-lg font-medium">✕</button>
+                <button onClick={() => handleDelete(cat.id)} className="text-xs bg-[#4194AF]/10 text-[#3a7d96] py-1.5 px-3 rounded-lg font-medium">✕</button>
               </div>
             </div>
           ))}
@@ -119,7 +119,7 @@ export default function AdminCategories() {
             <input type="number" placeholder="Order" value={form.order} onChange={(e) => setForm({ ...form, order: Number(e.target.value) })} className="w-full border rounded-lg px-3 py-2 text-sm" />
             <div className="flex gap-2">
               <button onClick={() => setEditing(null)} className="flex-1 border py-2 rounded-lg text-sm">Cancel</button>
-              <button onClick={handleSave} className="flex-1 bg-[#16A34A] text-white py-2 rounded-lg text-sm font-bold">Save</button>
+              <button onClick={handleSave} className="flex-1 bg-[#4194AF] text-white py-2 rounded-lg text-sm font-bold">Save</button>
             </div>
           </div>
         </div>
@@ -136,7 +136,7 @@ export default function AdminCategories() {
             <input type="number" placeholder="Order" value={newForm.order} onChange={(e) => setNewForm({ ...newForm, order: Number(e.target.value) })} className="w-full border rounded-lg px-3 py-2 text-sm" />
             <div className="flex gap-2">
               <button onClick={() => setShowAdd(false)} className="flex-1 border py-2 rounded-lg text-sm">Cancel</button>
-              <button onClick={handleAdd} className="flex-1 bg-[#16A34A] text-white py-2 rounded-lg text-sm font-bold">Add</button>
+              <button onClick={handleAdd} className="flex-1 bg-[#4194AF] text-white py-2 rounded-lg text-sm font-bold">Add</button>
             </div>
           </div>
         </div>

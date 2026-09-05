@@ -51,8 +51,8 @@ const STATUS_COLORS: Record<string, string> = {
   ready: "bg-orange-100 text-orange-800",
   rider_return_pickup: "bg-teal-100 text-teal-800",
   rider_returning: "bg-cyan-100 text-cyan-800",
-  delivered: "bg-green-100 text-green-800",
-  cancelled: "bg-green-100 text-green-900",
+  delivered: "bg-[#93D569]/20 text-green-800",
+  cancelled: "bg-[#93D569]/20 text-green-900",
 }
 
 const ALL_STATUSES = Object.keys(STATUS_LABELS)
@@ -110,7 +110,7 @@ export default function AdminLaundryPage() {
       <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-20">
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-bold text-[#1F2937]">Laundry Orders</h1>
-          {needsAction.length > 0 && <span className="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">{needsAction.length} needs action</span>}
+          {needsAction.length > 0 && <span className="bg-[#4194AF]/100 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">{needsAction.length} needs action</span>}
         </div>
       </header>
 
@@ -126,11 +126,11 @@ export default function AdminLaundryPage() {
             <p className="text-xs text-gray-400">In Progress</p>
           </div>
           <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-            <p className="text-2xl font-bold text-green-600">{deliveredOrders.length}</p>
+            <p className="text-2xl font-bold text-[#4194AF]">{deliveredOrders.length}</p>
             <p className="text-xs text-gray-400">Delivered</p>
           </div>
           <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-            <p className="text-2xl font-bold text-[#16A34A]">₱{deliveredOrders.reduce((s, o) => s + (o.totalPrice || 0), 0).toFixed(0)}</p>
+            <p className="text-2xl font-bold text-[#4194AF]">₱{deliveredOrders.reduce((s, o) => s + (o.totalPrice || 0), 0).toFixed(0)}</p>
             <p className="text-xs text-gray-400">Revenue</p>
           </div>
         </div>

@@ -25,9 +25,9 @@ const STATUS_COLORS: Record<string, string> = {
   rider_at_store: "bg-teal-100 text-teal-800",
   rider_picked_up: "bg-indigo-100 text-indigo-800",
   out_for_delivery: "bg-indigo-100 text-indigo-800",
-  delivered: "bg-green-100 text-green-800",
-  cancelled: "bg-green-100 text-green-900",
-  rejected: "bg-green-100 text-green-900",
+  delivered: "bg-[#93D569]/20 text-green-800",
+  cancelled: "bg-[#93D569]/20 text-green-900",
+  rejected: "bg-[#93D569]/20 text-green-900",
   accepted: "bg-blue-100 text-blue-800",
   at_laundromat: "bg-purple-100 text-purple-800",
   washing: "bg-indigo-100 text-indigo-800",
@@ -86,19 +86,19 @@ export default function AccountPage() {
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-10 h-10 border-4 border-[#16A34A] border-t-transparent rounded-full animate-spin" />
+      <div className="w-10 h-10 border-4 border-[#4194AF] border-t-transparent rounded-full animate-spin" />
     </div>
   )
 
   if (!user) return (
-    <div className="min-h-screen bg-gradient-to-b from-[#16A34A] to-[#15803d] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-b from-[#4194AF] to-[#3a7d96] flex items-center justify-center p-4">
       <div className="text-center w-full max-w-sm">
         <div className="w-20 h-20 bg-white/10 backdrop-blur rounded-full flex items-center justify-center mx-auto mb-6">
           <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
         </div>
         <h2 className="font-bold text-2xl text-white mb-2">Welcome to Gruwcer</h2>
         <p className="text-white/60 text-sm mb-8">Sign in to manage orders, wallet & more</p>
-        <a href="/auth?redirect=/account" className="block w-full bg-white text-[#16A34A] px-6 py-3.5 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors shadow-lg">
+        <a href="/auth?redirect=/account" className="block w-full bg-white text-[#4194AF] px-6 py-3.5 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors shadow-lg">
           Sign In / Create Account
         </a>
         <a href="/" className="block mt-4 text-white/50 text-xs hover:text-white">← Back to Home</a>
@@ -126,7 +126,7 @@ export default function AccountPage() {
   return (
     <main className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
-      <header className="bg-[#16A34A] text-white sticky top-0 z-50">
+      <header className="bg-[#4194AF] text-white sticky top-0 z-50">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <a href="/" className="font-black text-base tracking-tight">Gruwcer</a>
           <button onClick={() => { clearAuth(); window.location.href = "/" }} className="text-xs text-white/70 hover:text-white flex items-center gap-1">
@@ -139,7 +139,7 @@ export default function AccountPage() {
       <div className="max-w-lg mx-auto">
         {/* Profile Card */}
         <div className="bg-white mx-4 mt-4 rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="bg-gradient-to-r from-[#16A34A] to-[#16A34A] px-5 pt-6 pb-10">
+          <div className="bg-gradient-to-r from-[#4194AF] to-[#4194AF] px-5 pt-6 pb-10">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-full flex items-center justify-center border-2 border-white/30">
                 <span className="text-2xl font-black text-white">{(profile?.name || "U").charAt(0).toUpperCase()}</span>
@@ -154,7 +154,7 @@ export default function AccountPage() {
           <div className="mx-4 -mt-6 relative">
             <div className="bg-white rounded-xl shadow-md border border-gray-100 grid grid-cols-3 divide-x divide-gray-100">
               <div className="p-3 text-center">
-                <p className="text-lg font-bold text-[#16A34A]">{totalActive}</p>
+                <p className="text-lg font-bold text-[#4194AF]">{totalActive}</p>
                 <p className="text-[9px] text-gray-400 uppercase font-semibold">Active</p>
               </div>
               <div className="p-3 text-center">
@@ -162,7 +162,7 @@ export default function AccountPage() {
                 <p className="text-[9px] text-gray-400 uppercase font-semibold">Orders</p>
               </div>
               <div className="p-3 text-center">
-                <p className="text-lg font-bold text-green-600">₱{totalSpent.toFixed(0)}</p>
+                <p className="text-lg font-bold text-[#4194AF]">₱{totalSpent.toFixed(0)}</p>
                 <p className="text-[9px] text-gray-400 uppercase font-semibold">Spent</p>
               </div>
             </div>
@@ -171,7 +171,7 @@ export default function AccountPage() {
         </div>
 
         {/* Wallet Card */}
-        <a href="/account/wallet" className="block mx-4 mt-4 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl p-4 text-white shadow-sm">
+        <a href="/account/wallet" className="block mx-4 mt-4 bg-gradient-to-r from-green-600 to-[#93D569] rounded-xl p-4 text-white shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
@@ -219,7 +219,7 @@ export default function AccountPage() {
             {/* Order filter */}
             <div className="flex gap-2 mb-4">
               {(["active", "completed", "all"] as const).map((f) => (
-                <button key={f} onClick={() => setOrderFilter(f)} className={`px-3 py-1.5 text-[11px] rounded-lg font-medium capitalize transition-colors ${orderFilter === f ? "bg-[#16A34A] text-white" : "bg-white border border-gray-200 text-gray-500"}`}>
+                <button key={f} onClick={() => setOrderFilter(f)} className={`px-3 py-1.5 text-[11px] rounded-lg font-medium capitalize transition-colors ${orderFilter === f ? "bg-[#4194AF] text-white" : "bg-white border border-gray-200 text-gray-500"}`}>
                   {f} {f === "active" && totalActive > 0 ? `(${totalActive})` : ""}
                 </button>
               ))}
@@ -233,7 +233,7 @@ export default function AccountPage() {
                   <p className="text-gray-500 text-sm font-medium">{orderFilter === "active" ? "No active orders" : "No orders yet"}</p>
                   <p className="text-gray-300 text-xs mt-1">{orderFilter === "active" ? "You're all caught up!" : "Start shopping to see orders here"}</p>
                   <div className="flex gap-3 justify-center mt-5">
-                    <a href="/grocery" className="text-xs bg-[#16A34A] text-white px-4 py-2.5 rounded-lg font-bold">Shop Grocery</a>
+                    <a href="/grocery" className="text-xs bg-[#4194AF] text-white px-4 py-2.5 rounded-lg font-bold">Shop Grocery</a>
                     <a href="/laundry" className="text-xs bg-blue-600 text-white px-4 py-2.5 rounded-lg font-bold">Book Laundry</a>
                   </div>
                 </div>
@@ -244,9 +244,9 @@ export default function AccountPage() {
                   return (
                     <a key={`${order.type}-${order.id}`} href={href} className="block bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
                       <div className="p-4 flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isGrocery ? "bg-green-50" : "bg-blue-50"}`}>
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isGrocery ? "bg-[#4194AF]/10" : "bg-blue-50"}`}>
                           {isGrocery ? (
-                            <svg className="w-5 h-5 text-[#16A34A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" /></svg>
+                            <svg className="w-5 h-5 text-[#4194AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" /></svg>
                           ) : (
                             <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6z" /><circle cx="12" cy="14" r="4" strokeWidth={2} /></svg>
                           )}
@@ -264,7 +264,7 @@ export default function AccountPage() {
                           </p>
                         </div>
                         <div className="text-right shrink-0">
-                          <p className={`text-sm font-bold ${isGrocery ? "text-[#16A34A]" : "text-blue-600"}`}>₱{order.amount}</p>
+                          <p className={`text-sm font-bold ${isGrocery ? "text-[#4194AF]" : "text-blue-600"}`}>₱{order.amount}</p>
                           <svg className="w-4 h-4 text-gray-300 ml-auto mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                         </div>
                       </div>
@@ -344,10 +344,10 @@ export default function AccountPage() {
                   </div>
                   <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                 </a>
-                <button onClick={() => { clearAuth(); window.location.href = "/" }} className="w-full px-5 py-3.5 flex items-center gap-4 hover:bg-green-50 transition-colors text-left">
+                <button onClick={() => { clearAuth(); window.location.href = "/" }} className="w-full px-5 py-3.5 flex items-center gap-4 hover:bg-[#4194AF]/10 transition-colors text-left">
                   <img src="https://img.icons8.com/3d-fluency/94/exit.png" alt="Logout" className="w-8 h-8 object-contain shrink-0" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-green-700">Logout</p>
+                    <p className="text-sm font-medium text-[#3a7d96]">Logout</p>
                     <p className="text-[11px] text-gray-400">Sign out of your account</p>
                   </div>
                 </button>
@@ -375,7 +375,7 @@ export default function AccountPage() {
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
             <span className="text-[10px] font-medium">Laundry</span>
           </a>
-          <a href="/account" className="flex flex-col items-center gap-0.5 py-1 text-[#16A34A]">
+          <a href="/account" className="flex flex-col items-center gap-0.5 py-1 text-[#4194AF]">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
             <span className="text-[10px] font-bold">Account</span>
           </a>

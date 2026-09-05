@@ -31,7 +31,7 @@ const STATUS_COLORS: Record<string, string> = {
   ready: "bg-orange-100 text-orange-800",
   rider_return_pickup: "bg-teal-100 text-teal-800",
   rider_returning: "bg-teal-100 text-teal-800",
-  delivered: "bg-green-100 text-green-800",
+  delivered: "bg-[#93D569]/20 text-green-800",
 }
 
 const ALL_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
@@ -308,7 +308,7 @@ export default function PartnerPage() {
           </div>
           <div className="flex items-center gap-3">
             {/* Online/Offline Toggle */}
-            <button onClick={handleToggleOnline} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${isOnline ? "bg-green-500" : "bg-green-500/80"}`}>
+            <button onClick={handleToggleOnline} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${isOnline ? "bg-[#4194AF]/100" : "bg-[#4194AF]/100/80"}`}>
               <span className={`w-2 h-2 rounded-full ${isOnline ? "bg-white animate-pulse" : "bg-white/60"}`} />
               {isOnline ? "OPEN" : "CLOSED"}
             </button>
@@ -336,7 +336,7 @@ export default function PartnerPage() {
             <p className="text-[9px] text-gray-400">Ready</p>
           </div>
           <div className="bg-white rounded-xl p-3 border border-gray-100 text-center">
-            <p className="text-lg font-bold text-green-600">₱{totalEarnings}</p>
+            <p className="text-lg font-bold text-[#4194AF]">₱{totalEarnings}</p>
             <p className="text-[9px] text-gray-400">Earned</p>
           </div>
           <a href="/partner/wallet" className="bg-white rounded-xl p-3 border border-gray-100 text-center">
@@ -347,12 +347,12 @@ export default function PartnerPage() {
 
         {/* Low Wallet Warning */}
         {listingMode === "wallet_required" && walletBalance < minBalance && (
-          <div className="mx-4 mb-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+          <div className="mx-4 mb-3 bg-[#4194AF]/10 border border-green-200 rounded-xl px-4 py-3">
             <div className="flex items-start gap-3">
               <span className="text-lg">⚠️</span>
               <div>
                 <p className="text-xs font-bold text-green-800">Wallet balance too low!</p>
-                <p className="text-[10px] text-green-700 mt-0.5">You need at least ₱{minBalance} to accept bookings. Please top up your wallet.</p>
+                <p className="text-[10px] text-[#3a7d96] mt-0.5">You need at least ₱{minBalance} to accept bookings. Please top up your wallet.</p>
                 <a href="/partner/wallet" className="inline-block mt-2 text-[10px] bg-green-700 text-white px-3 py-1.5 rounded-lg font-bold">Top Up Now</a>
               </div>
             </div>
@@ -389,7 +389,7 @@ export default function PartnerPage() {
                       <span className="text-[10px] text-gray-400 font-mono">#{order.id.slice(0, 6)}</span>
                       {/* Payment method badge */}
                       <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                        order.paymentMethod === "xendit" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                        order.paymentMethod === "xendit" ? "bg-[#93D569]/20 text-[#3a7d96]" : "bg-amber-100 text-amber-700"
                       }`}>
                         {order.paymentMethod === "xendit" ? "✓ PAID" : "💵 COD"}
                       </span>
@@ -400,15 +400,15 @@ export default function PartnerPage() {
                     <p className="text-sm font-bold text-gray-800">{order.serviceName} — {order.weight}kg</p>
                     <p className="text-xs text-gray-400 mt-1">{order.customerName} • {order.customerPhone}</p>
                     {order.notes && <p className="text-xs text-gray-500 bg-yellow-50 rounded px-2 py-1 mt-2">📝 {order.notes}</p>}
-                    <div className="bg-green-50 rounded-lg p-3 mt-3 space-y-1">
+                    <div className="bg-[#4194AF]/10 rounded-lg p-3 mt-3 space-y-1">
                       <div className="flex justify-between text-xs"><span className="text-gray-600">Service Fee</span><span>₱{order.price}</span></div>
                       <div className="flex justify-between text-xs"><span className="text-green-500">Commission ({commissionPercent}%)</span><span className="text-green-500">-₱{Math.round(order.price * commissionPercent / 100)}</span></div>
-                      <div className="border-t border-green-200 pt-1 flex justify-between"><span className="text-xs font-bold text-green-700">Your Earnings</span><span className="text-sm font-bold text-green-700">₱{Math.round(order.price * (100 - commissionPercent) / 100)}</span></div>
+                      <div className="border-t border-green-200 pt-1 flex justify-between"><span className="text-xs font-bold text-[#3a7d96]">Your Earnings</span><span className="text-sm font-bold text-[#3a7d96]">₱{Math.round(order.price * (100 - commissionPercent) / 100)}</span></div>
                     </div>
                     <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
                       {order.status === "pending" && (
                         <div className="flex gap-2 w-full">
-                          <button onClick={() => handleStatus(order.id, "cancelled")} className="flex-1 border border-green-200 text-green-700 py-2.5 rounded-lg text-xs font-bold">Reject</button>
+                          <button onClick={() => handleStatus(order.id, "cancelled")} className="flex-1 border border-green-200 text-[#3a7d96] py-2.5 rounded-lg text-xs font-bold">Reject</button>
                           {listingMode === "free" || walletBalance >= minBalance ? (
                             <button onClick={() => handleStatus(order.id, "accepted")} className="flex-1 bg-blue-600 text-white py-2.5 rounded-lg text-xs font-bold">Accept</button>
                           ) : (
@@ -422,7 +422,7 @@ export default function PartnerPage() {
                       {order.status === "washing" && <button onClick={() => handleStatus(order.id, "ready")} className="flex-1 bg-orange-500 text-white py-2.5 rounded-lg text-xs font-bold">Mark Ready</button>}
                       {order.status === "ready" && <p className="text-xs text-orange-600 font-medium">⏳ Waiting for rider pickup</p>}
                       {(order.status === "rider_return_pickup" || order.status === "rider_returning") && <p className="text-xs text-teal-600 font-medium">🏍️ Rider returning to customer</p>}
-                      {order.status === "delivered" && <p className="text-xs text-green-600 font-medium">✓ Completed</p>}
+                      {order.status === "delivered" && <p className="text-xs text-[#4194AF] font-medium">✓ Completed</p>}
                     </div>
                   </div>
                 </div>
@@ -448,12 +448,12 @@ export default function PartnerPage() {
               ) : (
                 <div className="space-y-3">
                   {promos.map((promo) => (
-                    <div key={promo.id} className={`rounded-xl border p-4 ${promo.active ? "border-green-200 bg-green-50" : "border-gray-200 bg-gray-50 opacity-60"}`}>
+                    <div key={promo.id} className={`rounded-xl border p-4 ${promo.active ? "border-green-200 bg-[#4194AF]/10" : "border-gray-200 bg-gray-50 opacity-60"}`}>
                       <div className="flex items-start justify-between">
                         <div>
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-bold text-gray-800">{promo.title}</span>
-                            <span className="text-xs font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">{promo.discountPercent}% OFF</span>
+                            <span className="text-xs font-bold text-[#3a7d96] bg-[#93D569]/20 px-2 py-0.5 rounded-full">{promo.discountPercent}% OFF</span>
                           </div>
                           {promo.promoCode && (
                             <div className="mt-1.5 inline-flex items-center gap-1.5 bg-white border border-dashed border-blue-300 rounded-md px-2 py-1">
@@ -468,10 +468,10 @@ export default function PartnerPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <button onClick={() => togglePromo(promo.id, !promo.active)} className={`w-10 h-5 rounded-full relative transition-colors ${promo.active ? "bg-green-500" : "bg-gray-300"}`}>
+                          <button onClick={() => togglePromo(promo.id, !promo.active)} className={`w-10 h-5 rounded-full relative transition-colors ${promo.active ? "bg-[#4194AF]/100" : "bg-gray-300"}`}>
                             <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${promo.active ? "translate-x-5" : ""}`} />
                           </button>
-                          <button onClick={() => deletePromo(promo.id)} className="text-green-400 hover:text-green-700">
+                          <button onClick={() => deletePromo(promo.id)} className="text-green-400 hover:text-[#3a7d96]">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                           </button>
                         </div>
@@ -507,7 +507,7 @@ export default function PartnerPage() {
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-sm font-bold text-blue-600">₱{s.price}</span>
-                        <button onClick={() => removeService(s.id)} className="text-green-400 hover:text-green-700">
+                        <button onClick={() => removeService(s.id)} className="text-green-400 hover:text-[#3a7d96]">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                         </button>
                       </div>
@@ -534,12 +534,12 @@ export default function PartnerPage() {
                   <h3 className="font-bold text-sm text-gray-800">Shop Status</h3>
                   <p className="text-[10px] text-gray-400 mt-0.5">Customers {isOnline ? "can" : "cannot"} see and book your shop</p>
                 </div>
-                <button onClick={handleToggleOnline} className={`relative w-14 h-7 rounded-full transition-colors ${isOnline ? "bg-green-500" : "bg-gray-300"}`}>
+                <button onClick={handleToggleOnline} className={`relative w-14 h-7 rounded-full transition-colors ${isOnline ? "bg-[#4194AF]/100" : "bg-gray-300"}`}>
                   <span className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${isOnline ? "translate-x-7" : ""}`} />
                 </button>
               </div>
-              <div className={`mt-3 rounded-lg px-3 py-2 ${isOnline ? "bg-green-50 border border-green-200" : "bg-green-50 border border-green-200"}`}>
-                <p className={`text-xs font-bold ${isOnline ? "text-green-700" : "text-green-800"}`}>
+              <div className={`mt-3 rounded-lg px-3 py-2 ${isOnline ? "bg-[#4194AF]/10 border border-green-200" : "bg-[#4194AF]/10 border border-green-200"}`}>
+                <p className={`text-xs font-bold ${isOnline ? "text-[#3a7d96]" : "text-green-800"}`}>
                   {isOnline ? "🟢 Your shop is OPEN and accepting orders" : "🔴 Your shop is CLOSED — not visible to customers"}
                 </p>
               </div>
@@ -617,7 +617,7 @@ export default function PartnerPage() {
                       {detectingLoc ? "Detecting..." : "📍 Auto-detect"}
                     </button>
                   </div>
-                  {shopLat > 0 && <p className="text-[9px] text-green-600 mt-1">✓ GPS coordinates saved ({shopLat.toFixed(4)}, {shopLng.toFixed(4)})</p>}
+                  {shopLat > 0 && <p className="text-[9px] text-[#4194AF] mt-1">✓ GPS coordinates saved ({shopLat.toFixed(4)}, {shopLng.toFixed(4)})</p>}
                 </div>
                 <div>
                   <label className="text-[10px] font-semibold text-gray-500 uppercase">Landmark</label>
@@ -634,7 +634,7 @@ export default function PartnerPage() {
                 <div className="flex justify-between"><span className="text-gray-400">Shop Name</span><span className="font-medium text-gray-700">{partner.shopName}</span></div>
                 <div className="flex justify-between"><span className="text-gray-400">Owner</span><span className="font-medium text-gray-700">{partner.ownerName}</span></div>
                 <div className="flex justify-between"><span className="text-gray-400">Phone</span><span className="font-medium text-gray-700">{partner.phone}</span></div>
-                <div className="flex justify-between"><span className="text-gray-400">Account Status</span><span className="font-bold text-green-600 capitalize">{partner.status}</span></div>
+                <div className="flex justify-between"><span className="text-gray-400">Account Status</span><span className="font-bold text-[#4194AF] capitalize">{partner.status}</span></div>
               </div>
             </div>
 
@@ -732,8 +732,8 @@ export default function PartnerPage() {
       {successMsg && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 pointer-events-none">
           <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 p-6 max-w-xs w-full text-center pointer-events-auto animate-[fadeIn_0.2s_ease-out]">
-            <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <svg className="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+            <div className="w-14 h-14 bg-[#93D569]/20 rounded-full flex items-center justify-center mx-auto mb-3">
+              <svg className="w-7 h-7 text-[#4194AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
             </div>
             <p className="font-bold text-sm text-gray-800">{successMsg}</p>
             <p className="text-[10px] text-gray-400 mt-1">Changes synced to your account</p>

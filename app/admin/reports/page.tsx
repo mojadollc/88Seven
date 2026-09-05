@@ -6,7 +6,7 @@ import { useEffect, useState } from "react"
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-800",
   reviewed: "bg-blue-100 text-blue-800",
-  resolved: "bg-green-100 text-green-800",
+  resolved: "bg-[#93D569]/20 text-green-800",
 }
 
 export default function AdminReportsPage() {
@@ -52,7 +52,7 @@ export default function AdminReportsPage() {
             <p className="text-xs text-gray-400">Reviewed</p>
           </div>
           <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-            <p className="text-2xl font-bold text-green-600">{reports.filter((r) => r.status === "resolved").length}</p>
+            <p className="text-2xl font-bold text-[#4194AF]">{reports.filter((r) => r.status === "resolved").length}</p>
             <p className="text-xs text-gray-400">Resolved</p>
           </div>
         </div>
@@ -64,7 +64,7 @@ export default function AdminReportsPage() {
               key={s}
               onClick={() => setFilter(s)}
               className={`px-4 py-2 text-xs rounded-lg capitalize font-medium transition-colors ${
-                filter === s ? "bg-[#16A34A] text-white" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
+                filter === s ? "bg-[#4194AF] text-white" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
               }`}
             >
               {s}
@@ -113,7 +113,7 @@ export default function AdminReportsPage() {
                       </button>
                     )}
                     {report.status !== "resolved" && (
-                      <button onClick={() => handleStatus(report.id, "resolved")} className="text-xs bg-green-500 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-green-600">
+                      <button onClick={() => handleStatus(report.id, "resolved")} className="text-xs bg-[#4194AF]/100 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-green-600">
                         ✓ Resolve
                       </button>
                     )}

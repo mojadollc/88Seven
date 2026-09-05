@@ -42,11 +42,11 @@ export default function AdminLogin() {
         <h1 className="text-sm text-gray-500 text-center mb-6">Admin Login</h1>
         {error && <p className="text-amber-600 text-sm text-center mb-4">{error}</p>}
         <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)}
-          className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3 outline-none focus:border-[#16A34A]" required />
+          className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3 outline-none focus:border-[#4194AF]" required />
         <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)}
-          className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-4 outline-none focus:border-[#16A34A]" required />
+          className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-4 outline-none focus:border-[#4194AF]" required />
         <button type="submit" disabled={loading}
-          className="w-full bg-[#16A34A] text-white font-bold py-2.5 rounded text-sm hover:bg-[#15803d] transition-colors disabled:opacity-50">
+          className="w-full bg-[#4194AF] text-white font-bold py-2.5 rounded text-sm hover:bg-[#3a7d96] transition-colors disabled:opacity-50">
           {loading ? "Logging in..." : "Log In"}
         </button>
       </form>

@@ -98,7 +98,7 @@ export default function AdminDashboardPage() {
           <h1 className="text-lg font-bold text-[#1F2937]">Dashboard</h1>
           <div className="flex gap-1">
             {(["today", "week", "month", "all"] as const).map((p) => (
-              <button key={p} onClick={() => setPeriod(p)} className={`px-3 py-1.5 text-[10px] rounded-lg font-bold capitalize transition-colors ${period === p ? "bg-[#16A34A] text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>
+              <button key={p} onClick={() => setPeriod(p)} className={`px-3 py-1.5 text-[10px] rounded-lg font-bold capitalize transition-colors ${period === p ? "bg-[#4194AF] text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>
                 {p === "all" ? "All Time" : p}
               </button>
             ))}
@@ -108,7 +108,7 @@ export default function AdminDashboardPage() {
 
       <div className="p-6">
         {/* Platform Income Summary */}
-        <div className="bg-gradient-to-r from-[#16A34A] to-[#15803d] rounded-2xl p-6 text-white mb-6">
+        <div className="bg-gradient-to-r from-[#4194AF] to-[#3a7d96] rounded-2xl p-6 text-white mb-6">
           <p className="text-white/60 text-xs uppercase font-semibold">Platform Income ({period === "all" ? "All Time" : period})</p>
           <p className="text-4xl font-black mt-1">₱{totalPlatformIncome.toLocaleString()}</p>
           <div className="grid grid-cols-4 gap-3 mt-4">
@@ -135,8 +135,8 @@ export default function AdminDashboardPage() {
         <div className="grid md:grid-cols-2 gap-4 mb-6">
           {/* Grocery */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-5 py-3 bg-green-50 border-b border-green-100">
-              <h3 className="font-bold text-sm text-[#16A34A] flex items-center gap-2">
+            <div className="px-5 py-3 bg-[#4194AF]/10 border-b border-[#4194AF]/20">
+              <h3 className="font-bold text-sm text-[#4194AF] flex items-center gap-2">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" /></svg>
                 Grocery
               </h3>
@@ -156,11 +156,11 @@ export default function AdminDashboardPage() {
               </div>
               <div className="border-t border-gray-100 pt-2 flex justify-between">
                 <span className="text-xs text-gray-500">Rider Commission ({riderPercent}%)</span>
-                <span className="text-sm font-bold text-[#16A34A]">₱{groceryPlatformProfit.toLocaleString()}</span>
+                <span className="text-sm font-bold text-[#4194AF]">₱{groceryPlatformProfit.toLocaleString()}</span>
               </div>
-              <div className="bg-green-50 rounded-lg px-3 py-2 flex justify-between">
-                <span className="text-xs text-green-700 font-medium">Platform Profit</span>
-                <span className="text-sm font-bold text-green-700">₱{groceryPlatformProfit.toLocaleString()}</span>
+              <div className="bg-[#4194AF]/10 rounded-lg px-3 py-2 flex justify-between">
+                <span className="text-xs text-[#3a7d96] font-medium">Platform Profit</span>
+                <span className="text-sm font-bold text-[#3a7d96]">₱{groceryPlatformProfit.toLocaleString()}</span>
               </div>
             </div>
           </div>
@@ -193,16 +193,16 @@ export default function AdminDashboardPage() {
               <div className="border-t border-gray-100 pt-2 space-y-1">
                 <div className="flex justify-between">
                   <span className="text-xs text-gray-500">Partner Commission ({partnerPercent}%)</span>
-                  <span className="text-sm font-bold text-[#16A34A]">₱{laundryPartnerCommission.toLocaleString()}</span>
+                  <span className="text-sm font-bold text-[#4194AF]">₱{laundryPartnerCommission.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-xs text-gray-500">Rider Commission ({riderPercent}%)</span>
-                  <span className="text-sm font-bold text-[#16A34A]">₱{laundryRiderCommission.toLocaleString()}</span>
+                  <span className="text-sm font-bold text-[#4194AF]">₱{laundryRiderCommission.toLocaleString()}</span>
                 </div>
               </div>
-              <div className="bg-green-50 rounded-lg px-3 py-2 flex justify-between">
-                <span className="text-xs text-green-700 font-medium">Platform Profit</span>
-                <span className="text-sm font-bold text-green-700">₱{(laundryPartnerCommission + laundryRiderCommission).toLocaleString()}</span>
+              <div className="bg-[#4194AF]/10 rounded-lg px-3 py-2 flex justify-between">
+                <span className="text-xs text-[#3a7d96] font-medium">Platform Profit</span>
+                <span className="text-sm font-bold text-[#3a7d96]">₱{(laundryPartnerCommission + laundryRiderCommission).toLocaleString()}</span>
               </div>
             </div>
           </div>
@@ -216,15 +216,15 @@ export default function AdminDashboardPage() {
           <div className="divide-y divide-gray-50">
             <div className="px-5 py-3 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
-                  <svg className="w-4 h-4 text-[#16A34A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" /></svg>
+                <div className="w-8 h-8 bg-[#4194AF]/10 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-[#4194AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" /></svg>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-800">Grocery Rider Commission</p>
                   <p className="text-[10px] text-gray-400">{riderPercent}% of ₱{groceryDeliveryFees} delivery fees</p>
                 </div>
               </div>
-              <span className="font-bold text-sm text-green-600">+₱{groceryPlatformProfit}</span>
+              <span className="font-bold text-sm text-[#4194AF]">+₱{groceryPlatformProfit}</span>
             </div>
             <div className="px-5 py-3 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -236,7 +236,7 @@ export default function AdminDashboardPage() {
                   <p className="text-[10px] text-gray-400">{riderPercent}% of ₱{laundryDeliveryFees} delivery fees</p>
                 </div>
               </div>
-              <span className="font-bold text-sm text-green-600">+₱{laundryRiderCommission}</span>
+              <span className="font-bold text-sm text-[#4194AF]">+₱{laundryRiderCommission}</span>
             </div>
             <div className="px-5 py-3 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -248,11 +248,11 @@ export default function AdminDashboardPage() {
                   <p className="text-[10px] text-gray-400">{partnerPercent}% of ₱{laundryServiceFees} service fees</p>
                 </div>
               </div>
-              <span className="font-bold text-sm text-green-600">+₱{laundryPartnerCommission}</span>
+              <span className="font-bold text-sm text-[#4194AF]">+₱{laundryPartnerCommission}</span>
             </div>
-            <div className="px-5 py-4 flex items-center justify-between bg-green-50">
+            <div className="px-5 py-4 flex items-center justify-between bg-[#4194AF]/10">
               <span className="font-bold text-sm text-green-800">Total Platform Income</span>
-              <span className="font-black text-lg text-green-700">₱{totalPlatformIncome.toLocaleString()}</span>
+              <span className="font-black text-lg text-[#3a7d96]">₱{totalPlatformIncome.toLocaleString()}</span>
             </div>
           </div>
         </div>

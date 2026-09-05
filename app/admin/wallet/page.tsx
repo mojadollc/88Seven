@@ -84,7 +84,7 @@ export default function AdminWalletPage() {
         {/* Tab Switch */}
         <div className="flex gap-2 mb-6">
           {(["riders", "customers", "partners"] as const).map((t) => (
-            <button key={t} onClick={() => { setTab(t); setFilter("all") }} className={`px-5 py-2.5 text-sm rounded-lg font-medium capitalize transition-colors ${tab === t ? "bg-[#16A34A] text-white" : "bg-white border border-gray-200 text-gray-600"}`}>
+            <button key={t} onClick={() => { setTab(t); setFilter("all") }} className={`px-5 py-2.5 text-sm rounded-lg font-medium capitalize transition-colors ${tab === t ? "bg-[#4194AF] text-white" : "bg-white border border-gray-200 text-gray-600"}`}>
               {t === "riders" ? "Rider Wallets" : t === "customers" ? "Customer Wallets" : "Partner Wallets"}
             </button>
           ))}
@@ -95,7 +95,7 @@ export default function AdminWalletPage() {
           <>
             <div className="grid grid-cols-3 gap-3 mb-6">
               <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                <p className="text-2xl font-bold text-green-600">₱{transactions.filter((t) => t.type === "topup").reduce((s, t) => s + t.amount, 0).toLocaleString()}</p>
+                <p className="text-2xl font-bold text-[#4194AF]">₱{transactions.filter((t) => t.type === "topup").reduce((s, t) => s + t.amount, 0).toLocaleString()}</p>
                 <p className="text-xs text-gray-400">Total Top-Ups</p>
               </div>
               <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
@@ -128,7 +128,7 @@ export default function AdminWalletPage() {
                         <p className="text-[10px] text-gray-400">{d.phone}</p>
                       </div>
                     </div>
-                    <span className={`text-sm font-bold ${(d.walletBalance || 0) >= 100 ? "text-green-600" : "text-green-500"}`}>
+                    <span className={`text-sm font-bold ${(d.walletBalance || 0) >= 100 ? "text-[#4194AF]" : "text-green-500"}`}>
                       ₱{(d.walletBalance || 0).toFixed(0)}
                     </span>
                   </div>
@@ -138,7 +138,7 @@ export default function AdminWalletPage() {
 
             <div className="flex gap-2 mb-4">
               {(["all", "topup", "deduction"] as const).map((f) => (
-                <button key={f} onClick={() => setFilter(f)} className={`px-4 py-2 text-xs rounded-lg capitalize font-medium transition-colors ${filter === f ? "bg-[#16A34A] text-white" : "bg-white border border-gray-200 text-gray-600"}`}>
+                <button key={f} onClick={() => setFilter(f)} className={`px-4 py-2 text-xs rounded-lg capitalize font-medium transition-colors ${filter === f ? "bg-[#4194AF] text-white" : "bg-white border border-gray-200 text-gray-600"}`}>
                   {f === "topup" ? "Top-Ups" : f === "deduction" ? "Deductions" : "All"}
                 </button>
               ))}
@@ -153,14 +153,14 @@ export default function AdminWalletPage() {
                     <div key={txn.id} className="px-5 py-3 flex items-center justify-between">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className={`w-2 h-2 rounded-full ${txn.type === "topup" ? "bg-green-500" : "bg-green-500"}`} />
+                          <span className={`w-2 h-2 rounded-full ${txn.type === "topup" ? "bg-[#4194AF]/100" : "bg-[#4194AF]/100"}`} />
                           <p className="text-sm font-medium text-gray-800">{txn.type === "topup" ? "Top-Up" : "Deduction"}</p>
                         </div>
                         <p className="text-xs text-gray-500 mt-0.5">{getDriverName(txn.driverId || "")}</p>
                         {txn.note && <p className="text-[10px] text-gray-400">{txn.note}</p>}
                         <p className="text-[10px] text-gray-300">{txn.createdAt?.toLocaleString?.() || ""}</p>
                       </div>
-                      <span className={`text-sm font-bold ${txn.amount >= 0 ? "text-green-600" : "text-green-500"}`}>
+                      <span className={`text-sm font-bold ${txn.amount >= 0 ? "text-[#4194AF]" : "text-green-500"}`}>
                         {txn.amount >= 0 ? "+" : ""}₱{Math.abs(txn.amount)}
                       </span>
                     </div>
@@ -176,7 +176,7 @@ export default function AdminWalletPage() {
           <>
             <div className="grid grid-cols-3 gap-3 mb-6">
               <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                <p className="text-2xl font-bold text-green-600">₱{customerTxns.filter((t) => t.type === "topup").reduce((s, t) => s + t.amount, 0).toLocaleString()}</p>
+                <p className="text-2xl font-bold text-[#4194AF]">₱{customerTxns.filter((t) => t.type === "topup").reduce((s, t) => s + t.amount, 0).toLocaleString()}</p>
                 <p className="text-xs text-gray-400">Total Top-Ups</p>
               </div>
               <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
@@ -201,8 +201,8 @@ export default function AdminWalletPage() {
                       <p className="text-[10px] text-gray-400">{c.email}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`text-xs font-bold ${(c.walletBalance || 0) > 0 ? "text-green-600" : "text-gray-400"}`}>₱{(c.walletBalance || 0).toFixed(0)}</span>
-                      <button onClick={() => openAdjust({ id: c.uid, name: c.name, balance: c.walletBalance || 0, type: "customer" })} className="text-[10px] bg-[#16A34A] text-white px-2.5 py-1 rounded font-medium hover:bg-[#15803d]">Adjust</button>
+                      <span className={`text-xs font-bold ${(c.walletBalance || 0) > 0 ? "text-[#4194AF]" : "text-gray-400"}`}>₱{(c.walletBalance || 0).toFixed(0)}</span>
+                      <button onClick={() => openAdjust({ id: c.uid, name: c.name, balance: c.walletBalance || 0, type: "customer" })} className="text-[10px] bg-[#4194AF] text-white px-2.5 py-1 rounded font-medium hover:bg-[#3a7d96]">Adjust</button>
                     </div>
                   </div>
                 ))}
@@ -211,7 +211,7 @@ export default function AdminWalletPage() {
 
             <div className="flex gap-2 mb-4">
               {(["all", "topup", "deduction"] as const).map((f) => (
-                <button key={f} onClick={() => setFilter(f)} className={`px-4 py-2 text-xs rounded-lg capitalize font-medium transition-colors ${filter === f ? "bg-[#16A34A] text-white" : "bg-white border border-gray-200 text-gray-600"}`}>
+                <button key={f} onClick={() => setFilter(f)} className={`px-4 py-2 text-xs rounded-lg capitalize font-medium transition-colors ${filter === f ? "bg-[#4194AF] text-white" : "bg-white border border-gray-200 text-gray-600"}`}>
                   {f === "topup" ? "Top-Ups" : f === "deduction" ? "Deductions" : "All"}
                 </button>
               ))}
@@ -226,14 +226,14 @@ export default function AdminWalletPage() {
                     <div key={txn.id} className="px-5 py-3 flex items-center justify-between">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className={`w-2 h-2 rounded-full ${txn.type === "topup" ? "bg-green-500" : "bg-green-500"}`} />
+                          <span className={`w-2 h-2 rounded-full ${txn.type === "topup" ? "bg-[#4194AF]/100" : "bg-[#4194AF]/100"}`} />
                           <p className="text-sm font-medium text-gray-800">{txn.type === "topup" ? "Top-Up" : "Deduction"}</p>
                         </div>
                         <p className="text-xs text-gray-500 mt-0.5">{getCustomerName(txn.customerId || "")}</p>
                         {txn.note && <p className="text-[10px] text-gray-400">{txn.note}</p>}
                         <p className="text-[10px] text-gray-300">{txn.createdAt?.toLocaleString?.() || ""}</p>
                       </div>
-                      <span className={`text-sm font-bold ${txn.amount >= 0 ? "text-green-600" : "text-green-500"}`}>
+                      <span className={`text-sm font-bold ${txn.amount >= 0 ? "text-[#4194AF]" : "text-green-500"}`}>
                         {txn.amount >= 0 ? "+" : ""}₱{Math.abs(txn.amount)}
                       </span>
                     </div>
@@ -249,7 +249,7 @@ export default function AdminWalletPage() {
           <>
             <div className="grid grid-cols-3 gap-3 mb-6">
               <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                <p className="text-2xl font-bold text-green-600">₱{partnerTxns.filter((t) => t.type === "topup").reduce((s, t) => s + t.amount, 0).toLocaleString()}</p>
+                <p className="text-2xl font-bold text-[#4194AF]">₱{partnerTxns.filter((t) => t.type === "topup").reduce((s, t) => s + t.amount, 0).toLocaleString()}</p>
                 <p className="text-xs text-gray-400">Total Top-Ups</p>
               </div>
               <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
@@ -285,11 +285,11 @@ export default function AdminWalletPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`text-sm font-bold ${(p.walletBalance || 0) >= 100 ? "text-green-600" : "text-green-500"}`}>
+                      <span className={`text-sm font-bold ${(p.walletBalance || 0) >= 100 ? "text-[#4194AF]" : "text-green-500"}`}>
                         ₱{(p.walletBalance || 0).toFixed(0)}
                       </span>
-                      {(p.walletBalance || 0) < 100 && <span className="text-[9px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-bold">BLOCKED</span>}
-                      <button onClick={() => openAdjust({ id: p.id, name: p.shopName, balance: p.walletBalance || 0, type: "partner" })} className="text-[10px] bg-[#16A34A] text-white px-2.5 py-1 rounded font-medium hover:bg-[#15803d]">Adjust</button>
+                      {(p.walletBalance || 0) < 100 && <span className="text-[9px] bg-[#93D569]/20 text-[#3a7d96] px-1.5 py-0.5 rounded font-bold">BLOCKED</span>}
+                      <button onClick={() => openAdjust({ id: p.id, name: p.shopName, balance: p.walletBalance || 0, type: "partner" })} className="text-[10px] bg-[#4194AF] text-white px-2.5 py-1 rounded font-medium hover:bg-[#3a7d96]">Adjust</button>
                     </div>
                   </div>
                 ))}
@@ -298,7 +298,7 @@ export default function AdminWalletPage() {
 
             <div className="flex gap-2 mb-4">
               {(["all", "topup", "deduction"] as const).map((f) => (
-                <button key={f} onClick={() => setFilter(f)} className={`px-4 py-2 text-xs rounded-lg capitalize font-medium transition-colors ${filter === f ? "bg-[#16A34A] text-white" : "bg-white border border-gray-200 text-gray-600"}`}>
+                <button key={f} onClick={() => setFilter(f)} className={`px-4 py-2 text-xs rounded-lg capitalize font-medium transition-colors ${filter === f ? "bg-[#4194AF] text-white" : "bg-white border border-gray-200 text-gray-600"}`}>
                   {f === "topup" ? "Top-Ups" : f === "deduction" ? "Deductions" : "All"}
                 </button>
               ))}
@@ -313,14 +313,14 @@ export default function AdminWalletPage() {
                     <div key={txn.id} className="px-5 py-3 flex items-center justify-between">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className={`w-2 h-2 rounded-full ${txn.type === "topup" ? "bg-green-500" : "bg-green-500"}`} />
+                          <span className={`w-2 h-2 rounded-full ${txn.type === "topup" ? "bg-[#4194AF]/100" : "bg-[#4194AF]/100"}`} />
                           <p className="text-sm font-medium text-gray-800">{txn.type === "topup" ? "Top-Up" : "Deduction"}</p>
                         </div>
                         <p className="text-xs text-gray-500 mt-0.5">{getPartnerName(txn.partnerId || "")}</p>
                         {txn.note && <p className="text-[10px] text-gray-400">{txn.note}</p>}
                         <p className="text-[10px] text-gray-300">{txn.createdAt?.toLocaleString?.() || ""}</p>
                       </div>
-                      <span className={`text-sm font-bold ${txn.amount >= 0 ? "text-green-600" : "text-green-500"}`}>
+                      <span className={`text-sm font-bold ${txn.amount >= 0 ? "text-[#4194AF]" : "text-green-500"}`}>
                         {txn.amount >= 0 ? "+" : ""}₱{Math.abs(txn.amount)}
                       </span>
                     </div>
@@ -344,13 +344,13 @@ export default function AdminWalletPage() {
             <div className="p-6 space-y-4">
               <div>
                 <label className="text-xs font-semibold text-gray-500 uppercase">Amount (+ to add, - to deduct)</label>
-                <input type="number" value={adjustAmount} onChange={(e) => setAdjustAmount(Number(e.target.value))} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-center text-lg font-bold outline-none focus:border-[#16A34A] mt-2" placeholder="e.g. 100 or -50" />
+                <input type="number" value={adjustAmount} onChange={(e) => setAdjustAmount(Number(e.target.value))} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-center text-lg font-bold outline-none focus:border-[#4194AF] mt-2" placeholder="e.g. 100 or -50" />
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-500 uppercase">Note</label>
-                <input type="text" value={adjustNote} onChange={(e) => setAdjustNote(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#16A34A] mt-2" placeholder="Reason for adjustment" />
+                <input type="text" value={adjustNote} onChange={(e) => setAdjustNote(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#4194AF] mt-2" placeholder="Reason for adjustment" />
               </div>
-              <button onClick={handleAdjust} disabled={adjusting || adjustAmount === 0} className="w-full bg-[#16A34A] text-white py-3 rounded-xl font-bold text-sm hover:bg-[#15803d] disabled:opacity-40">
+              <button onClick={handleAdjust} disabled={adjusting || adjustAmount === 0} className="w-full bg-[#4194AF] text-white py-3 rounded-xl font-bold text-sm hover:bg-[#3a7d96] disabled:opacity-40">
                 {adjusting ? "Processing..." : adjustAmount >= 0 ? `Add ₱${adjustAmount}` : `Deduct ₱${Math.abs(adjustAmount)}`}
               </button>
             </div>

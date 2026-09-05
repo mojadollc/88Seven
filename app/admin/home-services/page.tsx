@@ -123,7 +123,7 @@ export default function AdminHomeServicesPage() {
           <h1 className="text-lg font-bold text-[#1F2937]">Home Services</h1>
           <button
             onClick={() => tab === "sliders" ? (() => { setEditingSlide(null); setSlideForm({ title: "", subtitle: "", bg: "from-teal-600 to-emerald-700", cta: "Book Now", ctaLink: "/services", icon: "🛠️", order: slides.length + 1, enabled: true }); setShowSlideForm(true) })() : (() => { setEditingProvider(null); setProviderForm({ name: "", phone: "", skills: "", bio: "", rating: 0, completedJobs: 0, photoUrl: "", available: true }); setShowProviderForm(true) })()}
-            className="text-xs bg-[#16A34A] text-white px-4 py-2 rounded-lg font-bold"
+            className="text-xs bg-[#4194AF] text-white px-4 py-2 rounded-lg font-bold"
           >
             + Add {tab === "sliders" ? "Slide" : "Provider"}
           </button>
@@ -133,13 +133,13 @@ export default function AdminHomeServicesPage() {
       <div className="p-6">
         {/* Tabs */}
         <div className="flex gap-2 mb-6">
-          <button onClick={() => setTab("registered")} className={`px-5 py-2.5 text-sm rounded-lg font-medium transition-colors ${tab === "registered" ? "bg-[#16A34A] text-white" : "bg-white border border-gray-200 text-gray-600"}`}>
+          <button onClick={() => setTab("registered")} className={`px-5 py-2.5 text-sm rounded-lg font-medium transition-colors ${tab === "registered" ? "bg-[#4194AF] text-white" : "bg-white border border-gray-200 text-gray-600"}`}>
             Registered Providers
           </button>
-          <button onClick={() => setTab("sliders")} className={`px-5 py-2.5 text-sm rounded-lg font-medium transition-colors ${tab === "sliders" ? "bg-[#16A34A] text-white" : "bg-white border border-gray-200 text-gray-600"}`}>
+          <button onClick={() => setTab("sliders")} className={`px-5 py-2.5 text-sm rounded-lg font-medium transition-colors ${tab === "sliders" ? "bg-[#4194AF] text-white" : "bg-white border border-gray-200 text-gray-600"}`}>
             Banner Sliders
           </button>
-          <button onClick={() => setTab("providers")} className={`px-5 py-2.5 text-sm rounded-lg font-medium transition-colors ${tab === "providers" ? "bg-[#16A34A] text-white" : "bg-white border border-gray-200 text-gray-600"}`}>
+          <button onClick={() => setTab("providers")} className={`px-5 py-2.5 text-sm rounded-lg font-medium transition-colors ${tab === "providers" ? "bg-[#4194AF] text-white" : "bg-white border border-gray-200 text-gray-600"}`}>
             Legacy Providers
           </button>
         </div>
@@ -171,13 +171,13 @@ export default function AdminHomeServicesPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${hp.status === "active" ? "bg-green-100 text-green-700" : hp.status === "pending" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-500"}`}>{hp.status}</span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${hp.status === "active" ? "bg-[#93D569]/20 text-[#3a7d96]" : hp.status === "pending" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-500"}`}>{hp.status}</span>
                   </div>
                 </div>
                 <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
-                  {hp.status === "pending" && <button onClick={async () => { await fetch(`/api/providers/${hp.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "active" }) }); await loadAll() }} className="text-xs bg-green-500 text-white px-3 py-1.5 rounded-lg font-bold">✓ Approve</button>}
+                  {hp.status === "pending" && <button onClick={async () => { await fetch(`/api/providers/${hp.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "active" }) }); await loadAll() }} className="text-xs bg-[#4194AF]/100 text-white px-3 py-1.5 rounded-lg font-bold">✓ Approve</button>}
                   {hp.status === "active" && <button onClick={async () => { await fetch(`/api/providers/${hp.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "inactive" }) }); await loadAll() }} className="text-xs border border-gray-200 text-gray-600 px-3 py-1.5 rounded-lg font-medium">Deactivate</button>}
-                  {hp.status === "inactive" && <button onClick={async () => { await fetch(`/api/providers/${hp.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "active" }) }); await loadAll() }} className="text-xs bg-green-500 text-white px-3 py-1.5 rounded-lg font-bold">Reactivate</button>}
+                  {hp.status === "inactive" && <button onClick={async () => { await fetch(`/api/providers/${hp.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "active" }) }); await loadAll() }} className="text-xs bg-[#4194AF]/100 text-white px-3 py-1.5 rounded-lg font-bold">Reactivate</button>}
                   <button onClick={() => setResetEmail(hp.email)} className="text-xs bg-orange-100 text-orange-700 px-3 py-1.5 rounded-lg font-medium hover:bg-orange-200">🔑 Reset Password</button>
                 </div>
               </div>
@@ -205,11 +205,11 @@ export default function AdminHomeServicesPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => toggleSlide(slide)} className={`w-10 h-5 rounded-full relative transition-colors ${slide.enabled ? "bg-green-500" : "bg-gray-300"}`}>
+                    <button onClick={() => toggleSlide(slide)} className={`w-10 h-5 rounded-full relative transition-colors ${slide.enabled ? "bg-[#4194AF]/100" : "bg-gray-300"}`}>
                       <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${slide.enabled ? "translate-x-5" : ""}`} />
                     </button>
                     <button onClick={() => editSlide(slide)} className="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold">Edit</button>
-                    <button onClick={() => deleteSlide(slide.id)} className="text-[10px] bg-green-100 text-green-800 px-2 py-1 rounded font-bold">Del</button>
+                    <button onClick={() => deleteSlide(slide.id)} className="text-[10px] bg-[#93D569]/20 text-green-800 px-2 py-1 rounded font-bold">Del</button>
                   </div>
                 </div>
               </div>
@@ -245,11 +245,11 @@ export default function AdminHomeServicesPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => toggleProvider(p)} className={`w-10 h-5 rounded-full relative transition-colors ${p.available ? "bg-green-500" : "bg-gray-300"}`}>
+                    <button onClick={() => toggleProvider(p)} className={`w-10 h-5 rounded-full relative transition-colors ${p.available ? "bg-[#4194AF]/100" : "bg-gray-300"}`}>
                       <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${p.available ? "translate-x-5" : ""}`} />
                     </button>
                     <button onClick={() => editProvider(p)} className="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold">Edit</button>
-                    <button onClick={() => deleteProvider(p.id)} className="text-[10px] bg-green-100 text-green-800 px-2 py-1 rounded font-bold">Del</button>
+                    <button onClick={() => deleteProvider(p.id)} className="text-[10px] bg-[#93D569]/20 text-green-800 px-2 py-1 rounded font-bold">Del</button>
                   </div>
                 </div>
               </div>
@@ -356,7 +356,7 @@ export default function AdminHomeServicesPage() {
               </div>
               <div className="flex items-center gap-3">
                 <label className="text-xs font-semibold text-gray-500 uppercase">Available</label>
-                <button onClick={() => setProviderForm({ ...providerForm, available: !providerForm.available })} className={`w-10 h-5 rounded-full relative transition-colors ${providerForm.available ? "bg-green-500" : "bg-gray-300"}`}>
+                <button onClick={() => setProviderForm({ ...providerForm, available: !providerForm.available })} className={`w-10 h-5 rounded-full relative transition-colors ${providerForm.available ? "bg-[#4194AF]/100" : "bg-gray-300"}`}>
                   <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${providerForm.available ? "translate-x-5" : ""}`} />
                 </button>
               </div>

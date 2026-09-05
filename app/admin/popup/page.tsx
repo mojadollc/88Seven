@@ -65,7 +65,7 @@ export default function AdminPopupPage() {
             <h1 className="text-lg font-bold text-[#1F2937]">Popup Banner</h1>
             <p className="text-xs text-gray-400">Promote products or sales with a popup image on the website</p>
           </div>
-          <button onClick={handleNew} className="bg-[#16A34A] text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-[#15803d] transition-colors">+ Add Banner</button>
+          <button onClick={handleNew} className="bg-[#4194AF] text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-[#3a7d96] transition-colors">+ Add Banner</button>
         </div>
       </header>
 
@@ -92,7 +92,7 @@ export default function AdminPopupPage() {
                     value={form.imageUrl}
                     onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
                     placeholder="https://example.com/promo-banner.jpg"
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#16A34A]"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#4194AF]"
                   />
                   <p className="text-[10px] text-gray-400 mt-1">Recommended: 600×800px or 800×600px (JPG/PNG/WebP)</p>
                 </div>
@@ -104,7 +104,7 @@ export default function AdminPopupPage() {
                     value={form.linkUrl}
                     onChange={(e) => setForm({ ...form, linkUrl: e.target.value })}
                     placeholder="https://example.com/sale or leave empty"
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#16A34A]"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#4194AF]"
                   />
                   <p className="text-[10px] text-gray-400 mt-1">Where to go when user taps the banner</p>
                 </div>
@@ -112,7 +112,7 @@ export default function AdminPopupPage() {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setForm({ ...form, enabled: !form.enabled })}
-                    className={`relative w-12 h-6 rounded-full transition-colors ${form.enabled ? "bg-green-500" : "bg-gray-300"}`}
+                    className={`relative w-12 h-6 rounded-full transition-colors ${form.enabled ? "bg-[#4194AF]/100" : "bg-gray-300"}`}
                   >
                     <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${form.enabled ? "translate-x-6" : ""}`} />
                   </button>
@@ -121,7 +121,7 @@ export default function AdminPopupPage() {
               </div>
               <div className="p-6 border-t border-gray-100 flex justify-end gap-3">
                 <button onClick={() => { setShowForm(false); setEditing(null) }} className="px-4 py-2 text-sm text-gray-600">Cancel</button>
-                <button onClick={handleSave} disabled={saving || !form.imageUrl.trim()} className="bg-[#16A34A] text-white text-sm font-medium px-5 py-2 rounded-lg hover:bg-[#15803d] disabled:opacity-50">
+                <button onClick={handleSave} disabled={saving || !form.imageUrl.trim()} className="bg-[#4194AF] text-white text-sm font-medium px-5 py-2 rounded-lg hover:bg-[#3a7d96] disabled:opacity-50">
                   {saving ? "Saving..." : editing ? "Update" : "Create"}
                 </button>
               </div>
@@ -146,19 +146,19 @@ export default function AdminPopupPage() {
                 </div>
                 <div className="p-4 flex items-center justify-between">
                   <div>
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${banner.enabled ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${banner.enabled ? "bg-[#4194AF]/10 text-[#3a7d96]" : "bg-gray-100 text-gray-500"}`}>
                       {banner.enabled ? "● Active" : "○ Disabled"}
                     </span>
                     {banner.linkUrl && <p className="text-[10px] text-gray-400 mt-1 truncate max-w-[200px]">{banner.linkUrl}</p>}
                   </div>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => handleToggle(banner)} className={`relative w-10 h-5 rounded-full transition-colors ${banner.enabled ? "bg-green-500" : "bg-gray-300"}`}>
+                    <button onClick={() => handleToggle(banner)} className={`relative w-10 h-5 rounded-full transition-colors ${banner.enabled ? "bg-[#4194AF]/100" : "bg-gray-300"}`}>
                       <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${banner.enabled ? "translate-x-5" : ""}`} />
                     </button>
-                    <button onClick={() => handleEdit(banner)} className="p-1.5 text-gray-400 hover:text-[#16A34A] rounded">
+                    <button onClick={() => handleEdit(banner)} className="p-1.5 text-gray-400 hover:text-[#4194AF] rounded">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                     </button>
-                    <button onClick={() => handleDelete(banner.id)} className="p-1.5 text-gray-400 hover:text-green-700 rounded">
+                    <button onClick={() => handleDelete(banner.id)} className="p-1.5 text-gray-400 hover:text-[#3a7d96] rounded">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                     </button>
                   </div>

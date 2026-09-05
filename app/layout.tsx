@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     "apple-mobile-web-app-capable": "yes",
     "application-name": "Gruwcer",
     "apple-mobile-web-app-title": "Gruwcer",
-    "msapplication-TileColor": "#16A34A",
+    "msapplication-TileColor": "#4194AF",
     "msapplication-tap-highlight": "no",
     "format-detection": "telephone=no",
   },
@@ -37,8 +37,8 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#16A34A" },
-    { media: "(prefers-color-scheme: dark)", color: "#16A34A" },
+    { media: "(prefers-color-scheme: light)", color: "#4194AF" },
+    { media: "(prefers-color-scheme: dark)", color: "#4194AF" },
   ],
   viewportFit: "cover",
 }
@@ -50,7 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192.png" />
         <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
         <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-192.png" />
-        <meta name="theme-color" content="#16A34A" />
+        <meta name="theme-color" content="#4194AF" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="mobile-web-app-capable" content="yes" />
