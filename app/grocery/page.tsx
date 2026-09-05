@@ -240,17 +240,17 @@ export default function GroceryPage() {
     <main className="min-h-screen pb-20" style={{ backgroundColor: "var(--theme-page-bg, #F5F5DB)" }}>
 
       {/* ── HEADER ── */}
-      <header className="sticky top-0 z-50 shadow-sm" style={{ background: "var(--theme-bg)" }}>
+      <header className="sticky top-0 z-50 shadow-sm border-b border-gray-100" style={{ background: "#ffffff" }}>
         <div className="max-w-6xl mx-auto px-3 md:px-6 py-2.5 flex items-center gap-3">
           <a href="/" className="flex items-center gap-1.5 shrink-0">
             {logoUrl ? (
               <img src={logoUrl} alt="Logo" className="h-11 w-auto object-contain" />
             ) : (
               <>
-                <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: "var(--theme-color, #009689)" }}>
                   <span className="text-white font-black text-xs">G</span>
                 </div>
-                <span className="text-white font-black text-base tracking-tight hidden sm:block">Gruwcer</span>
+                <span className="font-black text-base tracking-tight hidden sm:block" style={{ color: "var(--theme-color, #009689)" }}>Gruwcer</span>
               </>
             )}
           </a>
@@ -273,7 +273,7 @@ export default function GroceryPage() {
           {user && (
             <div className="relative shrink-0">
               <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-1.5">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                <svg className="w-6 h-6" style={{ color: "var(--theme-color, #009689)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
                 {notifications.filter(n => !n.read).length > 0 && <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">{notifications.filter(n => !n.read).length}</span>}
               </button>
               {showNotifications && (
@@ -297,12 +297,12 @@ export default function GroceryPage() {
 
           {/* Cart */}
           <button onClick={() => setShowCart(true)} className="relative shrink-0 p-1.5">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" /></svg>
+            <svg className="w-6 h-6" style={{ color: "var(--theme-color, #009689)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" /></svg>
             {cartCount > 0 && <span className="absolute top-0 right-0 w-4 h-4 bg-[#FF8A00] text-white text-[9px] font-bold rounded-full flex items-center justify-center">{cartCount}</span>}
           </button>
 
           {/* Account */}
-          <a href="/account" className="shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+          <a href="/account" className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: "var(--theme-color, #009689)" }}>
             <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
           </a>
         </div>
