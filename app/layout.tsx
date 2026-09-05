@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from "next"
-import { Inter } from "next/font/google"
+import { Plus_Jakarta_Sans } from "next/font/google"
 import Script from "next/script"
 import PullToRefresh from "./components/PullToRefresh"
 import "./globals.css"
 
-const inter = Inter({ subsets: ["latin"] })
+const font = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] })
 
 export const metadata: Metadata = {
   title: "Gruwcer | Grocery, Laundry & Services",
@@ -57,7 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* TWA: Digital Asset Links verification */}
         <link rel="assetlinks.json" href="/.well-known/assetlinks.json" />
       </head>
-      <body className={`${inter.className} bg-[#F4F5F7] antialiased`} suppressHydrationWarning>
+      <body className={`${font.className} bg-[#F4F5F7] antialiased`} suppressHydrationWarning>
         <PullToRefresh>
           {children}
         </PullToRefresh>
