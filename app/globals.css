@@ -10,14 +10,15 @@
   --text: #1F2937;          /* Charcoal */
   --third: #FFFFFF;
   /* Theme (overridden by ThemeProvider at runtime) */
-  --theme-color: #319F44;
-  --theme-color-to: #59EBC6;
-  --theme-text: #ffffff;
-  --theme-type: solid;
-  --theme-delivery-banner: #267a34;
-  --theme-delivery-banner-text: #ffffff;
-  --theme-footer-bg: #1a1a1a;
-  --theme-footer-text: #ffffff;
+  --theme-color: transparent;
+  --theme-color-to: transparent;
+  --theme-text: transparent;
+  --theme-bg: transparent;
+  --theme-page-bg: transparent;
+  --theme-delivery-banner: transparent;
+  --theme-delivery-banner-text: transparent;
+  --theme-footer-bg: transparent;
+  --theme-footer-text: transparent;
   --sat: env(safe-area-inset-top);
   --sab: env(safe-area-inset-bottom);
   --sal: env(safe-area-inset-left);
