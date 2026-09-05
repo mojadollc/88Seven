@@ -18,5 +18,5 @@ export async function POST(req: NextRequest) {
   await mkdir(dir, { recursive: true })
   await writeFile(path.join(dir, filename), buffer)
 
-  return NextResponse.json({ url: `/uploads/${folder}/${filename}` })
+  return NextResponse.json({ url: `/api/uploads/${folder}/${filename}` })
 }
