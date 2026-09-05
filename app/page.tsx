@@ -3,14 +3,13 @@
 import { useEffect, useState } from "react"
 import { getUser, getToken } from "@/lib/auth"
 
-// ↓ Add your image URLs here per service (leave empty to use gradient)
 const SERVICES = [
-  { id: "grocery", name: "Grocery", icon: "🛒", href: "/grocery", available: true, color: "from-emerald-500 to-green-600", desc: "Fresh produce & daily essentials", badge: "Same-day delivery", image: "https://pos.payroo.xyz/api/image/FeFKxWmBQcXyhtXisNAS_1787493435818.jpg" },
-  { id: "laundry", name: "Laundry", icon: "👕", href: "/laundry", available: true, color: "from-blue-500 to-indigo-600", desc: "Wash, dry & fold service", badge: "Pickup & delivery", image: "" },
-  { id: "services", name: "Home Services", icon: "🔧", href: "/home-services", available: true, color: "from-teal-500 to-cyan-600", desc: "Aircon, plumbing, electrical", badge: "Book a pro", image: "" },
-  { id: "travel", name: "Hotel & Flights", icon: "✈️", href: "/travel", available: true, color: "from-sky-500 to-blue-600", desc: "Hotels, flights & packages", badge: "Best rates", image: "" },
-  { id: "food", name: "Food To Go", icon: "🍔", href: "#", available: false, color: "from-orange-500 to-red-500", desc: "Restaurant delivery", badge: "Coming soon", image: "" },
-  { id: "bills", name: "Bills Payment", icon: "💳", href: "#", available: false, color: "from-purple-500 to-violet-600", desc: "Pay bills & load credits", badge: "Coming soon", image: "" },
+  { id: "grocery", name: "Grocery", icon: "🛒", href: "/grocery", available: true, color: "from-emerald-500 to-green-600", desc: "Fresh produce & daily essentials", badge: "Same-day delivery" },
+  { id: "laundry", name: "Laundry", icon: "👕", href: "/laundry", available: true, color: "from-blue-500 to-indigo-600", desc: "Wash, dry & fold service", badge: "Pickup & delivery" },
+  { id: "services", name: "Home Services", icon: "🔧", href: "/home-services", available: true, color: "from-teal-500 to-cyan-600", desc: "Aircon, plumbing, electrical", badge: "Book a pro" },
+  { id: "travel", name: "Hotel & Flights", icon: "✈️", href: "/travel", available: true, color: "from-sky-500 to-blue-600", desc: "Hotels, flights & packages", badge: "Best rates" },
+  { id: "food", name: "Food To Go", icon: "🍔", href: "#", available: false, color: "from-orange-500 to-red-500", desc: "Restaurant delivery", badge: "Coming soon" },
+  { id: "bills", name: "Bills Payment", icon: "💳", href: "#", available: false, color: "from-purple-500 to-violet-600", desc: "Pay bills & load credits", badge: "Coming soon" },
 ]
 
 const NAV_ITEMS = [
@@ -292,7 +291,7 @@ export default function HomePage() {
         <div className="absolute inset-y-0 right-0 w-full md:w-1/2">
           {(() => {
             const svc = SERVICES[activeService]
-            const bgImage = svc.image || heroImages[svc.id]
+            const bgImage = heroImages[svc.id]
             return bgImage ? (
               <>
                 <img src={bgImage} alt="" className="w-full h-full object-cover" />
