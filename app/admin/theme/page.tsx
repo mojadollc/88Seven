@@ -118,15 +118,15 @@ export default function AdminThemePage() {
           <div className="p-6">
             <div className="rounded-2xl overflow-hidden shadow-lg border border-gray-100">
               {/* Mock header */}
-              <div className="px-5 py-3.5 flex items-center justify-between" style={bgStyle}>
+              <div className="px-5 py-3.5 flex items-center justify-between border-b border-gray-100" style={{ background: "#ffffff" }}>
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
-                    <span className="font-black text-xs" style={{ color: theme.themeTextColor }}>G</span>
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: theme.themeColor }}>
+                    <span className="font-black text-xs text-white">G</span>
                   </div>
-                  <span className="font-black text-sm" style={{ color: theme.themeTextColor }}>Gruwcer</span>
+                  <span className="font-black text-sm" style={{ color: theme.themeColor }}>Gruwcer</span>
                 </div>
-                <div className="w-20 h-7 bg-white/20 rounded-lg flex items-center justify-center">
-                  <span className="text-[10px] font-bold" style={{ color: theme.themeTextColor }}>Account</span>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: theme.themeColor }}>
+                  <span className="text-[10px] font-bold text-white">👤</span>
                 </div>
               </div>
               {/* Mock delivery banner */}
