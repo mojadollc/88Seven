@@ -1,8 +1,17 @@
 "use client"
 
-import { useAppTheme } from "./useAppTheme"
+import { createContext, useContext } from "react"
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  useAppTheme()
-  return <>{children}</>
+const LogoContext = createContext<string>("")
+
+export function useLogoUrl() {
+  return useContext(LogoContext)
+}
+
+export function ThemeProvider({ children, logoUrl }: { children: React.ReactNode; logoUrl: string }) {
+  return (
+    <LogoContext.Provider value={logoUrl}>
+      {children}
+    </LogoContext.Provider>
+  )
 }
