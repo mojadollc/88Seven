@@ -26,6 +26,8 @@ const MIGRATE = `
     ADD COLUMN IF NOT EXISTS "themeFooterTextColor" TEXT NOT NULL DEFAULT '#ffffff'
 `
 
+export const dynamic = "force-dynamic"
+
 export async function GET() {
   try {
     await (prisma as any).$executeRawUnsafe(MIGRATE)
@@ -44,9 +46,9 @@ export async function GET() {
       themeDeliveryBannerTextColor: row?.themeDeliveryBannerTextColor ?? DEFAULTS.themeDeliveryBannerTextColor,
       themeFooterBgColor: row?.themeFooterBgColor ?? DEFAULTS.themeFooterBgColor,
       themeFooterTextColor: row?.themeFooterTextColor ?? DEFAULTS.themeFooterTextColor,
-    })
+    }, { headers: { "Cache-Control": "no-store, no-cache, must-revalidate" } })
   } catch {
-    return NextResponse.json(DEFAULTS)
+    return NextResponse.json(DEFAULTS, { headers: { "Cache-Control": "no-store" } })
   }
 }
 

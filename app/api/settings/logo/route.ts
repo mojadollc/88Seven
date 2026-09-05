@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
+export const dynamic = "force-dynamic"
+
 export async function GET() {
   try {
     await (prisma as any).$executeRawUnsafe(`
@@ -11,9 +13,9 @@ export async function GET() {
       SELECT "logoUrl" FROM "AppSettings" WHERE key = 'global' LIMIT 1
     `
     const row = Array.isArray(rows) ? rows[0] : null
-    return NextResponse.json({ logoUrl: row?.logoUrl ?? "" })
+    return NextResponse.json({ logoUrl: row?.logoUrl ?? "" }, { headers: { "Cache-Control": "no-store, no-cache, must-revalidate" } })
   } catch {
-    return NextResponse.json({ logoUrl: "" })
+    return NextResponse.json({ logoUrl: "" }, { headers: { "Cache-Control": "no-store" } })
   }
 }
 

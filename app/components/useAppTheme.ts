@@ -23,7 +23,7 @@ function applyVars(t: any) {
 export function useAppTheme() {
   useEffect(() => {
     if (window.location.pathname.startsWith("/admin")) return
-    fetch("/api/settings/theme")
+    fetch("/api/settings/theme", { cache: "no-store" })
       .then(r => r.json())
       .then(applyVars)
       .catch(() => {})

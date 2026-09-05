@@ -47,7 +47,7 @@ export default function AdminThemePage() {
   const [error, setError] = useState("")
 
   useEffect(() => {
-    fetch("/api/settings/theme")
+    fetch("/api/settings/theme", { cache: "no-store" })
       .then(r => r.json())
       .then(d => { setTheme({ ...DEFAULTS, ...d }); setLoading(false) })
       .catch(() => setLoading(false))
@@ -67,6 +67,7 @@ export default function AdminThemePage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(theme),
+        cache: "no-store",
       })
       const data = await res.json()
       if (!res.ok || data.error) throw new Error(data.error || "Failed")
