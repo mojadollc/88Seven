@@ -126,7 +126,7 @@ export default function AccountPage() {
   return (
     <main className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
-      <header className="bg-[#319F44] text-white sticky top-0 z-50">
+      <header className="text-white sticky top-0 z-50" style={{ background: "var(--theme-bg)" }}>
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <a href="/" className="font-black text-base tracking-tight">Gruwcer</a>
           <button onClick={() => { clearAuth(); window.location.href = "/" }} className="text-xs text-white/70 hover:text-white flex items-center gap-1">

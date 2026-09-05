@@ -289,7 +289,7 @@ export default function PartnerPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       {/* Header with Online Toggle */}
-      <header className="bg-blue-600 text-white px-4 py-3 sticky top-0 z-30">
+      <header className="text-white px-4 py-3 sticky top-0 z-30" style={{ background: "var(--theme-bg)" }}>
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             {logoUrl ? (

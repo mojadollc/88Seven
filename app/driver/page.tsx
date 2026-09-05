@@ -284,7 +284,7 @@ export default function DriverPage() {
   return (
     <main className="min-h-screen bg-gray-100 max-w-lg mx-auto flex flex-col">
       {/* Header */}
-      <header className="bg-[#319F44] text-white px-4 py-3 sticky top-0 z-30">
+      <header className="text-white px-4 py-3 sticky top-0 z-30" style={{ background: "var(--theme-bg)" }}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">

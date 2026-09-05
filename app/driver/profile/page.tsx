@@ -75,7 +75,7 @@ export default function DriverProfilePage() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <header className="bg-[#319F44] text-white px-4 py-3 sticky top-0 z-50">
+      <header className="text-white px-4 py-3 sticky top-0 z-50" style={{ background: "var(--theme-bg)" }}>
         <div className="max-w-lg mx-auto">
           <h1 className="font-bold text-sm">Complete Your Profile</h1>
           <p className="text-white/60 text-[10px]">Required before you can accept deliveries</p>

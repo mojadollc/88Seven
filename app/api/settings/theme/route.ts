@@ -8,6 +8,7 @@ const DEFAULTS = {
   themeColor: "#319F44",
   themeColorTo: "#59EBC6",
   themeTextColor: "#ffffff",
+  themeBgColor: "#F5F5DB",
 }
 
 export async function GET() {
@@ -18,6 +19,7 @@ export async function GET() {
       themeColor: row?.themeColor ?? DEFAULTS.themeColor,
       themeColorTo: row?.themeColorTo ?? DEFAULTS.themeColorTo,
       themeTextColor: row?.themeTextColor ?? DEFAULTS.themeTextColor,
+      themeBgColor: row?.themeBgColor ?? DEFAULTS.themeBgColor,
     })
   } catch {
     return NextResponse.json(DEFAULTS)
@@ -34,6 +36,7 @@ export async function POST(req: Request) {
         themeColor: body.themeColor,
         themeColorTo: body.themeColorTo,
         themeTextColor: body.themeTextColor,
+        themeBgColor: body.themeBgColor,
       },
       create: {
         key: KEY,
@@ -41,6 +44,7 @@ export async function POST(req: Request) {
         themeColor: body.themeColor ?? DEFAULTS.themeColor,
         themeColorTo: body.themeColorTo ?? DEFAULTS.themeColorTo,
         themeTextColor: body.themeTextColor ?? DEFAULTS.themeTextColor,
+        themeBgColor: body.themeBgColor ?? DEFAULTS.themeBgColor,
       },
     })
     return NextResponse.json({ ok: true })

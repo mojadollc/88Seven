@@ -373,6 +373,7 @@ model AppSettings {
   themeColor          String      @default("#319F44")
   themeColorTo        String      @default("#59EBC6")
   themeTextColor      String      @default("#ffffff")
+  themeBgColor        String      @default("#F5F5DB")
   updatedAt           DateTime    @updatedAt
 }
 
