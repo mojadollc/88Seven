@@ -291,14 +291,15 @@ export default function HomePage() {
         {/* Right background image — fills entire right half */}
         <div className="absolute inset-y-0 right-0 w-full md:w-1/2">
           {(() => {
-            const bgImage = heroImages[SERVICES[activeService].id] || SERVICES[activeService].image
+            const svc = SERVICES[activeService]
+            const bgImage = svc.image || heroImages[svc.id]
             return bgImage ? (
               <>
                 <img src={bgImage} alt="" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-r from-white via-white/60 to-transparent md:from-transparent md:via-transparent md:to-transparent" />
               </>
             ) : (
-              <div className={`w-full h-full bg-gradient-to-br ${SERVICES[activeService].color} opacity-20`} />
+              <div className={`w-full h-full bg-gradient-to-br ${svc.color} opacity-20`} />
             )
           })()}
         </div>
