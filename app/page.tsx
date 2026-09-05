@@ -4,12 +4,12 @@ import { useEffect, useState } from "react"
 import { getUser, getToken } from "@/lib/auth"
 
 const SERVICES = [
-  { id: "grocery", name: "Grocery", icon: "🛒", href: "/grocery", available: true, color: "from-emerald-500 to-green-600", desc: "Fresh produce & daily essentials", badge: "Same-day delivery" },
-  { id: "laundry", name: "Laundry", icon: "👕", href: "/laundry", available: true, color: "from-blue-500 to-indigo-600", desc: "Wash, dry & fold service", badge: "Pickup & delivery" },
-  { id: "services", name: "Home Services", icon: "🔧", href: "/home-services", available: true, color: "from-teal-500 to-cyan-600", desc: "Aircon, plumbing, electrical", badge: "Book a pro" },
-  { id: "travel", name: "Hotel & Flights", icon: "✈️", href: "/travel", available: true, color: "from-sky-500 to-blue-600", desc: "Hotels, flights & packages", badge: "Best rates" },
-  { id: "food", name: "Food To Go", icon: "🍔", href: "#", available: false, color: "from-orange-500 to-red-500", desc: "Restaurant delivery", badge: "Coming soon" },
-  { id: "bills", name: "Bills Payment", icon: "💳", href: "#", available: false, color: "from-purple-500 to-violet-600", desc: "Pay bills & load credits", badge: "Coming soon" },
+  { id: "grocery", name: "Grocery", icon: "🛒", href: "/grocery", available: true, color: "from-emerald-500 to-green-600", desc: "Fresh produce & daily essentials", badge: "Same-day delivery", image: "" },
+  { id: "laundry", name: "Laundry", icon: "👕", href: "/laundry", available: true, color: "from-blue-500 to-indigo-600", desc: "Wash, dry & fold service", badge: "Pickup & delivery", image: "" },
+  { id: "services", name: "Home Services", icon: "🔧", href: "/home-services", available: true, color: "from-teal-500 to-cyan-600", desc: "Aircon, plumbing, electrical", badge: "Book a pro", image: "" },
+  { id: "travel", name: "Hotel & Flights", icon: "✈️", href: "/travel", available: true, color: "from-sky-500 to-blue-600", desc: "Hotels, flights & packages", badge: "Best rates", image: "" },
+  { id: "food", name: "Food To Go", icon: "🍔", href: "#", available: false, color: "from-orange-500 to-red-500", desc: "Restaurant delivery", badge: "Coming soon", image: "" },
+  { id: "bills", name: "Bills Payment", icon: "💳", href: "#", available: false, color: "from-purple-500 to-violet-600", desc: "Pay bills & load credits", badge: "Coming soon", image: "" },
 ]
 
 const NAV_ITEMS = [
@@ -44,6 +44,7 @@ export default function HomePage() {
   const [isStandalone, setIsStandalone] = useState(false)
   const [activeService, setActiveService] = useState(0)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [heroImages, setHeroImages] = useState<Record<string, string>>({})
 
   useEffect(() => setMounted(true), [])
 
@@ -126,6 +127,11 @@ export default function HomePage() {
         { id: "2", title: "Laundry Pickup", subtitle: "We'll handle the rest", imageUrl: "", bgColor: "#1a56db", link: "/laundry" },
         { id: "3", title: "Home Services", subtitle: "Aircon, plumbing & more", imageUrl: "", bgColor: "#0d9488", link: "/home-services" },
       ])
+      // Map hero images to service IDs by link
+      const imgMap: Record<string, string> = {}
+      const linkToService: Record<string, string> = { "/grocery": "grocery", "/laundry": "laundry", "/home-services": "services", "/travel": "travel" }
+      data.forEach((s: any) => { if (s.imageUrl && s.link && linkToService[s.link]) imgMap[linkToService[s.link]] = s.imageUrl })
+      setHeroImages(imgMap)
     }).catch(() => {})
     fetch("/api/promos").then(r => r.ok ? r.json() : []).then(setPromos).catch(() => {})
     fetch("/api/users?role=partner").then(r => r.ok ? r.json() : []).then((p: any[]) => setPartners(p.filter(x => x.status === "active"))).catch(() => {})
@@ -327,37 +333,50 @@ export default function HomePage() {
             {/* RIGHT: Sliding service showcase */}
             <div className="relative">
               {/* Main service card */}
-              <div className={`relative rounded-3xl overflow-hidden bg-gradient-to-br ${currentService.color} p-8 md:p-10 shadow-2xl min-h-[340px] flex flex-col justify-between transition-all duration-500`}>
-                {/* Decorative circles */}
-                <div className="absolute -right-12 -top-12 w-48 h-48 bg-white/10 rounded-full" />
-                <div className="absolute -right-4 -bottom-8 w-32 h-32 bg-black/10 rounded-full" />
+              {(() => {
+                const bgImage = heroImages[currentService.id] || currentService.image
+                return (
+                  <div
+                    className={`relative rounded-3xl overflow-hidden shadow-2xl min-h-[340px] flex flex-col justify-between transition-all duration-500 ${!bgImage ? `bg-gradient-to-br ${currentService.color}` : ""}`}
+                    style={bgImage ? { backgroundImage: `url(${bgImage})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
+                  >
+                    {/* Dark overlay when image is present */}
+                    {bgImage && <div className="absolute inset-0 bg-black/45" />}
 
-                <div className="relative">
-                  <span className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur border border-white/30 text-white text-xs font-bold px-3 py-1.5 rounded-full">
-                    ✦ {currentService.badge}
-                  </span>
-                  <div className="mt-6 text-6xl">{currentService.icon}</div>
-                  <h2 className="mt-4 text-white font-black text-3xl md:text-4xl leading-tight">{currentService.name}</h2>
-                  <p className="mt-2 text-white/80 text-base">{currentService.desc}</p>
-                </div>
+                    {/* Decorative circles (only without image) */}
+                    {!bgImage && <>
+                      <div className="absolute -right-12 -top-12 w-48 h-48 bg-white/10 rounded-full" />
+                      <div className="absolute -right-4 -bottom-8 w-32 h-32 bg-black/10 rounded-full" />
+                    </>}
 
-                <div className="relative mt-8 flex items-center justify-between">
-                  {currentService.available ? (
-                    <a href={currentService.href} className="inline-flex items-center gap-2 bg-white text-gray-900 font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-gray-50 transition-colors shadow-md">
-                      Order now
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
-                    </a>
-                  ) : (
-                    <span className="inline-flex items-center gap-2 bg-white/20 text-white font-bold px-5 py-2.5 rounded-xl text-sm">Coming soon</span>
-                  )}
-                  {/* Dot indicators */}
-                  <div className="flex gap-1.5">
-                    {SERVICES.map((_, i) => (
-                      <button key={i} onClick={() => setActiveService(i)} className={`h-1.5 rounded-full transition-all duration-300 ${i === activeService ? "bg-white w-5" : "bg-white/40 w-1.5"}`} />
-                    ))}
+                    <div className="relative p-8 md:p-10">
+                      <span className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur border border-white/30 text-white text-xs font-bold px-3 py-1.5 rounded-full">
+                        ✦ {currentService.badge}
+                      </span>
+                      <div className="mt-6 text-6xl">{currentService.icon}</div>
+                      <h2 className="mt-4 text-white font-black text-3xl md:text-4xl leading-tight">{currentService.name}</h2>
+                      <p className="mt-2 text-white/80 text-base">{currentService.desc}</p>
+                    </div>
+
+                    <div className="relative px-8 md:px-10 pb-8 md:pb-10 mt-auto flex items-center justify-between">
+                      {currentService.available ? (
+                        <a href={currentService.href} className="inline-flex items-center gap-2 bg-white text-gray-900 font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-gray-50 transition-colors shadow-md">
+                          Order now
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                        </a>
+                      ) : (
+                        <span className="inline-flex items-center gap-2 bg-white/20 text-white font-bold px-5 py-2.5 rounded-xl text-sm">Coming soon</span>
+                      )}
+                      {/* Dot indicators */}
+                      <div className="flex gap-1.5">
+                        {SERVICES.map((_, i) => (
+                          <button key={i} onClick={() => setActiveService(i)} className={`h-1.5 rounded-full transition-all duration-300 ${i === activeService ? "bg-white w-5" : "bg-white/40 w-1.5"}`} />
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                )
+              })()}
 
               {/* Floating mini cards */}
               <div className="absolute -left-4 top-8 bg-white rounded-2xl shadow-xl p-3 flex items-center gap-2.5 border border-gray-100">
