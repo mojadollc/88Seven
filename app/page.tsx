@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { getUser, getToken } from "@/lib/auth"
 
+// ↓ Add your image URLs here per service (leave empty to use gradient)
 const SERVICES = [
   { id: "grocery", name: "Grocery", icon: "🛒", href: "/grocery", available: true, color: "from-emerald-500 to-green-600", desc: "Fresh produce & daily essentials", badge: "Same-day delivery", image: "" },
   { id: "laundry", name: "Laundry", icon: "👕", href: "/laundry", available: true, color: "from-blue-500 to-indigo-600", desc: "Wash, dry & fold service", badge: "Pickup & delivery", image: "" },
@@ -194,8 +195,6 @@ export default function HomePage() {
     if (user) await fetch("/api/users/me", { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` }, body: JSON.stringify({ savedAddresses: updated }) })
   }
 
-  const currentService = SERVICES[activeService]
-
   return (
     <main className="min-h-screen bg-white" suppressHydrationWarning>
 
@@ -287,9 +286,25 @@ export default function HomePage() {
         )}
       </header>
 
-      {/* ── HERO SECTION: Left text + Right sliding service card ── */}
-      <section className="bg-gradient-to-br from-gray-50 to-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-20">
+      {/* ── HERO SECTION: Left text + Right full image ── */}
+      <section className="relative min-h-[560px] md:min-h-[640px] flex items-center border-b border-gray-100 overflow-hidden">
+        {/* Right background image — fills entire right half */}
+        <div className="absolute inset-y-0 right-0 w-full md:w-1/2">
+          {(() => {
+            const bgImage = heroImages[SERVICES[activeService].id] || SERVICES[activeService].image
+            return bgImage ? (
+              <>
+                <img src={bgImage} alt="" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-r from-white via-white/60 to-transparent md:from-transparent md:via-transparent md:to-transparent" />
+              </>
+            ) : (
+              <div className={`w-full h-full bg-gradient-to-br ${SERVICES[activeService].color} opacity-20`} />
+            )
+          })()}
+        </div>
+        {/* Left fade overlay */}
+        <div className="hidden md:block absolute inset-y-0 left-1/2 w-32 bg-gradient-to-r from-white to-transparent z-10" />
+        <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-20 w-full">
           <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
 
             {/* LEFT: Text content */}
@@ -330,70 +345,15 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* RIGHT: Sliding service showcase */}
-            <div className="relative">
-              {/* Main service card */}
-              {(() => {
-                const bgImage = heroImages[currentService.id] || currentService.image
-                return (
-                  <div
-                    className={`relative rounded-3xl overflow-hidden shadow-2xl min-h-[340px] flex flex-col justify-between transition-all duration-500 ${!bgImage ? `bg-gradient-to-br ${currentService.color}` : ""}`}
-                    style={bgImage ? { backgroundImage: `url(${bgImage})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
-                  >
-                    {/* Dark overlay when image is present */}
-                    {bgImage && <div className="absolute inset-0 bg-black/45" />}
+            {/* RIGHT: empty — image is the background */}
+            <div className="hidden md:block" />
+          </div>
 
-                    {/* Decorative circles (only without image) */}
-                    {!bgImage && <>
-                      <div className="absolute -right-12 -top-12 w-48 h-48 bg-white/10 rounded-full" />
-                      <div className="absolute -right-4 -bottom-8 w-32 h-32 bg-black/10 rounded-full" />
-                    </>}
-
-                    <div className="relative p-8 md:p-10">
-                      <span className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur border border-white/30 text-white text-xs font-bold px-3 py-1.5 rounded-full">
-                        ✦ {currentService.badge}
-                      </span>
-                      <div className="mt-6 text-6xl">{currentService.icon}</div>
-                      <h2 className="mt-4 text-white font-black text-3xl md:text-4xl leading-tight">{currentService.name}</h2>
-                      <p className="mt-2 text-white/80 text-base">{currentService.desc}</p>
-                    </div>
-
-                    <div className="relative px-8 md:px-10 pb-8 md:pb-10 mt-auto flex items-center justify-between">
-                      {currentService.available ? (
-                        <a href={currentService.href} className="inline-flex items-center gap-2 bg-white text-gray-900 font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-gray-50 transition-colors shadow-md">
-                          Order now
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
-                        </a>
-                      ) : (
-                        <span className="inline-flex items-center gap-2 bg-white/20 text-white font-bold px-5 py-2.5 rounded-xl text-sm">Coming soon</span>
-                      )}
-                      {/* Dot indicators */}
-                      <div className="flex gap-1.5">
-                        {SERVICES.map((_, i) => (
-                          <button key={i} onClick={() => setActiveService(i)} className={`h-1.5 rounded-full transition-all duration-300 ${i === activeService ? "bg-white w-5" : "bg-white/40 w-1.5"}`} />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )
-              })()}
-
-              {/* Floating mini cards */}
-              <div className="absolute -left-4 top-8 bg-white rounded-2xl shadow-xl p-3 flex items-center gap-2.5 border border-gray-100">
-                <div className="w-9 h-9 bg-green-100 rounded-xl flex items-center justify-center text-lg">🛒</div>
-                <div>
-                  <p className="text-xs font-bold text-gray-800">Grocery</p>
-                  <p className="text-[10px] text-gray-400">Same-day</p>
-                </div>
-              </div>
-              <div className="absolute -right-4 bottom-16 bg-white rounded-2xl shadow-xl p-3 flex items-center gap-2.5 border border-gray-100">
-                <div className="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center text-lg">👕</div>
-                <div>
-                  <p className="text-xs font-bold text-gray-800">Laundry</p>
-                  <p className="text-[10px] text-gray-400">Pickup today</p>
-                </div>
-              </div>
-            </div>
+          {/* Dot indicators */}
+          <div className="flex gap-1.5 mt-8">
+            {SERVICES.map((_, i) => (
+              <button key={i} onClick={() => setActiveService(i)} className={`h-1.5 rounded-full transition-all duration-300 ${i === activeService ? "bg-[#16A34A] w-5" : "bg-gray-300 w-1.5"}`} />
+            ))}
           </div>
         </div>
       </section>
