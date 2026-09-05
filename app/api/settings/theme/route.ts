@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getPrisma } from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 
 const KEY = "global"
 
@@ -12,7 +12,6 @@ const DEFAULTS = {
 
 export async function GET() {
   try {
-    const prisma = await getPrisma()
     const row = await (prisma as any).appSettings.findUnique({ where: { key: KEY } })
     return NextResponse.json({
       themeType: row?.themeType ?? DEFAULTS.themeType,
@@ -28,7 +27,6 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const prisma = await getPrisma()
     await (prisma as any).appSettings.upsert({
       where: { key: KEY },
       update: {
