@@ -5,42 +5,6 @@ import PullToRefresh from "./components/PullToRefresh"
 import { ThemeProvider } from "./components/ThemeProvider"
 import "./globals.css"
 
-async function getTheme() {
-  try {
-    const { prisma } = await import("@/lib/prisma")
-    await (prisma as any).$executeRawUnsafe(`
-      ALTER TABLE "AppSettings"
-        ADD COLUMN IF NOT EXISTS "themeType" TEXT NOT NULL DEFAULT 'solid',
-        ADD COLUMN IF NOT EXISTS "themeColor" TEXT NOT NULL DEFAULT '#319F44',
-        ADD COLUMN IF NOT EXISTS "themeColorTo" TEXT NOT NULL DEFAULT '#59EBC6',
-        ADD COLUMN IF NOT EXISTS "themeTextColor" TEXT NOT NULL DEFAULT '#ffffff',
-        ADD COLUMN IF NOT EXISTS "themeBgColor" TEXT NOT NULL DEFAULT '#F5F5DB',
-        ADD COLUMN IF NOT EXISTS "themeDeliveryBannerColor" TEXT NOT NULL DEFAULT '#267a34',
-        ADD COLUMN IF NOT EXISTS "themeDeliveryBannerTextColor" TEXT NOT NULL DEFAULT '#ffffff',
-        ADD COLUMN IF NOT EXISTS "themeFooterBgColor" TEXT NOT NULL DEFAULT '#1a1a1a',
-        ADD COLUMN IF NOT EXISTS "themeFooterTextColor" TEXT NOT NULL DEFAULT '#ffffff'
-    `)
-    const rows = await (prisma as any).$queryRaw`
-      SELECT "themeType", "themeColor", "themeColorTo", "themeTextColor", "themeBgColor", "themeDeliveryBannerColor", "themeDeliveryBannerTextColor", "themeFooterBgColor", "themeFooterTextColor"
-      FROM "AppSettings" WHERE key = 'global' LIMIT 1
-    `
-    const row = Array.isArray(rows) ? rows[0] : null
-    return {
-      themeType: row?.themeType ?? "solid",
-      themeColor: row?.themeColor ?? "#319F44",
-      themeColorTo: row?.themeColorTo ?? "#59EBC6",
-      themeTextColor: row?.themeTextColor ?? "#ffffff",
-      themeBgColor: row?.themeBgColor ?? "#F5F5DB",
-      themeDeliveryBannerColor: row?.themeDeliveryBannerColor ?? "#267a34",
-      themeDeliveryBannerTextColor: row?.themeDeliveryBannerTextColor ?? "#ffffff",
-      themeFooterBgColor: row?.themeFooterBgColor ?? "#1a1a1a",
-      themeFooterTextColor: row?.themeFooterTextColor ?? "#ffffff",
-    }
-  } catch {
-    return { themeType: "solid", themeColor: "#319F44", themeColorTo: "#59EBC6", themeTextColor: "#ffffff", themeBgColor: "#F5F5DB", themeDeliveryBannerColor: "#267a34", themeDeliveryBannerTextColor: "#ffffff", themeFooterBgColor: "#1a1a1a", themeFooterTextColor: "#ffffff" }
-  }
-}
-
 const font = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] })
 
 export const metadata: Metadata = {
@@ -80,28 +44,10 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 }
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const theme = await getTheme()
-  const themeBg = theme.themeType === "gradient"
-    ? `linear-gradient(135deg, ${theme.themeColor}, ${theme.themeColorTo})`
-    : theme.themeColor
-  const inlineTheme = `
-    document.documentElement.style.setProperty('--theme-color', '${theme.themeColor}');
-    document.documentElement.style.setProperty('--theme-color-to', '${theme.themeColorTo}');
-    document.documentElement.style.setProperty('--theme-text', '${theme.themeTextColor}');
-    document.documentElement.style.setProperty('--theme-bg', '${themeBg}');
-    document.documentElement.style.setProperty('--theme-page-bg', '${theme.themeBgColor}');
-    document.documentElement.style.setProperty('--theme-delivery-banner', '${theme.themeDeliveryBannerColor}');
-    document.documentElement.style.setProperty('--theme-delivery-banner-text', '${theme.themeDeliveryBannerTextColor}');
-    document.documentElement.style.setProperty('--theme-footer-bg', '${theme.themeFooterBgColor}');
-    document.documentElement.style.setProperty('--theme-footer-text', '${theme.themeFooterTextColor}');
-    document.documentElement.style.setProperty('--primary', '${theme.themeColor}');
-    document.body.style.backgroundColor = '${theme.themeBgColor}';
-  `
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: inlineTheme }} />
         <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192.png" />
         <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
         <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-192.png" />
@@ -109,7 +55,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="mobile-web-app-capable" content="yes" />
-        {/* TWA: Digital Asset Links verification */}
         <link rel="assetlinks.json" href="/.well-known/assetlinks.json" />
       </head>
       <body className={`${font.className} antialiased`} suppressHydrationWarning>
