@@ -102,7 +102,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <nav className="flex-1 p-3">
           <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2">Management</p>
           {NAV_ITEMS.map((item) => {
-            const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href))
+            const isActive = pathname === item.href || (item.href !== "/admin" && item.href !== "/admin/hero" && pathname.startsWith(item.href))
             const isExactAdmin = item.href === "/admin" && pathname === "/admin"
             const active = isActive || isExactAdmin
             const badge = item.href === "/admin/orders" ? pendingGrocery : item.href === "/admin/laundry" ? pendingLaundry : item.href === "/admin/partners" ? pendingPartners : item.href === "/admin/drivers" ? pendingRiders : 0
