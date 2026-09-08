@@ -46,15 +46,16 @@ export default function HomePage() {
   const [isStandalone, setIsStandalone] = useState(false)
   const [activeService, setActiveService] = useState(0)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [heroImages, setHeroImages] = useState<Record<string, string>>({})
+  const [heroSlides, setHeroSlides] = useState<{ id: string; title: string; subtitle: string; imageUrl: string; bgColor: string; link: string; badge?: string; highlight?: string }[]>([])
 
   useEffect(() => setMounted(true), [])
 
-  // Auto-slide hero service
+  // Auto-slide hero
   useEffect(() => {
-    const t = setInterval(() => setActiveService(c => (c + 1) % SERVICES.length), 3500)
+    const len = heroSlides.length || SERVICES.length
+    const t = setInterval(() => setActiveService(c => (c + 1) % len), 3500)
     return () => clearInterval(t)
-  }, [])
+  }, [heroSlides.length])
 
   useEffect(() => {
     const dismissed = sessionStorage.getItem("install-dismissed")
@@ -123,17 +124,16 @@ export default function HomePage() {
   }, [user])
 
   useEffect(() => {
-    fetch("/api/hero?page=home").then(r => r.ok ? r.json() : []).then((data: any[]) => {
-      setBanners(data.length > 0 ? data.map((s: any) => ({ id: s.id, title: s.title || "", subtitle: s.description || s.subtitle || "", imageUrl: s.imageUrl || "", bgColor: s.bgColor || "#319F44", link: s.link || "/grocery" })) : [
+    fetch("/api/hero?all=true&page=home").then(r => r.ok ? r.json() : []).then((data: any[]) => {
+      const enabled = data.filter((s: any) => s.enabled !== false)
+      if (enabled.length > 0) {
+        setHeroSlides(enabled.map((s: any) => ({ id: s.id, title: s.title || "", subtitle: s.description || "", imageUrl: s.imageUrl || "", bgColor: s.bgColor || "#319F44", link: s.link || "/grocery", badge: s.badge || "", highlight: s.highlight || "" })))
+      }
+      setBanners(enabled.length > 0 ? enabled.map((s: any) => ({ id: s.id, title: s.title || "", subtitle: s.description || s.subtitle || "", imageUrl: s.imageUrl || "", bgColor: s.bgColor || "#319F44", link: s.link || "/grocery" })) : [
         { id: "1", title: "Free Delivery", subtitle: "On orders ₱1,000+", imageUrl: "", bgColor: "#319F44", link: "/grocery" },
         { id: "2", title: "Laundry Pickup", subtitle: "We'll handle the rest", imageUrl: "", bgColor: "#1a56db", link: "/laundry" },
         { id: "3", title: "Home Services", subtitle: "Aircon, plumbing & more", imageUrl: "", bgColor: "#0d9488", link: "/home-services" },
       ])
-      // Map hero images to service IDs by link
-      const imgMap: Record<string, string> = {}
-      const linkToService: Record<string, string> = { "/grocery": "grocery", "/laundry": "laundry", "/home-services": "services", "/travel": "travel" }
-      data.forEach((s: any) => { if (s.imageUrl && s.link && linkToService[s.link]) imgMap[linkToService[s.link]] = s.imageUrl })
-      setHeroImages(imgMap)
     }).catch(() => {})
     fetch("/api/promos").then(r => r.ok ? r.json() : []).then(setPromos).catch(() => {})
     fetch("/api/users?role=partner").then(r => r.ok ? r.json() : []).then((p: any[]) => setPartners(p.filter(x => x.status === "active"))).catch(() => {})
@@ -286,77 +286,83 @@ export default function HomePage() {
       </header>
 
       {/* ── HERO SECTION: Left text + Right full image ── */}
-      <section className="relative min-h-[560px] md:min-h-[640px] flex items-center border-b border-gray-100 overflow-hidden">
-        {/* Right background image — fills entire right half */}
-        <div className="absolute inset-y-0 right-0 w-full md:w-1/2">
-          {(() => {
-            const svc = SERVICES[activeService]
-            const bgImage = heroImages[svc.id]
-            return bgImage ? (
-              <>
-                <img src={bgImage} alt="" className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-r from-white via-white/60 to-transparent md:from-transparent md:via-transparent md:to-transparent" />
-              </>
-            ) : (
-              <div className={`w-full h-full bg-gradient-to-br ${svc.color} opacity-20`} />
-            )
-          })()}
-        </div>
-        {/* Left fade overlay */}
-        <div className="hidden md:block absolute inset-y-0 left-1/2 w-32 bg-gradient-to-r from-white to-transparent z-10" />
-        <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-20 w-full">
-          <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
-
-            {/* LEFT: Text content */}
-            <div>
-              <div className="inline-flex items-center gap-2 bg-teal-100 text-teal-700 text-xs font-bold px-3 py-1.5 rounded-full mb-5">
-                <span className="w-1.5 h-1.5 bg-teal-600 rounded-full animate-pulse" />
-                Your everyday super app
-              </div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 leading-tight tracking-tight">
-                Groceries, laundry,<br />
-                home services<br />
-                <span style={{ color: "var(--theme-color, #009689)" }}>&amp; more — delivered.</span>
-              </h1>
-              <p className="mt-5 text-gray-500 text-lg leading-relaxed max-w-md">
-                From fresh produce to clean clothes, skilled pros to hotel bookings — everything you need, all in one app.
-              </p>
-
-              {/* Location + CTA */}
-              <div className="mt-8 flex flex-col sm:flex-row gap-3">
-                <button onClick={() => setShowAddressModal(true)} className="flex items-center gap-2 bg-white border-2 border-gray-200 hover:border-teal-600 rounded-xl px-4 py-3 text-sm text-gray-600 transition-colors flex-1 sm:flex-none sm:min-w-[200px]">
-                  <svg className="w-4 h-4 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                  <span className="truncate">{detecting ? "Detecting..." : address || "Set your location"}</span>
-                </button>
-                <a href="/grocery" className="flex items-center justify-center gap-2 text-white font-bold px-6 py-3 rounded-xl transition-colors shadow-lg text-sm" style={{ background: "var(--theme-bg, #009689)" }}>
-                  Order Now
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
-                </a>
-              </div>
-
-              {/* Stats */}
-              <div className="mt-10 flex items-center gap-8">
-                {[["10K+", "Happy customers"], ["4.9★", "App rating"], ["30min", "Avg delivery"]].map(([val, label]) => (
-                  <div key={label}>
-                    <p className="text-xl font-black text-gray-900">{val}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{label}</p>
+      {(() => {
+        const useDbSlides = heroSlides.length > 0
+        const slideCount = useDbSlides ? heroSlides.length : SERVICES.length
+        const idx = activeService % slideCount
+        const dbSlide = useDbSlides ? heroSlides[idx] : null
+        const svc = SERVICES[idx % SERVICES.length]
+        const bgImage = dbSlide?.imageUrl || ""
+        const bgColor = dbSlide?.bgColor || ""
+        const heroTitle = dbSlide?.title || null
+        const heroHighlight = dbSlide?.highlight || null
+        const heroSubtitle = dbSlide?.subtitle || null
+        const heroBadge = dbSlide?.badge || null
+        const heroLink = dbSlide?.link || "/grocery"
+        return (
+          <section className="relative min-h-[560px] md:min-h-[640px] flex items-center border-b border-gray-100 overflow-hidden">
+            {/* Right background */}
+            <div className="absolute inset-y-0 right-0 w-full md:w-1/2">
+              {bgImage ? (
+                <>
+                  <img src={bgImage} alt="" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-white via-white/60 to-transparent md:from-transparent md:via-transparent md:to-transparent" />
+                </>
+              ) : bgColor ? (
+                <div className="w-full h-full" style={{ background: bgColor, opacity: 0.2 }} />
+              ) : (
+                <div className={`w-full h-full bg-gradient-to-br ${svc.color} opacity-20`} />
+              )}
+            </div>
+            <div className="hidden md:block absolute inset-y-0 left-1/2 w-32 bg-gradient-to-r from-white to-transparent z-10" />
+            <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-20 w-full">
+              <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
+                <div>
+                  <div className="inline-flex items-center gap-2 bg-teal-100 text-teal-700 text-xs font-bold px-3 py-1.5 rounded-full mb-5">
+                    <span className="w-1.5 h-1.5 bg-teal-600 rounded-full animate-pulse" />
+                    {heroBadge || "Your everyday super app"}
                   </div>
+                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 leading-tight tracking-tight">
+                    {heroTitle ? (
+                      <>{heroTitle}{heroHighlight && <><br /><span style={{ color: "var(--theme-color, #009689)" }}>{heroHighlight}</span></>}</>
+                    ) : (
+                      <>Groceries, laundry,<br />home services<br /><span style={{ color: "var(--theme-color, #009689)" }}>&amp; more — delivered.</span></>
+                    )}
+                  </h1>
+                  <p className="mt-5 text-gray-500 text-lg leading-relaxed max-w-md">
+                    {heroSubtitle || "From fresh produce to clean clothes, skilled pros to hotel bookings — everything you need, all in one app."}
+                  </p>
+                  <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                    <button onClick={() => setShowAddressModal(true)} className="flex items-center gap-2 bg-white border-2 border-gray-200 hover:border-teal-600 rounded-xl px-4 py-3 text-sm text-gray-600 transition-colors flex-1 sm:flex-none sm:min-w-[200px]">
+                      <svg className="w-4 h-4 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                      <span className="truncate">{detecting ? "Detecting..." : address || "Set your location"}</span>
+                    </button>
+                    <a href={heroLink} className="flex items-center justify-center gap-2 text-white font-bold px-6 py-3 rounded-xl transition-colors shadow-lg text-sm" style={{ background: "var(--theme-bg, #009689)" }}>
+                      Order Now
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                    </a>
+                  </div>
+                  <div className="mt-10 flex items-center gap-8">
+                    {[["10K+", "Happy customers"], ["4.9★", "App rating"], ["30min", "Avg delivery"]].map(([val, label]) => (
+                      <div key={label}>
+                        <p className="text-xl font-black text-gray-900">{val}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{label}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="hidden md:block" />
+              </div>
+              {/* Dot indicators */}
+              <div className="flex gap-1.5 mt-8">
+                {Array.from({ length: slideCount }).map((_, i) => (
+                  <button key={i} onClick={() => setActiveService(i)} className={`h-1.5 rounded-full transition-all duration-300 ${i === idx ? "bg-teal-600 w-5" : "bg-gray-300 w-1.5"}`} />
                 ))}
               </div>
             </div>
-
-            {/* RIGHT: empty — image is the background */}
-            <div className="hidden md:block" />
-          </div>
-
-          {/* Dot indicators */}
-          <div className="flex gap-1.5 mt-8">
-            {SERVICES.map((_, i) => (
-              <button key={i} onClick={() => setActiveService(i)} className={`h-1.5 rounded-full transition-all duration-300 ${i === activeService ? "bg-teal-600 w-5" : "bg-gray-300 w-1.5"}`} />
-            ))}
-          </div>
-        </div>
-      </section>
+          </section>
+        )
+      })()}
 
       {/* ── SERVICES GRID ── */}
       <section className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-16">
