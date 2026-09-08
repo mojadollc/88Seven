@@ -51,12 +51,6 @@ export default function HomePage() {
 
   useEffect(() => setMounted(true), [])
 
-  // Auto-slide hero service
-  useEffect(() => {
-    const t = setInterval(() => setActiveService(c => (c + 1) % SERVICES.length), 3500)
-    return () => clearInterval(t)
-  }, [])
-
   useEffect(() => {
     const dismissed = sessionStorage.getItem("install-dismissed")
     const standalone = window.matchMedia("(display-mode: standalone)").matches || (window.navigator as any).standalone
