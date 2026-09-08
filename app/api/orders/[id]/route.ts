@@ -14,6 +14,20 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     })
   } else {
     await prisma.order.update({ where: { id }, data: body })
+    // Auto-push to taxi delivery app when order is ready for pickup
+    if (body.status === "ready_for_pickup") {
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+        await fetch(`${baseUrl}/api/delivery-bridge`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ orderId: id }),
+        })
+      } catch (e) {
+        // Non-blocking — order status already saved
+        console.error("[delivery-bridge] auto-push failed:", e)
+      }
+    }
   }
   return NextResponse.json({ success: true })
 }

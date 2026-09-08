@@ -32,6 +32,8 @@ export default function AdminOrdersPage() {
   const [editingOrder, setEditingOrder] = useState<any>(null)
   const [editItems, setEditItems] = useState<any[]>([])
 
+  const [sendingToDelivery, setSendingToDelivery] = useState<string | null>(null)
+
   useEffect(() => {
     fetch("/api/users?role=driver").then(r => r.json()).then((data: any[]) => setDrivers(data.filter(d => d.status === "active")))
     fetch("/api/delivery-settings").then(r => r.json()).then((s: any) => setRiderFee(s.riderFeePerDelivery || 30))
@@ -65,6 +67,28 @@ export default function AdminOrdersPage() {
     })
     setEditingOrder(null)
     setEditItems([])
+  }
+
+  const handleSendToDelivery = async (orderId: string) => {
+    if (!confirm("Send this order to the taxi delivery app?")) return
+    setSendingToDelivery(orderId)
+    try {
+      const res = await fetch("/api/delivery-bridge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        alert(`✅ Sent to delivery app!\nFirebase Booking ID: ${data.fbBookingId}`)
+      } else {
+        alert(`❌ Failed: ${data.error}`)
+      }
+    } catch (e) {
+      alert("❌ Network error sending to delivery app")
+    } finally {
+      setSendingToDelivery(null)
+    }
   }
 
   const handleAccept = async (orderId: string) => {
@@ -334,6 +358,13 @@ export default function AdminOrdersPage() {
                       )}
                       {order.status === "ready_for_pickup" && (
                         <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleSendToDelivery(order.id)}
+                            disabled={sendingToDelivery === order.id}
+                            className="text-xs bg-blue-600 text-white px-3 py-2 rounded-lg font-bold hover:bg-blue-700 disabled:opacity-50 flex items-center gap-1"
+                          >
+                            {sendingToDelivery === order.id ? "Sending..." : "🚗 Send to Delivery"}
+                          </button>
                           <button
                             onClick={() => handleAutoAssignDriver(order)}
                             className="text-xs bg-green-600 text-white px-3 py-2 rounded-lg font-medium hover:bg-green-700"
