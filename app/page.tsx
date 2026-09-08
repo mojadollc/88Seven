@@ -44,7 +44,8 @@ export default function HomePage() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
   const [showInstall, setShowInstall] = useState(false)
   const [isStandalone, setIsStandalone] = useState(false)
-  const [activeService, setActiveService] = useState(0)
+  const [activeSlide, setActiveSlide] = useState(0)
+  const [heroSlides, setHeroSlides] = useState<any[]>([])
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [heroImages, setHeroImages] = useState<Record<string, string>>({})
 
@@ -129,11 +130,13 @@ export default function HomePage() {
         { id: "2", title: "Laundry Pickup", subtitle: "We'll handle the rest", imageUrl: "", bgColor: "#1a56db", link: "/laundry" },
         { id: "3", title: "Home Services", subtitle: "Aircon, plumbing & more", imageUrl: "", bgColor: "#0d9488", link: "/home-services" },
       ])
-      // Map hero images to service IDs by link
       const imgMap: Record<string, string> = {}
       const linkToService: Record<string, string> = { "/grocery": "grocery", "/laundry": "laundry", "/home-services": "services", "/travel": "travel" }
       data.forEach((s: any) => { if (s.imageUrl && s.link && linkToService[s.link]) imgMap[linkToService[s.link]] = s.imageUrl })
       setHeroImages(imgMap)
+      // Hero slider — only slides with an image
+      const withImages = data.filter((s: any) => s.imageUrl && s.enabled !== false)
+      setHeroSlides(withImages)
     }).catch(() => {})
     fetch("/api/promos").then(r => r.ok ? r.json() : []).then(setPromos).catch(() => {})
     fetch("/api/users?role=partner").then(r => r.ok ? r.json() : []).then((p: any[]) => setPartners(p.filter(x => x.status === "active"))).catch(() => {})
@@ -144,6 +147,12 @@ export default function HomePage() {
     const t = setInterval(() => setCurrentBanner((c) => (c + 1) % banners.length), 4000)
     return () => clearInterval(t)
   }, [banners.length])
+
+  useEffect(() => {
+    if (heroSlides.length <= 1) return
+    const t = setInterval(() => setActiveSlide((c) => (c + 1) % heroSlides.length), 5000)
+    return () => clearInterval(t)
+  }, [heroSlides.length])
 
   const unread = notifications.filter((n) => !n.read).length
 
@@ -285,77 +294,101 @@ export default function HomePage() {
         )}
       </header>
 
-      {/* ── HERO SECTION: Left text + Right full image ── */}
-      <section className="relative min-h-[560px] md:min-h-[640px] flex items-center border-b border-gray-100 overflow-hidden">
-        {/* Right background image — fills entire right half */}
-        <div className="absolute inset-y-0 right-0 w-full md:w-1/2">
-          {(() => {
-            const svc = SERVICES[activeService]
-            const bgImage = heroImages[svc.id]
-            return bgImage ? (
+      {/* ── HERO SLIDER ── */}
+      <section className="relative overflow-hidden" style={{ minHeight: "480px" }}>
+        {heroSlides.length > 0 ? (
+          <>
+            {/* Slides */}
+            {heroSlides.map((slide, i) => (
+              <div key={slide.id}
+                className={`absolute inset-0 transition-opacity duration-700 ${i === activeSlide ? "opacity-100 z-10" : "opacity-0 z-0"}`}>
+                <img src={slide.imageUrl} alt={slide.title} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
+                <div className="absolute inset-0 flex items-center">
+                  <div className="max-w-7xl mx-auto px-6 md:px-12 w-full">
+                    {slide.badge && (
+                      <span className="inline-block bg-white/20 backdrop-blur border border-white/30 text-white text-[11px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4">
+                        ✦ {slide.badge}
+                      </span>
+                    )}
+                    <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white leading-tight drop-shadow-lg max-w-2xl">
+                      {slide.title}
+                      {slide.highlight && <><br /><span className="text-yellow-300">{slide.highlight}</span></>}
+                    </h1>
+                    {slide.description && <p className="mt-3 text-white/80 text-base md:text-lg max-w-lg">{slide.description}</p>}
+                    {slide.link && (
+                      <a href={slide.link} className="inline-flex items-center gap-2 mt-6 bg-white text-gray-900 font-bold px-6 py-3 rounded-xl shadow-lg hover:bg-gray-100 transition-colors text-sm">
+                        Shop Now
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+            {/* Static height holder */}
+            <div className="relative z-0 min-h-[480px] md:min-h-[560px]" />
+            {/* Dot indicators */}
+            {heroSlides.length > 1 && (
+              <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+                {heroSlides.map((_, i) => (
+                  <button key={i} onClick={() => setActiveSlide(i)}
+                    className={`h-2 rounded-full transition-all duration-300 ${i === activeSlide ? "bg-white w-6" : "bg-white/40 w-2"}`} />
+                ))}
+              </div>
+            )}
+            {/* Prev/Next arrows */}
+            {heroSlides.length > 1 && (
               <>
-                <img src={bgImage} alt="" className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-r from-white via-white/60 to-transparent md:from-transparent md:via-transparent md:to-transparent" />
+                <button onClick={() => setActiveSlide((c) => (c - 1 + heroSlides.length) % heroSlides.length)}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-white/20 hover:bg-white/40 backdrop-blur rounded-full flex items-center justify-center transition-colors">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
+                </button>
+                <button onClick={() => setActiveSlide((c) => (c + 1) % heroSlides.length)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-white/20 hover:bg-white/40 backdrop-blur rounded-full flex items-center justify-center transition-colors">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                </button>
               </>
-            ) : (
-              <div className={`w-full h-full bg-gradient-to-br ${svc.color} opacity-20`} />
-            )
-          })()}
-        </div>
-        {/* Left fade overlay */}
-        <div className="hidden md:block absolute inset-y-0 left-1/2 w-32 bg-gradient-to-r from-white to-transparent z-10" />
-        <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-20 w-full">
-          <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
-
-            {/* LEFT: Text content */}
-            <div>
-              <div className="inline-flex items-center gap-2 bg-teal-100 text-teal-700 text-xs font-bold px-3 py-1.5 rounded-full mb-5">
-                <span className="w-1.5 h-1.5 bg-teal-600 rounded-full animate-pulse" />
+            )}
+          </>
+        ) : (
+          // Fallback when no slides uploaded yet
+          <div className="relative min-h-[480px] md:min-h-[560px] flex items-center" style={{ background: "var(--theme-bg, #009689)" }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent" />
+            <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 w-full">
+              <div className="inline-flex items-center gap-2 bg-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-full mb-5">
+                <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
                 Your everyday super app
               </div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 leading-tight tracking-tight">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-tight tracking-tight max-w-2xl">
                 Groceries, laundry,<br />
                 home services<br />
-                <span style={{ color: "var(--theme-color, #009689)" }}>&amp; more — delivered.</span>
+                <span className="text-yellow-300">&amp; more — delivered.</span>
               </h1>
-              <p className="mt-5 text-gray-500 text-lg leading-relaxed max-w-md">
+              <p className="mt-5 text-white/80 text-lg leading-relaxed max-w-md">
                 From fresh produce to clean clothes, skilled pros to hotel bookings — everything you need, all in one app.
               </p>
-
-              {/* Location + CTA */}
               <div className="mt-8 flex flex-col sm:flex-row gap-3">
-                <button onClick={() => setShowAddressModal(true)} className="flex items-center gap-2 bg-white border-2 border-gray-200 hover:border-teal-600 rounded-xl px-4 py-3 text-sm text-gray-600 transition-colors flex-1 sm:flex-none sm:min-w-[200px]">
-                  <svg className="w-4 h-4 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                <button onClick={() => setShowAddressModal(true)} className="flex items-center gap-2 bg-white/20 backdrop-blur border border-white/30 hover:bg-white/30 rounded-xl px-4 py-3 text-sm text-white transition-colors">
+                  <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                   <span className="truncate">{detecting ? "Detecting..." : address || "Set your location"}</span>
                 </button>
-                <a href="/grocery" className="flex items-center justify-center gap-2 text-white font-bold px-6 py-3 rounded-xl transition-colors shadow-lg text-sm" style={{ background: "var(--theme-bg, #009689)" }}>
+                <a href="/grocery" className="flex items-center justify-center gap-2 bg-white text-gray-900 font-bold px-6 py-3 rounded-xl transition-colors shadow-lg text-sm">
                   Order Now
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
                 </a>
               </div>
-
-              {/* Stats */}
               <div className="mt-10 flex items-center gap-8">
                 {[["10K+", "Happy customers"], ["4.9★", "App rating"], ["30min", "Avg delivery"]].map(([val, label]) => (
                   <div key={label}>
-                    <p className="text-xl font-black text-gray-900">{val}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{label}</p>
+                    <p className="text-xl font-black text-white">{val}</p>
+                    <p className="text-xs text-white/60 mt-0.5">{label}</p>
                   </div>
                 ))}
               </div>
             </div>
-
-            {/* RIGHT: empty — image is the background */}
-            <div className="hidden md:block" />
           </div>
-
-          {/* Dot indicators */}
-          <div className="flex gap-1.5 mt-8">
-            {SERVICES.map((_, i) => (
-              <button key={i} onClick={() => setActiveService(i)} className={`h-1.5 rounded-full transition-all duration-300 ${i === activeService ? "bg-teal-600 w-5" : "bg-gray-300 w-1.5"}`} />
-            ))}
-          </div>
-        </div>
+        )}
       </section>
 
       {/* ── SERVICES GRID ── */}

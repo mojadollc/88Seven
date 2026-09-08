@@ -1,7 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
-// All data via Postgres API
+import { useEffect, useRef, useState } from "react"
 
 const defaultSlide = {
   badge: "",
@@ -22,6 +21,8 @@ export default function AdminHero() {
   const [form, setForm] = useState<any>(defaultSlide)
   const [saving, setSaving] = useState(false)
   const [showForm, setShowForm] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { loadSlides() }, [])
 
@@ -35,6 +36,17 @@ export default function AdminHero() {
     } finally {
       setLoading(false)
     }
+  }
+
+  async function handleUpload(file: File) {
+    setUploading(true)
+    const fd = new FormData()
+    fd.append("file", file)
+    fd.append("folder", "hero")
+    const res = await fetch("/api/upload", { method: "POST", body: fd })
+    const { url } = await res.json()
+    setForm((f: any) => ({ ...f, imageUrl: url }))
+    setUploading(false)
   }
 
   function handleEdit(slide: any) {
@@ -130,8 +142,24 @@ export default function AdminHero() {
                   <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Short description" rows={2} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#319F44] resize-none" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Image URL</label>
-                  <input type="text" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} placeholder="https://example.com/image.png" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#319F44]" />
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Slide Image</label>
+                  <input ref={fileRef} type="file" accept="image/*" className="hidden"
+                    onChange={e => { if (e.target.files?.[0]) handleUpload(e.target.files[0]) }} />
+                  {form.imageUrl ? (
+                    <div className="relative rounded-xl overflow-hidden h-36 bg-gray-100 mb-2">
+                      <img src={form.imageUrl} alt="" className="w-full h-full object-cover" />
+                      <button onClick={() => setForm((f: any) => ({ ...f, imageUrl: "" }))}
+                        className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600">✕</button>
+                    </div>
+                  ) : (
+                    <button onClick={() => fileRef.current?.click()} disabled={uploading}
+                      className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-gray-200 hover:border-[#319F44] rounded-xl py-6 text-sm text-gray-400 hover:text-[#319F44] transition-colors disabled:opacity-50">
+                      {uploading ? "Uploading..." : "📁 Upload Image"}
+                    </button>
+                  )}
+                  <input type="text" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+                    placeholder="Or paste image URL..." className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-[#319F44] mt-1" />
+                  <p className="text-[10px] text-gray-400 mt-1">Recommended: 1440 × 560px landscape • JPG or PNG</p>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">Link URL (optional)</label>
