@@ -295,7 +295,7 @@ export default function GroceryPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setSearchFocused(true)}
-              onBlur={() => setTimeout(() => setSearchFocused(false), 150)}
+              onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
               className="flex-1 px-4 py-2 text-sm outline-none bg-white/90 text-gray-800 placeholder-gray-400"
             />
             {searchQuery ? (
@@ -306,22 +306,6 @@ export default function GroceryPage() {
               <button className="px-4 bg-white/20 hover:bg-white/30 transition-colors">
                 <svg className="w-4 h-4" style={{ color: "var(--theme-header-text, #ffffff)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
               </button>
-            )}
-            {/* Popular searches dropdown */}
-            {searchFocused && !searchQuery && popularSearches.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
-                <p className="px-3 pt-2.5 pb-1 text-[10px] font-bold text-gray-400 uppercase tracking-wide">🔥 Popular Searches</p>
-                {popularSearches.map((q) => (
-                  <button
-                    key={q}
-                    onMouseDown={() => setSearchQuery(q)}
-                    className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-[#319F44]/10 hover:text-[#319F44] flex items-center gap-2 transition-colors"
-                  >
-                    <svg className="w-3.5 h-3.5 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                    <span className="capitalize">{q}</span>
-                  </button>
-                ))}
-              </div>
             )}
           </div>
 
@@ -375,6 +359,27 @@ export default function GroceryPage() {
           )
         })()}
       </header>
+
+      {/* Popular searches — fixed below sticky header, outside overflow-hidden */}
+      {searchFocused && popularSearches.length > 0 && (
+        <div className="fixed top-[105px] left-0 right-0 z-[60] px-3 md:px-6 max-w-6xl mx-auto" style={{ pointerEvents: "auto" }}>
+          <div className="bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden">
+            <p className="px-4 pt-3 pb-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">🔥 Popular Searches</p>
+            <div className="pb-1">
+              {popularSearches.map((q) => (
+                <button
+                  key={q}
+                  onMouseDown={() => { setSearchQuery(q); setSearchFocused(false) }}
+                  className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-[#319F44]/10 hover:text-[#319F44] flex items-center gap-2.5 transition-colors"
+                >
+                  <svg className="w-3.5 h-3.5 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                  <span className="capitalize">{q}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-6xl mx-auto px-3 md:px-6">
 
