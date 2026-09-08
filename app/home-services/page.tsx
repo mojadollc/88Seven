@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 // Firebase auth removed
+import { useLogo } from "@/app/components/useLogo"
 
 
 type ServiceProvider = {
@@ -55,6 +56,7 @@ const SERVICE_CATEGORIES = [
 ]
 
 export default function HomeServicesPage() {
+  const logoUrl = useLogo()
   const [user, setUser] = useState<any>(null)
   const [providers, setProviders] = useState<ServiceProvider[]>([])
   const [heroSlides, setHeroSlides] = useState<typeof FALLBACK_SLIDES>(FALLBACK_SLIDES)
@@ -85,14 +87,20 @@ export default function HomeServicesPage() {
   return (
     <main className="min-h-screen pb-20" style={{ backgroundColor: "var(--theme-page-bg, #F5F5DB)" }}>
       {/* Header */}
-      <header className="px-4 py-3 sticky top-0 z-50" style={{ background: "var(--theme-header-bg, #319F44)", color: "var(--theme-header-text, #ffffff)" }}>
+      <header className="px-4 py-3 sticky top-0 z-50 shadow-sm" style={{ background: "var(--theme-header-bg, #319F44)", color: "var(--theme-header-text, #ffffff)" }}>
         <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2">
+          <a href="/" className="flex items-center gap-2 p-1 rounded-lg hover:bg-black/10 transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             <span className="font-bold text-sm">Home</span>
           </a>
-          <h1 className="font-bold text-sm">Home Services</h1>
-          <a href="/services" className="text-xs hover:opacity-70" style={{ color: "var(--theme-header-text, #ffffff)" }}>Book</a>
+          <a href="/" className="flex items-center">
+            {logoUrl ? (
+              <img src={logoUrl} alt="Logo" className="h-9 w-auto object-contain" />
+            ) : (
+              <span className="font-black text-sm tracking-tight">Gruwcer</span>
+            )}
+          </a>
+          <a href="/services" className="text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-black/10 transition-colors" style={{ color: "var(--theme-header-text, #ffffff)" }}>Book</a>
         </div>
       </header>
 

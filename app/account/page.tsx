@@ -126,10 +126,10 @@ export default function AccountPage() {
   return (
     <main className="min-h-screen pb-20" style={{ backgroundColor: "var(--theme-page-bg, #F5F5DB)" }}>
       {/* Header */}
-      <header className="text-white sticky top-0 z-50" style={{ background: "var(--theme-bg)" }}>
+      <header className="sticky top-0 z-50 shadow-sm" style={{ background: "var(--theme-header-bg, #319F44)", color: "var(--theme-header-text, #ffffff)" }}>
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
-          <a href="/" className="font-black text-base tracking-tight">Gruwcer</a>
-          <button onClick={() => { clearAuth(); window.location.href = "/" }} className="text-xs text-white/70 hover:text-white flex items-center gap-1">
+          <a href="/" className="font-black text-base tracking-tight" style={{ color: "var(--theme-header-text, #ffffff)" }}>Gruwcer</a>
+          <button onClick={() => { clearAuth(); window.location.href = "/" }} className="text-xs flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-black/10 transition-colors" style={{ color: "var(--theme-header-text, #ffffff)" }}>
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
             Logout
           </button>

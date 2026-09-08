@@ -284,22 +284,22 @@ export default function DriverPage() {
   return (
     <main className="min-h-screen bg-gray-100 max-w-lg mx-auto flex flex-col" style={{ backgroundColor: "var(--theme-page-bg, #F5F5DB)" }}>
       {/* Header */}
-      <header className="text-white px-4 py-3 sticky top-0 z-30" style={{ background: "var(--theme-bg)" }}>
+      <header className="px-4 py-3 sticky top-0 z-30 shadow-sm" style={{ background: "var(--theme-header-bg, #319F44)", color: "var(--theme-header-text, #ffffff)" }}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" /></svg>
+            <div className="w-9 h-9 bg-black/10 rounded-full flex items-center justify-center">
+              <svg className="w-5 h-5" style={{ color: "var(--theme-header-text, #ffffff)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" /></svg>
             </div>
             <div>
-              <p className="font-bold text-sm leading-tight">{driver.name}</p>
-              <p className="text-[10px] text-white/70">Rider</p>
+              <p className="font-bold text-sm leading-tight" style={{ color: "var(--theme-header-text, #ffffff)" }}>{driver.name}</p>
+              <p className="text-[10px] opacity-70">Rider</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {/* Notification Bell */}
             <div className="relative">
-              <button onClick={() => setShowNotifs(!showNotifs)} className="relative text-white/80 hover:text-white">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+              <button onClick={() => setShowNotifs(!showNotifs)} className="relative p-2 rounded-xl hover:bg-black/10 transition-colors">
+                <svg className="w-5 h-5" style={{ color: "var(--theme-header-text, #ffffff)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
                 {driverNotifs.filter((n) => !n.read).length > 0 && (
                   <span className="absolute -top-1 -right-1 bg-yellow-400 text-[#1F2937] text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">{driverNotifs.filter((n) => !n.read).length}</span>
                 )}
@@ -336,7 +336,7 @@ export default function DriverPage() {
             >
               {online ? "● ONLINE" : "○ OFFLINE"}
             </button>
-            <button onClick={logout} className="text-white/70 hover:text-white text-xs ml-1">⏻</button>
+            <button onClick={logout} className="text-xs ml-1 p-2 rounded-lg hover:bg-black/10 transition-colors opacity-70 hover:opacity-100" style={{ color: "var(--theme-header-text, #ffffff)" }}>⏻</button>
           </div>
         </div>
       </header>

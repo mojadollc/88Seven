@@ -196,14 +196,14 @@ export default function ServicesPage() {
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: "var(--theme-page-bg, #F5F5DB)" }}>
-      <header className="text-white px-4 py-3 sticky top-0 z-50" style={{ background: "var(--theme-bg)" }}>
+      <header className="px-4 py-3 sticky top-0 z-50 shadow-sm" style={{ background: "var(--theme-header-bg, #319F44)", color: "var(--theme-header-text, #ffffff)" }}>
         <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2">
+          <a href="/" className="flex items-center gap-2 p-1 rounded-lg hover:bg-black/10 transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             <span className="font-bold text-sm">Back</span>
           </a>
           <h1 className="font-bold text-sm">Home Services</h1>
-          <div className="w-5" />
+          <div className="w-16" />
         </div>
       </header>
 

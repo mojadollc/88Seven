@@ -407,15 +407,15 @@ export default function ProviderPage() {
   return (
     <main className="min-h-screen" style={{ backgroundColor: "var(--theme-page-bg, #F5F5DB)" }}>
       {/* Header */}
-      <header className="text-white px-4 py-3 sticky top-0 z-30" style={{ background: "var(--theme-bg)" }}>
+      <header className="px-4 py-3 sticky top-0 z-30 shadow-sm" style={{ background: "var(--theme-header-bg, #319F44)", color: "var(--theme-header-text, #ffffff)" }}>
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
-              <span className="text-xs font-bold">{provider.shopName.charAt(0)}</span>
+            <div className="w-9 h-9 rounded-full bg-black/10 flex items-center justify-center">
+              <span className="text-xs font-bold" style={{ color: "var(--theme-header-text, #ffffff)" }}>{provider.shopName.charAt(0)}</span>
             </div>
             <div>
-              <p className="font-bold text-sm">{provider.shopName}</p>
-              <p className="text-[10px] text-white/60">Service Provider</p>
+              <p className="font-bold text-sm" style={{ color: "var(--theme-header-text, #ffffff)" }}>{provider.shopName}</p>
+              <p className="text-[10px] opacity-60">Service Provider</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -423,7 +423,7 @@ export default function ProviderPage() {
               <span className={`w-2 h-2 rounded-full ${isOnline ? "bg-white animate-pulse" : "bg-white/60"}`} />
               {isOnline ? "ONLINE" : "OFFLINE"}
             </button>
-            <button onClick={() => { localStorage.removeItem("token"); localStorage.removeItem("user"); window.location.href = "/auth" }} className="text-white/70 hover:text-white text-xs">Logout</button>
+            <button onClick={() => { localStorage.removeItem("token"); localStorage.removeItem("user"); window.location.href = "/auth" }} className="text-xs px-3 py-1.5 rounded-lg hover:bg-black/10 transition-colors opacity-80 hover:opacity-100" style={{ color: "var(--theme-header-text, #ffffff)" }}>Logout</button>
           </div>
         </div>
       </header>

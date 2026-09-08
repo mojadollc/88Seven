@@ -289,21 +289,21 @@ export default function PartnerPage() {
   return (
     <main className="min-h-screen" style={{ backgroundColor: "var(--theme-page-bg, #F5F5DB)" }}>
       {/* Header with Online Toggle */}
-      <header className="text-white px-4 py-3 sticky top-0 z-30" style={{ background: "var(--theme-bg)" }}>
+      <header className="px-4 py-3 sticky top-0 z-30 shadow-sm" style={{ background: "var(--theme-header-bg, #319F44)", color: "var(--theme-header-text, #ffffff)" }}>
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             {logoUrl ? (
-              <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-white/30">
+              <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-black/10">
                 <img src={logoUrl} alt="" className="w-full h-full object-cover" />
               </div>
             ) : (
-              <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
-                <span className="text-xs font-bold">{partner.shopName.charAt(0)}</span>
+              <div className="w-9 h-9 rounded-full bg-black/10 flex items-center justify-center">
+                <span className="text-xs font-bold" style={{ color: "var(--theme-header-text, #ffffff)" }}>{partner.shopName.charAt(0)}</span>
               </div>
             )}
             <div>
-              <p className="font-bold text-sm">{partner.shopName}</p>
-              <p className="text-[10px] text-white/60">Partner Dashboard</p>
+              <p className="font-bold text-sm" style={{ color: "var(--theme-header-text, #ffffff)" }}>{partner.shopName}</p>
+              <p className="text-[10px] opacity-60">Partner Dashboard</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -312,10 +312,10 @@ export default function PartnerPage() {
               <span className={`w-2 h-2 rounded-full ${isOnline ? "bg-white animate-pulse" : "bg-white/60"}`} />
               {isOnline ? "OPEN" : "CLOSED"}
             </button>
-            <a href="/partner/wallet" className="text-white/70 hover:text-white">
+            <a href="/partner/wallet" className="p-2 rounded-xl hover:bg-black/10 transition-colors opacity-80 hover:opacity-100" style={{ color: "var(--theme-header-text, #ffffff)" }}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
             </a>
-            <button onClick={() => { localStorage.removeItem("token"); localStorage.removeItem("user"); window.location.href = "/auth" }} className="text-white/70 hover:text-white text-xs">Logout</button>
+            <button onClick={() => { localStorage.removeItem("token"); localStorage.removeItem("user"); window.location.href = "/auth" }} className="text-xs px-3 py-1.5 rounded-lg hover:bg-black/10 transition-colors opacity-80 hover:opacity-100" style={{ color: "var(--theme-header-text, #ffffff)" }}>Logout</button>
           </div>
         </div>
       </header>

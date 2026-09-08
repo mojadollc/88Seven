@@ -129,13 +129,13 @@ function OrderTracker() {
   return (
     <main className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="text-white px-4 py-3 sticky top-0 z-50" style={{ background: "var(--theme-bg)" }}>
+      <header className="px-4 py-3 sticky top-0 z-50 shadow-sm" style={{ background: "var(--theme-header-bg, #319F44)", color: "var(--theme-header-text, #ffffff)" }}>
         <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2">
+          <a href="/" className="flex items-center gap-2 p-1 rounded-lg hover:bg-black/10 transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             <span className="font-bold text-sm">Back to Shop</span>
           </a>
-          <span className="text-xs text-white/70">#{id.slice(-8).toUpperCase()}</span>
+          <span className="text-xs opacity-70">#{id.slice(-8).toUpperCase()}</span>
         </div>
       </header>
 
