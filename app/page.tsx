@@ -395,8 +395,8 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-16">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl md:text-3xl font-black text-gray-900">Our Services</h2>
-            <p className="text-gray-400 text-sm mt-1">Everything you need, delivered fast</p>
+            <h2 className="text-2xl md:text-3xl font-black text-gray-900">What We Offer</h2>
+            <p className="text-gray-400 text-sm mt-1">Grocery, laundry, home services & more</p>
           </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
@@ -414,31 +414,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── BANNER CAROUSEL ── */}
-      {mounted && banners.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 md:px-8 pb-12">
-          <div className="relative rounded-3xl overflow-hidden h-[180px] md:h-[300px] shadow-lg cursor-pointer"
-            style={{
-              backgroundColor: banners[currentBanner]?.bgColor || "#319F44",
-              backgroundImage: banners[currentBanner]?.imageUrl ? `linear-gradient(105deg,rgba(0,0,0,0.65) 0%,rgba(0,0,0,0.1) 60%),url(${banners[currentBanner].imageUrl})` : undefined,
-              backgroundSize: "cover", backgroundPosition: "center",
-            }}>
-            <div className="absolute -right-16 -top-16 w-64 h-64 bg-white/5 rounded-full" />
-            <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-white/5 rounded-full" />
-            <a href={banners[currentBanner]?.link || "#"} className="absolute inset-0 flex flex-col justify-center p-6 md:p-12">
-              <span className="self-start bg-white/20 backdrop-blur border border-white/30 rounded-full px-3 py-1 text-white text-[10px] font-bold uppercase tracking-widest mb-3">✦ Featured</span>
-              <h2 className="text-white font-black text-2xl md:text-5xl leading-tight drop-shadow max-w-lg">{banners[currentBanner]?.title}</h2>
-              <p className="text-white/80 text-sm md:text-lg mt-2 max-w-sm">{banners[currentBanner]?.subtitle}</p>
-              <span className="self-start mt-4 bg-white text-gray-900 text-xs md:text-sm font-bold px-5 py-2.5 rounded-xl shadow-lg hover:bg-gray-50 transition-colors">Order now →</span>
-            </a>
-            {banners.length > 1 && (
-              <div className="absolute bottom-4 right-4 flex gap-1.5">
-                {banners.map((_, i) => <button key={i} onClick={() => setCurrentBanner(i)} className={`h-1.5 rounded-full transition-all ${i === currentBanner ? "bg-white w-6" : "bg-white/40 w-1.5"}`} />)}
-              </div>
-            )}
-          </div>
-        </section>
-      )}
 
       {/* ── PROMOS ── */}
       {mounted && promos.length > 0 && (
