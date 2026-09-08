@@ -253,7 +253,7 @@ export default function GroceryPage() {
         <div className="max-w-6xl mx-auto px-3 md:px-6 py-2.5 flex items-center gap-3">
           <a href="/" className="flex items-center gap-1.5 shrink-0">
             {logoUrl ? (
-              <img src={logoUrl} alt="Logo" className="h-12 w-auto object-contain" />
+              <img src={logoUrl} alt="Logo" className="h-14 w-auto object-contain" />
             ) : (
               <>
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-black/10">

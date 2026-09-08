@@ -95,7 +95,7 @@ export default function HomeServicesPage() {
           </a>
           <a href="/" className="flex items-center">
             {logoUrl ? (
-              <img src={logoUrl} alt="Logo" className="h-12 w-auto object-contain" />
+              <img src={logoUrl} alt="Logo" className="h-14 w-auto object-contain" />
             ) : (
               <span className="font-black text-sm tracking-tight">Gruwcer</span>
             )}
