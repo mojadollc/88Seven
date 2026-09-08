@@ -314,28 +314,13 @@ export default function HomePage() {
                 Your everyday super app
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 leading-tight tracking-tight">
-                One app.<br />
-                <span style={{ color: "var(--theme-color, #009689)" }}>All services.</span><br />
-                <span className="text-gray-500 text-3xl md:text-4xl font-bold">Delivered to you.</span>
+                Groceries, laundry,<br />
+                home services<br />
+                <span style={{ color: "var(--theme-color, #009689)" }}>&amp; more — delivered.</span>
               </h1>
-
-              {/* Service pills */}
-              <div className="mt-6 flex flex-wrap gap-2">
-                {SERVICES.filter(s => s.available).map(s => (
-                  <a key={s.id} href={s.href}
-                    className="flex items-center gap-2 bg-white border border-gray-200 hover:border-teal-500 hover:shadow-md rounded-xl px-3 py-2 text-xs font-semibold text-gray-700 transition-all hover:-translate-y-0.5">
-                    <span className="text-base">{s.icon}</span>
-                    {s.name}
-                  </a>
-                ))}
-                {SERVICES.filter(s => !s.available).map(s => (
-                  <span key={s.id} className="flex items-center gap-2 bg-gray-50 border border-dashed border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-400">
-                    <span className="text-base">{s.icon}</span>
-                    {s.name}
-                    <span className="text-[9px] bg-amber-100 text-amber-600 font-bold px-1.5 py-0.5 rounded-full">Soon</span>
-                  </span>
-                ))}
-              </div>
+              <p className="mt-5 text-gray-500 text-lg leading-relaxed max-w-md">
+                From fresh produce to clean clothes, skilled pros to hotel bookings — everything you need, all in one app.
+              </p>
 
               {/* Location + CTA */}
               <div className="mt-8 flex flex-col sm:flex-row gap-3">
