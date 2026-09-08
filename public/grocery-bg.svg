@@ -1,0 +1,213 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800" opacity="0.07">
+  <!-- Carrot -->
+  <g transform="translate(60,80) rotate(-20)">
+    <ellipse cx="0" cy="0" rx="10" ry="28" fill="#FF6B35"/>
+    <path d="M-4,-28 Q0,-42 4,-28" fill="#4CAF50"/>
+    <path d="M0,-28 Q6,-38 2,-26" fill="#4CAF50"/>
+  </g>
+  <!-- Apple -->
+  <g transform="translate(180,50)">
+    <circle cx="0" cy="5" r="22" fill="#E53935"/>
+    <path d="M0,-17 Q4,-28 8,-20" stroke="#4CAF50" stroke-width="2" fill="none"/>
+    <ellipse cx="-6" cy="0" rx="5" ry="8" fill="#ffffff" opacity="0.3"/>
+  </g>
+  <!-- Shopping cart -->
+  <g transform="translate(320,60)" stroke="#009689" stroke-width="3" fill="none">
+    <path d="M-20,-10 L-30,-30 L-50,-30"/>
+    <path d="M-30,-30 L-10,10 L20,10"/>
+    <circle cx="-5" cy="18" r="5" fill="#009689"/>
+    <circle cx="15" cy="18" r="5" fill="#009689"/>
+  </g>
+  <!-- Broccoli -->
+  <g transform="translate(480,70)">
+    <rect x="-4" y="5" width="8" height="20" fill="#388E3C"/>
+    <circle cx="0" cy="0" r="14" fill="#4CAF50"/>
+    <circle cx="-10" cy="5" r="10" fill="#4CAF50"/>
+    <circle cx="10" cy="5" r="10" fill="#4CAF50"/>
+  </g>
+  <!-- Lemon -->
+  <g transform="translate(620,55)">
+    <ellipse cx="0" cy="0" rx="20" ry="14" fill="#FDD835"/>
+    <ellipse cx="-8" cy="0" rx="5" ry="8" fill="#ffffff" opacity="0.3"/>
+  </g>
+  <!-- Tomato -->
+  <g transform="translate(730,80)">
+    <circle cx="0" cy="5" r="20" fill="#E53935"/>
+    <path d="M-4,-15 Q0,-26 4,-15" fill="#4CAF50"/>
+    <ellipse cx="-6" cy="0" rx="4" ry="7" fill="#ffffff" opacity="0.3"/>
+  </g>
+
+  <!-- Row 2 -->
+  <!-- Banana -->
+  <g transform="translate(30,200)">
+    <path d="M-15,10 Q0,-20 20,-5 Q10,15 -5,18 Z" fill="#FDD835"/>
+    <path d="M-15,10 Q-5,-5 20,-5" stroke="#F9A825" stroke-width="2" fill="none"/>
+  </g>
+  <!-- Milk bottle -->
+  <g transform="translate(150,180)" fill="#E3F2FD" stroke="#90CAF9" stroke-width="2">
+    <rect x="-12" y="-5" width="24" height="40" rx="4"/>
+    <rect x="-8" y="-15" width="16" height="12" rx="3"/>
+    <rect x="-10" y="5" width="20" height="4" fill="#1565C0" stroke="none"/>
+  </g>
+  <!-- Strawberry -->
+  <g transform="translate(280,190)">
+    <path d="M0,-20 Q18,0 10,18 Q0,26 -10,18 Q-18,0 0,-20Z" fill="#E53935"/>
+    <path d="M-2,-20 Q2,-30 6,-20" fill="#4CAF50"/>
+    <circle cx="-5" cy="0" r="2" fill="#ffffff" opacity="0.5"/>
+    <circle cx="5" cy="5" r="2" fill="#ffffff" opacity="0.5"/>
+    <circle cx="0" cy="-8" r="2" fill="#ffffff" opacity="0.5"/>
+    <circle cx="-3" cy="10" r="2" fill="#ffffff" opacity="0.5"/>
+  </g>
+  <!-- Bread loaf -->
+  <g transform="translate(420,185)">
+    <ellipse cx="0" cy="5" rx="30" ry="18" fill="#FFCC80"/>
+    <ellipse cx="0" cy="-2" rx="28" ry="14" fill="#FFB74D"/>
+    <path d="M-20,5 Q0,-10 20,5" stroke="#FF8F00" stroke-width="2" fill="none"/>
+  </g>
+  <!-- Grapes -->
+  <g transform="translate(570,185)">
+    <circle cx="0" cy="0" r="8" fill="#7B1FA2"/>
+    <circle cx="14" cy="0" r="8" fill="#7B1FA2"/>
+    <circle cx="7" cy="12" r="8" fill="#7B1FA2"/>
+    <circle cx="7" cy="-12" r="8" fill="#9C27B0"/>
+    <path d="M7,-20 Q10,-30 14,-22" stroke="#4CAF50" stroke-width="2" fill="none"/>
+  </g>
+  <!-- Egg -->
+  <g transform="translate(700,190)">
+    <ellipse cx="0" cy="0" rx="14" ry="18" fill="#FFF9C4"/>
+    <ellipse cx="-4" cy="-4" rx="4" ry="6" fill="#ffffff" opacity="0.4"/>
+  </g>
+
+  <!-- Row 3 -->
+  <!-- Watermelon slice -->
+  <g transform="translate(80,330)">
+    <path d="M-30,0 A30,30 0 0,1 30,0 Z" fill="#E53935"/>
+    <path d="M-30,0 A30,30 0 0,1 30,0 L25,0 A25,25 0 0,0 -25,0 Z" fill="#4CAF50"/>
+    <circle cx="-10" cy="-10" r="3" fill="#1A1A1A"/>
+    <circle cx="5" cy="-15" r="3" fill="#1A1A1A"/>
+    <circle cx="15" cy="-8" r="3" fill="#1A1A1A"/>
+  </g>
+  <!-- Corn -->
+  <g transform="translate(220,310) rotate(15)">
+    <ellipse cx="0" cy="0" rx="12" ry="28" fill="#FDD835"/>
+    <path d="M-12,-10 Q-22,-5 -18,5" stroke="#4CAF50" stroke-width="3" fill="none"/>
+    <path d="M12,-10 Q22,-5 18,5" stroke="#4CAF50" stroke-width="3" fill="none"/>
+    <line x1="-8" y1="-20" x2="-8" y2="20" stroke="#F9A825" stroke-width="1.5"/>
+    <line x1="0" y1="-24" x2="0" y2="24" stroke="#F9A825" stroke-width="1.5"/>
+    <line x1="8" y1="-20" x2="8" y2="20" stroke="#F9A825" stroke-width="1.5"/>
+  </g>
+  <!-- Bag of groceries -->
+  <g transform="translate(370,310)" stroke="#009689" stroke-width="2.5" fill="none">
+    <path d="M-20,0 L-15,-30 L15,-30 L20,0 Z" fill="#E0F2F1"/>
+    <path d="M-8,-30 Q-8,-42 0,-42 Q8,-42 8,-30"/>
+    <line x1="-10" y1="-15" x2="10" y2="-15" stroke="#009689" stroke-width="1.5"/>
+  </g>
+  <!-- Orange -->
+  <g transform="translate(510,320)">
+    <circle cx="0" cy="0" r="22" fill="#FF9800"/>
+    <path d="M-2,-22 Q0,-30 2,-22" fill="#4CAF50"/>
+    <ellipse cx="-7" cy="-5" rx="5" ry="8" fill="#ffffff" opacity="0.25"/>
+  </g>
+  <!-- Pepper -->
+  <g transform="translate(650,315) rotate(10)">
+    <path d="M0,-25 Q20,0 10,20 Q0,28 -10,20 Q-20,0 0,-25Z" fill="#E53935"/>
+    <path d="M-2,-25 Q2,-35 5,-25" fill="#4CAF50"/>
+    <ellipse cx="-5" cy="-5" rx="4" ry="10" fill="#ffffff" opacity="0.25"/>
+  </g>
+  <!-- Pineapple -->
+  <g transform="translate(760,320)">
+    <ellipse cx="0" cy="8" rx="16" ry="22" fill="#FDD835"/>
+    <path d="M-6,-14 Q0,-35 6,-14" fill="#4CAF50"/>
+    <path d="M-10,-10 Q0,-28 10,-10" fill="#4CAF50"/>
+    <line x1="-12" y1="0" x2="12" y2="0" stroke="#F9A825" stroke-width="1.5"/>
+    <line x1="-14" y1="10" x2="14" y2="10" stroke="#F9A825" stroke-width="1.5"/>
+    <line x1="0" y1="-10" x2="0" y2="28" stroke="#F9A825" stroke-width="1.5"/>
+  </g>
+
+  <!-- Row 4 -->
+  <g transform="translate(40,470)">
+    <circle cx="0" cy="5" r="22" fill="#E53935"/>
+    <path d="M0,-17 Q4,-28 8,-20" stroke="#4CAF50" stroke-width="2" fill="none"/>
+    <ellipse cx="-6" cy="0" rx="5" ry="8" fill="#ffffff" opacity="0.3"/>
+  </g>
+  <g transform="translate(180,460) rotate(-20)">
+    <ellipse cx="0" cy="0" rx="10" ry="28" fill="#FF6B35"/>
+    <path d="M-4,-28 Q0,-42 4,-28" fill="#4CAF50"/>
+  </g>
+  <g transform="translate(310,465)">
+    <ellipse cx="0" cy="0" rx="20" ry="14" fill="#FDD835"/>
+    <ellipse cx="-8" cy="0" rx="5" ry="8" fill="#ffffff" opacity="0.3"/>
+  </g>
+  <g transform="translate(450,460)" stroke="#009689" stroke-width="3" fill="none">
+    <path d="M-20,-10 L-30,-30 L-50,-30"/>
+    <path d="M-30,-30 L-10,10 L20,10"/>
+    <circle cx="-5" cy="18" r="5" fill="#009689"/>
+    <circle cx="15" cy="18" r="5" fill="#009689"/>
+  </g>
+  <g transform="translate(590,465)">
+    <circle cx="0" cy="0" r="8" fill="#7B1FA2"/>
+    <circle cx="14" cy="0" r="8" fill="#7B1FA2"/>
+    <circle cx="7" cy="12" r="8" fill="#7B1FA2"/>
+    <circle cx="7" cy="-12" r="8" fill="#9C27B0"/>
+  </g>
+  <g transform="translate(720,460)">
+    <circle cx="0" cy="0" r="22" fill="#FF9800"/>
+    <ellipse cx="-7" cy="-5" rx="5" ry="8" fill="#ffffff" opacity="0.25"/>
+  </g>
+
+  <!-- Row 5 -->
+  <g transform="translate(100,600)">
+    <rect x="-12" y="-5" width="24" height="40" rx="4" fill="#E3F2FD" stroke="#90CAF9" stroke-width="2"/>
+    <rect x="-8" y="-15" width="16" height="12" rx="3" fill="#E3F2FD" stroke="#90CAF9" stroke-width="2"/>
+    <rect x="-10" y="5" width="20" height="4" fill="#1565C0"/>
+  </g>
+  <g transform="translate(260,590)">
+    <path d="M-15,10 Q0,-20 20,-5 Q10,15 -5,18 Z" fill="#FDD835"/>
+  </g>
+  <g transform="translate(400,595)">
+    <ellipse cx="0" cy="5" rx="30" ry="18" fill="#FFCC80"/>
+    <ellipse cx="0" cy="-2" rx="28" ry="14" fill="#FFB74D"/>
+  </g>
+  <g transform="translate(540,590)">
+    <path d="M0,-20 Q18,0 10,18 Q0,26 -10,18 Q-18,0 0,-20Z" fill="#E53935"/>
+    <circle cx="-5" cy="0" r="2" fill="#ffffff" opacity="0.5"/>
+    <circle cx="5" cy="5" r="2" fill="#ffffff" opacity="0.5"/>
+    <circle cx="0" cy="-8" r="2" fill="#ffffff" opacity="0.5"/>
+  </g>
+  <g transform="translate(680,595)">
+    <rect x="-4" y="5" width="8" height="20" fill="#388E3C"/>
+    <circle cx="0" cy="0" r="14" fill="#4CAF50"/>
+    <circle cx="-10" cy="5" r="10" fill="#4CAF50"/>
+    <circle cx="10" cy="5" r="10" fill="#4CAF50"/>
+  </g>
+
+  <!-- Row 6 -->
+  <g transform="translate(50,720)">
+    <circle cx="0" cy="0" r="22" fill="#FF9800"/>
+    <ellipse cx="-7" cy="-5" rx="5" ry="8" fill="#ffffff" opacity="0.25"/>
+  </g>
+  <g transform="translate(200,710) rotate(15)">
+    <ellipse cx="0" cy="0" rx="12" ry="28" fill="#FDD835"/>
+    <path d="M-12,-10 Q-22,-5 -18,5" stroke="#4CAF50" stroke-width="3" fill="none"/>
+    <path d="M12,-10 Q22,-5 18,5" stroke="#4CAF50" stroke-width="3" fill="none"/>
+  </g>
+  <g transform="translate(350,715)">
+    <path d="M-30,0 A30,30 0 0,1 30,0 Z" fill="#E53935"/>
+    <path d="M-30,0 A30,30 0 0,1 30,0 L25,0 A25,25 0 0,0 -25,0 Z" fill="#4CAF50"/>
+    <circle cx="-10" cy="-10" r="3" fill="#1A1A1A"/>
+    <circle cx="5" cy="-15" r="3" fill="#1A1A1A"/>
+  </g>
+  <g transform="translate(500,710)" stroke="#009689" stroke-width="2.5" fill="none">
+    <path d="M-20,0 L-15,-30 L15,-30 L20,0 Z" fill="#E0F2F1"/>
+    <path d="M-8,-30 Q-8,-42 0,-42 Q8,-42 8,-30"/>
+  </g>
+  <g transform="translate(650,715)">
+    <ellipse cx="0" cy="8" rx="16" ry="22" fill="#FDD835"/>
+    <path d="M-6,-14 Q0,-35 6,-14" fill="#4CAF50"/>
+    <path d="M-10,-10 Q0,-28 10,-10" fill="#4CAF50"/>
+  </g>
+  <g transform="translate(760,720)">
+    <circle cx="0" cy="5" r="22" fill="#E53935"/>
+    <path d="M0,-17 Q4,-28 8,-20" stroke="#4CAF50" stroke-width="2" fill="none"/>
+  </g>
+</svg>

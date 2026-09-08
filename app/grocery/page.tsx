@@ -237,7 +237,16 @@ export default function GroceryPage() {
 
   return (
     <>
-    <main className="min-h-screen pb-20" style={{ backgroundColor: "var(--theme-page-bg, #F5F5DB)" }}>
+    <main className="min-h-screen pb-20 relative" style={{ backgroundColor: "var(--theme-page-bg, #F5F5DB)" }}>
+      {/* Grocery vector background — fades from top */}
+      <div className="fixed inset-0 z-0 pointer-events-none" style={{
+        backgroundImage: "url('/grocery-bg.svg')",
+        backgroundSize: "800px 800px",
+        backgroundRepeat: "repeat",
+        maskImage: "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0) 80%)",
+        WebkitMaskImage: "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0) 80%)",
+      }} />
+      <div className="relative z-10">
 
       {/* ── HEADER ── */}
       <header className="sticky top-0 z-50 shadow-sm" style={{ background: "var(--theme-header-bg, #319F44)" }}>
@@ -549,6 +558,7 @@ export default function GroceryPage() {
       {showPopup && popupBanners.length > 0 && popupBanners[0].imageUrl && (
         <PopupModal banner={popupBanners[0]} onClose={() => setShowPopup(false)} />
       )}
+      </div>
     </main>
     </>
   )
