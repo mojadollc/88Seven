@@ -480,6 +480,14 @@ model AppBanner {
   updatedAt DateTime @updatedAt
 }
 
+// ─── SEARCH LOG ──────────────────────────────────────────────────────────────
+
+model SearchLog {
+  id        String   @id @default(cuid())
+  query     String
+  createdAt DateTime @default(now())
+}
+
 model PlatformPromo {
   id              String   @id @default(cuid())
   title           String

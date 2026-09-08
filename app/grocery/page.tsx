@@ -63,6 +63,8 @@ export default function GroceryPage() {
   const [categories, setCategories] = useState<string[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string>("All")
   const [searchQuery, setSearchQuery] = useState("")
+  const [searchFocused, setSearchFocused] = useState(false)
+  const [popularSearches, setPopularSearches] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [cart, setCart] = useState<any[]>([])
   const [cartLoaded, setCartLoaded] = useState(false)
@@ -134,7 +136,21 @@ export default function GroceryPage() {
   }, [])
 
   useEffect(() => {
-    async function load() {
+    fetch("/api/search-logs?limit=8").then(r => r.json()).then((d: any[]) => {
+      if (Array.isArray(d)) setPopularSearches(d.map(x => x.query))
+    }).catch(() => {})
+  }, [])
+
+  // Debounced search logging
+  useEffect(() => {
+    if (!searchQuery.trim() || searchQuery.trim().length < 2) return
+    const t = setTimeout(() => {
+      fetch("/api/search-logs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query: searchQuery.trim() }) }).catch(() => {})
+    }, 1500)
+    return () => clearTimeout(t)
+  }, [searchQuery])
+
+  useEffect(() => {
       try {
         const res = await fetch("/api/pos-products")
         const data = await res.json()
@@ -272,17 +288,41 @@ export default function GroceryPage() {
           </a>
 
           {/* Search */}
-          <div className="flex-1 flex rounded-xl overflow-hidden border border-black/10">
+          <div className="flex-1 flex rounded-xl overflow-hidden border border-black/10 relative">
             <input
               type="text"
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setTimeout(() => setSearchFocused(false), 150)}
               className="flex-1 px-4 py-2 text-sm outline-none bg-white/90 text-gray-800 placeholder-gray-400"
             />
-            <button className="px-4 bg-white/20 hover:bg-white/30 transition-colors">
-              <svg className="w-4 h-4" style={{ color: "var(--theme-header-text, #ffffff)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-            </button>
+            {searchQuery ? (
+              <button onClick={() => setSearchQuery("")} className="px-3 bg-white/20 hover:bg-white/30 transition-colors">
+                <svg className="w-4 h-4" style={{ color: "var(--theme-header-text, #ffffff)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            ) : (
+              <button className="px-4 bg-white/20 hover:bg-white/30 transition-colors">
+                <svg className="w-4 h-4" style={{ color: "var(--theme-header-text, #ffffff)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              </button>
+            )}
+            {/* Popular searches dropdown */}
+            {searchFocused && !searchQuery && popularSearches.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
+                <p className="px-3 pt-2.5 pb-1 text-[10px] font-bold text-gray-400 uppercase tracking-wide">🔥 Popular Searches</p>
+                {popularSearches.map((q) => (
+                  <button
+                    key={q}
+                    onMouseDown={() => setSearchQuery(q)}
+                    className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-[#319F44]/10 hover:text-[#319F44] flex items-center gap-2 transition-colors"
+                  >
+                    <svg className="w-3.5 h-3.5 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    <span className="capitalize">{q}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Notif */}
