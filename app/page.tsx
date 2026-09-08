@@ -123,7 +123,7 @@ export default function HomePage() {
   }, [user])
 
   useEffect(() => {
-    fetch("/api/hero").then(r => r.ok ? r.json() : []).then((data: any[]) => {
+    fetch("/api/hero?page=home").then(r => r.ok ? r.json() : []).then((data: any[]) => {
       setBanners(data.length > 0 ? data.map((s: any) => ({ id: s.id, title: s.title || "", subtitle: s.description || s.subtitle || "", imageUrl: s.imageUrl || "", bgColor: s.bgColor || "#319F44", link: s.link || "/grocery" })) : [
         { id: "1", title: "Free Delivery", subtitle: "On orders ₱1,000+", imageUrl: "", bgColor: "#319F44", link: "/grocery" },
         { id: "2", title: "Laundry Pickup", subtitle: "We'll handle the rest", imageUrl: "", bgColor: "#1a56db", link: "/laundry" },

@@ -302,6 +302,7 @@ model WalletTransaction {
 
 model HeroSlide {
   id          String   @id @default(cuid())
+  page        String   @default("grocery")
   badge       String
   title       String
   highlight   String

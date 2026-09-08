@@ -602,7 +602,7 @@ function HeroSlider() {
     { id: "3", badge: "Member Exclusive", title: "Save Up To", highlight: "50% Off Today", description: "Sign up and unlock exclusive deals!", imageUrl: "", bgColor: "#FF8A00", link: "/auth" },
   ]
   useEffect(() => {
-    fetch("/api/hero").then(r => r.json()).then(d => setSlides(d.length > 0 ? d : fallback)).catch(() => setSlides(fallback)).finally(() => setLoaded(true))
+    fetch("/api/hero?page=grocery").then(r => r.json()).then(d => setSlides(d.length > 0 ? d : fallback)).catch(() => setSlides(fallback)).finally(() => setLoaded(true))
   }, [])
   useEffect(() => {
     if (slides.length <= 1) return

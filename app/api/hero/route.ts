@@ -3,8 +3,16 @@ import { prisma } from "@/lib/prisma"
 
 export async function GET(req: NextRequest) {
   const all = req.nextUrl.searchParams.get("all")
+  const page = req.nextUrl.searchParams.get("page")
+  // Ensure page column exists
+  try {
+    await (prisma as any).$executeRawUnsafe(`ALTER TABLE "HeroSlide" ADD COLUMN IF NOT EXISTS "page" TEXT NOT NULL DEFAULT 'grocery'`)
+  } catch {}
   const slides = await prisma.heroSlide.findMany({
-    where: all ? {} : { enabled: true },
+    where: {
+      ...(all ? {} : { enabled: true }),
+      ...(page ? { page } : {}),
+    },
     orderBy: { order: "asc" },
   })
   return NextResponse.json(slides)
