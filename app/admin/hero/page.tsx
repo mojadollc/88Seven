@@ -28,18 +28,22 @@ export default function AdminHero() {
   const [saving, setSaving] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { loadSlides() }, [])
 
   async function loadSlides() {
     setLoading(true)
+    setError(null)
     try {
       const [home, grocery] = await Promise.all([
         fetch("/api/hero?all=true&page=home").then(r => r.json()),
         fetch("/api/hero?all=true&page=grocery").then(r => r.json()),
       ])
-      setSlides({ home, grocery })
+      setSlides({ home: Array.isArray(home) ? home : [], grocery: Array.isArray(grocery) ? grocery : [] })
+    } catch (e: any) {
+      setError(e.message)
     } finally {
       setLoading(false)
     }
@@ -70,15 +74,23 @@ export default function AdminHero() {
 
   async function handleSave() {
     setSaving(true)
+    setError(null)
     try {
+      let res: Response
       if (editing) {
-        await fetch(`/api/hero/${editing.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) })
+        res = await fetch(`/api/hero/${editing.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) })
       } else {
-        await fetch("/api/hero", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, page: tab }) })
+        res = await fetch("/api/hero", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, page: tab }) })
+      }
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.error || `Server error ${res.status}`)
       }
       await loadSlides()
       setShowForm(false)
       setEditing(null)
+    } catch (e: any) {
+      setError(e.message)
     } finally {
       setSaving(false)
     }
@@ -110,6 +122,10 @@ export default function AdminHero() {
           </div>
           <button onClick={handleNew} className="bg-[#319F44] text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-[#267a34] transition-colors">+ Add Slide</button>
         </div>
+
+        {error && (
+          <div className="mt-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-4 py-2">{error}</div>
+        )}
 
         {/* Tabs */}
         <div className="flex gap-1 mt-4">
@@ -217,11 +233,14 @@ export default function AdminHero() {
                   </div>
                 </div>
               </div>
-              <div className="p-6 border-t border-gray-100 flex justify-end gap-3">
-                <button onClick={() => { setShowForm(false); setEditing(null) }} className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
-                <button onClick={handleSave} disabled={saving} className="bg-[#319F44] text-white text-sm font-medium px-5 py-2 rounded-lg hover:bg-[#267a34] disabled:opacity-50">
-                  {saving ? "Saving..." : editing ? "Update" : "Create"}
-                </button>
+              <div className="p-6 border-t border-gray-100 flex flex-col gap-3">
+                {error && <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
+                <div className="flex justify-end gap-3">
+                  <button onClick={() => { setShowForm(false); setEditing(null); setError(null) }} className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
+                  <button onClick={handleSave} disabled={saving} className="bg-[#319F44] text-white text-sm font-medium px-5 py-2 rounded-lg hover:bg-[#267a34] disabled:opacity-50">
+                    {saving ? "Saving..." : editing ? "Update" : "Create"}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
