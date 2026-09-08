@@ -314,13 +314,28 @@ export default function HomePage() {
                 Your everyday super app
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 leading-tight tracking-tight">
-                Everything<br />
-                <span className="text-teal-600">delivered</span><br />
-                to your door.
+                One app.<br />
+                <span style={{ color: "var(--theme-color, #009689)" }}>All services.</span><br />
+                <span className="text-gray-500 text-3xl md:text-4xl font-bold">Delivered to you.</span>
               </h1>
-              <p className="mt-5 text-gray-500 text-lg leading-relaxed max-w-md">
-                Grocery, laundry, home services and more — all in one app. Fast, reliable, and always nearby.
-              </p>
+
+              {/* Service pills */}
+              <div className="mt-6 flex flex-wrap gap-2">
+                {SERVICES.filter(s => s.available).map(s => (
+                  <a key={s.id} href={s.href}
+                    className="flex items-center gap-2 bg-white border border-gray-200 hover:border-teal-500 hover:shadow-md rounded-xl px-3 py-2 text-xs font-semibold text-gray-700 transition-all hover:-translate-y-0.5">
+                    <span className="text-base">{s.icon}</span>
+                    {s.name}
+                  </a>
+                ))}
+                {SERVICES.filter(s => !s.available).map(s => (
+                  <span key={s.id} className="flex items-center gap-2 bg-gray-50 border border-dashed border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-400">
+                    <span className="text-base">{s.icon}</span>
+                    {s.name}
+                    <span className="text-[9px] bg-amber-100 text-amber-600 font-bold px-1.5 py-0.5 rounded-full">Soon</span>
+                  </span>
+                ))}
+              </div>
 
               {/* Location + CTA */}
               <div className="mt-8 flex flex-col sm:flex-row gap-3">
@@ -328,7 +343,7 @@ export default function HomePage() {
                   <svg className="w-4 h-4 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                   <span className="truncate">{detecting ? "Detecting..." : address || "Set your location"}</span>
                 </button>
-                <a href="/grocery" className="flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-bold px-6 py-3 rounded-xl transition-colors shadow-lg shadow-teal-600/20 text-sm">
+                <a href="/grocery" className="flex items-center justify-center gap-2 text-white font-bold px-6 py-3 rounded-xl transition-colors shadow-lg text-sm" style={{ background: "var(--theme-bg, #009689)" }}>
                   Order Now
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
                 </a>
