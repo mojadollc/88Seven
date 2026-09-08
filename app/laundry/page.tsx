@@ -263,7 +263,7 @@ export default function LaundryPage() {
           </a>
           <a href="/" className="flex items-center">
             {logoUrl ? (
-              <img src={logoUrl} alt="Logo" className="h-9 w-auto object-contain" />
+              <img src={logoUrl} alt="Logo" className="h-12 w-auto object-contain" />
             ) : (
               <span className="font-black text-sm tracking-tight">Gruwcer</span>
             )}
