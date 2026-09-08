@@ -74,6 +74,8 @@ export default function GroceryPage() {
   const [submitting, setSubmitting] = useState(false)
   const [locating, setLocating] = useState(false)
   const [deliverySettings, setDeliverySettings] = useState<any>(null)
+  const [storeLat, setStoreLat] = useState(0)
+  const [storeLng, setStoreLng] = useState(0)
   const [deliveryFee, setDeliveryFee] = useState(0)
   const [walletBalance, setWalletBalance] = useState(0)
   const [paymentMethods, setPaymentMethods] = useState<any>({ cod: true, wallet: true, qrph: true, ewallet: true, bank: true })
@@ -135,7 +137,10 @@ export default function GroceryPage() {
     async function load() {
       try {
         const res = await fetch("/api/pos-products")
-        const prods: any[] = await res.json()
+        const data = await res.json()
+        const prods: any[] = data.products || []
+        if (data.storeLat) setStoreLat(data.storeLat)
+        if (data.storeLng) setStoreLng(data.storeLng)
         for (let i = prods.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[prods[i], prods[j]] = [prods[j], prods[i]] }
         setProducts(prods)
         const cats = [...new Set(prods.map((p: any) => p.category).filter(Boolean))] as string[]
@@ -150,11 +155,13 @@ export default function GroceryPage() {
     const config = deliverySettings.grocery || { baseFare: 39, baseKm: 2, perKmRate: 10, surgeMultiplier: 1.5, surgeEnabled: false }
     const total = cart.reduce((sum, i) => sum + (i.product.onSale && i.product.salePrice ? i.product.salePrice : i.product.price) * i.quantity, 0)
     if (total >= (deliverySettings.freeDeliveryMinOrder || 1000)) { setDeliveryFee(0); return }
-    if (checkoutForm.lat && checkoutForm.lng && deliverySettings.storeLat && deliverySettings.storeLng) {
+    const sLat = storeLat || deliverySettings.storeLat
+    const sLng = storeLng || deliverySettings.storeLng
+    if (checkoutForm.lat && checkoutForm.lng && sLat && sLng) {
       const R = 6371
-      const dLat = (checkoutForm.lat - deliverySettings.storeLat) * Math.PI / 180
-      const dLng = (checkoutForm.lng - deliverySettings.storeLng) * Math.PI / 180
-      const a = Math.sin(dLat / 2) ** 2 + Math.cos(deliverySettings.storeLat * Math.PI / 180) * Math.cos(checkoutForm.lat * Math.PI / 180) * Math.sin(dLng / 2) ** 2
+      const dLat = (checkoutForm.lat - sLat) * Math.PI / 180
+      const dLng = (checkoutForm.lng - sLng) * Math.PI / 180
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos(sLat * Math.PI / 180) * Math.cos(checkoutForm.lat * Math.PI / 180) * Math.sin(dLng / 2) ** 2
       const km = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
       let fee = config.baseFare + (Math.max(0, km - config.baseKm) * config.perKmRate)
       if (config.surgeEnabled) fee *= config.surgeMultiplier

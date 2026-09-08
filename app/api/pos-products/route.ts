@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
 
 const POS_BASE = "https://pntos.payroo.xyz"
 const STORE_ID = "8807"
@@ -11,9 +12,10 @@ function fixImageUrl(url: string | null | undefined): string {
 
 export async function GET() {
   try {
-    const res = await fetch(`${POS_BASE}/api/products?storeId=${STORE_ID}`, {
-      next: { revalidate: 300 },
-    })
+    const [res, settings] = await Promise.all([
+      fetch(`${POS_BASE}/api/products?storeId=${STORE_ID}`, { next: { revalidate: 300 } }),
+      prisma.deliverySettings.findFirst(),
+    ])
     if (!res.ok) throw new Error(`POS API error: ${res.status}`)
     const json = await res.json()
     const products = (json.data || []).map((p: any) => ({
@@ -21,7 +23,11 @@ export async function GET() {
       imageUrl: fixImageUrl(p.imageUrl),
       category: p.category === "School Supply" ? "Office & School Supply" : p.category === "Office Supply" ? "Office & School Supply" : p.category,
     }))
-    return NextResponse.json(products)
+    return NextResponse.json({
+      products,
+      storeLat: settings?.storeLat ?? 0,
+      storeLng: settings?.storeLng ?? 0,
+    })
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 })
   }
