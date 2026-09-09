@@ -12,7 +12,12 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const data = await req.json()
-  const product = await prisma.product.create({ data })
+  // Allow caller to specify id (e.g. POS product id as key)
+  const product = await prisma.product.upsert({
+    where: { id: data.id || "__new__" },
+    update: data,
+    create: data,
+  })
   return NextResponse.json(product)
 }
 
