@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
   if (!orderId || !trip)
     return NextResponse.json({ error: "orderId and trip required" }, { status: 400 })
 
-  const order = await prisma.laundryOrder.findUnique({ where: { id: orderId } })
+  const order = await prisma.laundryOrder.findUnique({ where: { id: orderId } }) as any
   if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 })
 
   const callbackBase = process.env.NEXT_PUBLIC_APP_URL || "https://gruwcer.com"
