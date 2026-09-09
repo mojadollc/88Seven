@@ -12,17 +12,27 @@ function fixImageUrl(url: string | null | undefined): string {
 
 export async function GET() {
   try {
-    const [res, settings] = await Promise.all([
+    const [res, settings, localProducts] = await Promise.all([
       fetch(`${POS_BASE}/api/products?storeId=${STORE_ID}`, { next: { revalidate: 300 } }),
       prisma.deliverySettings.findFirst(),
+      prisma.product.findMany(),
     ])
     if (!res.ok) throw new Error(`POS API error: ${res.status}`)
     const json = await res.json()
-    const products = (json.data || []).map((p: any) => ({
-      ...p,
-      imageUrl: fixImageUrl(p.imageUrl),
-      category: p.category === "School Supply" ? "Office & School Supply" : p.category === "Office Supply" ? "Office & School Supply" : p.category,
-    }))
+    const overrides: Record<string, any> = {}
+    localProducts.forEach((p: any) => { overrides[p.id] = p })
+    const products = (json.data || []).map((p: any) => {
+      const ov = overrides[p.id]
+      return {
+        ...p,
+        imageUrl: fixImageUrl(ov?.imageUrl || p.imageUrl),
+        category: ov?.category ?? (p.category === "School Supply" ? "Office & School Supply" : p.category === "Office Supply" ? "Office & School Supply" : p.category),
+        bottleDeposit: ov?.bottleDeposit ?? null,
+        showOnSite: ov ? ov.showOnSite : true,
+        onSale: ov?.onSale ?? false,
+        salePrice: ov?.salePrice ?? null,
+      }
+    })
     return NextResponse.json({
       products,
       storeLat: settings?.storeLat ?? 0,

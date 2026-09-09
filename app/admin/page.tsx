@@ -13,7 +13,7 @@ export default function AdminProducts() {
   const [currentPage, setCurrentPage] = useState(1)
   const [toggling, setToggling] = useState<string | null>(null)
   const [editing, setEditing] = useState<any>(null)
-  const [editForm, setEditForm] = useState({ name: "", price: "", salePrice: "", onSale: false, stock: "", unit: "", category: "", showOnSite: true })
+  const [editForm, setEditForm] = useState({ name: "", price: "", salePrice: "", onSale: false, stock: "", unit: "", category: "", showOnSite: true, bottleDeposit: "" })
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -74,6 +74,7 @@ export default function AdminProducts() {
       unit: m.unit || "",
       category: m.category || "",
       showOnSite: m.showOnSite !== false,
+      bottleDeposit: m.bottleDeposit ? String(m.bottleDeposit) : "",
     })
   }
 
@@ -91,6 +92,7 @@ export default function AdminProducts() {
         category: editForm.category,
         showOnSite: editForm.showOnSite,
         imageUrl: merged(editing).imageUrl || "",
+        bottleDeposit: editForm.bottleDeposit ? parseFloat(editForm.bottleDeposit) : null,
       }
       const ov = localOverrides[editing.id]
       if (ov) {
@@ -295,6 +297,11 @@ export default function AdminProducts() {
                   <label className="text-xs font-semibold text-gray-500">Unit</label>
                   <input placeholder="pc, kg, pack…" value={editForm.unit} onChange={e => setEditForm({ ...editForm, unit: e.target.value })} className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#319F44]" />
                 </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-gray-500">Bottle Deposit / Pundo (₱) <span className="text-gray-400 font-normal">— leave blank if none</span></label>
+                <input type="number" min="0" step="0.01" placeholder="e.g. 10" value={editForm.bottleDeposit} onChange={e => setEditForm({ ...editForm, bottleDeposit: e.target.value })} className="w-full mt-1 border border-orange-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-orange-400" />
               </div>
 
               <label className="flex items-center gap-2 cursor-pointer">
