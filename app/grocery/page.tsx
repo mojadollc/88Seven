@@ -151,6 +151,7 @@ export default function GroceryPage() {
   }, [searchQuery])
 
   useEffect(() => {
+    async function load() {
       try {
         const res = await fetch("/api/pos-products")
         const data = await res.json()
@@ -163,6 +164,7 @@ export default function GroceryPage() {
         setCategories(cats)
       } catch (e) { console.error(e) } finally { setLoading(false) }
     }
+    load()
     load()
   }, [])
 
