@@ -1,190 +1,205 @@
 "use client"
 
 import { useEffect, useState } from "react"
-// All data via Postgres API
-import { ResetPasswordModal } from "@/app/admin/components/ResetPasswordModal"
 
-export default function AdminDriversPage() {
-  const [drivers, setDrivers] = useState<any[]>([])
+export default function BitRideDeliveriesPage() {
+  const [groceryOrders, setGroceryOrders] = useState<any[]>([])
+  const [laundryOrders, setLaundryOrders] = useState<any[]>([])
+  const [settings, setSettings] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [showForm, setShowForm] = useState(false)
-  const [editing, setEditing] = useState<any>(null)
-  const [form, setForm] = useState({ name: "", email: "", phone: "", status: "active" as "active" | "inactive" | "pending" })
-  const [resetEmail, setResetEmail] = useState<string | null>(null)
+  const [tab, setTab] = useState<"grocery" | "laundry">("grocery")
 
-  useEffect(() => { loadDrivers() }, [])
-
-  const loadDrivers = async () => {
-    setLoading(true)
-    const data = await fetch("/api/users?role=driver").then(r => r.json())
-    setDrivers(data)
-    setLoading(false)
-  }
-
-  const resetForm = () => {
-    setForm({ name: "", email: "", phone: "", status: "active" })
-    setEditing(null)
-    setShowForm(false)
-  }
-
-  const handleSubmit = async () => {
-    if (!form.name.trim() || !form.phone.trim()) return
-    if (editing) {
-      await fetch(`/api/partners/${editing.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) })
-    } else {
-      await fetch("/api/auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "register", ...form, role: "driver", password: "Gruwcer2024!" }) })
+  useEffect(() => {
+    async function load() {
+      const [grocery, laundry, s] = await Promise.all([
+        fetch("/api/orders").then(r => r.json()),
+        fetch("/api/laundry-orders").then(r => r.json()),
+        fetch("/api/delivery-settings").then(r => r.json()),
+      ])
+      setGroceryOrders(Array.isArray(grocery) ? grocery : [])
+      setLaundryOrders(Array.isArray(laundry) ? laundry : [])
+      setSettings(s)
+      setLoading(false)
     }
-    resetForm()
-    await loadDrivers()
-  }
+    load()
+    const iv = setInterval(load, 10000)
+    return () => clearInterval(iv)
+  }, [])
 
-  const handleEdit = (driver: any) => {
-    setForm({ name: driver.name, email: driver.email, phone: driver.phone, status: driver.status })
-    setEditing(driver)
-    setShowForm(true)
-  }
+  // Only orders that were dispatched to BitRide (have notes with FB: or have rider-related statuses)
+  const dispatchedGrocery = groceryOrders.filter(o =>
+    o.notes?.includes("FB:") ||
+    ["rider_accepted","rider_at_store","rider_picked_up","out_for_delivery","delivered"].includes(o.status)
+  )
+  const dispatchedLaundry = laundryOrders.filter(o =>
+    o.fbPickupBookingId || o.fbReturnBookingId ||
+    ["rider_to_customer","rider_picked_up","rider_to_laundromat","at_laundromat",
+     "rider_return_pickup","rider_returning","delivered"].includes(o.status)
+  )
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Remove this rider?")) return
-    await fetch(`/api/partners/${id}`, { method: "DELETE" })
-    await loadDrivers()
+  const deliveredGrocery = dispatchedGrocery.filter(o => o.status === "delivered")
+  const deliveredLaundry = dispatchedLaundry.filter(o => o.status === "delivered")
+
+  // Delivery fee = what customer paid for delivery (goes to BitRide)
+  const groceryDeliveryRevenue = deliveredGrocery.reduce((s, o) => {
+    const fee = settings?.groceryBaseFare || 39
+    return s + fee
+  }, 0)
+  const laundryDeliveryRevenue = deliveredLaundry.reduce((s, o) => {
+    return s + (o.deliveryFee || 0) * 2 // pickup + return
+  }, 0)
+  const totalBitRidePayable = groceryDeliveryRevenue + laundryDeliveryRevenue
+
+  const STATUS_COLOR: Record<string, string> = {
+    rider_accepted:    "bg-cyan-100 text-cyan-700",
+    rider_at_store:    "bg-teal-100 text-teal-700",
+    rider_picked_up:   "bg-blue-100 text-blue-700",
+    out_for_delivery:  "bg-indigo-100 text-indigo-700",
+    delivered:         "bg-green-100 text-green-700",
+    rider_to_customer: "bg-cyan-100 text-cyan-700",
+    rider_to_laundromat:"bg-teal-100 text-teal-700",
+    at_laundromat:     "bg-purple-100 text-purple-700",
+    rider_return_pickup:"bg-teal-100 text-teal-700",
+    rider_returning:   "bg-blue-100 text-blue-700",
+    cancelled:         "bg-gray-100 text-gray-500",
   }
 
   return (
     <>
       <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-20">
         <div className="flex items-center justify-between">
-          <h1 className="text-lg font-bold text-[#1F2937]">Riders / Drivers</h1>
-          <button
-            onClick={() => { resetForm(); setShowForm(true) }}
-            className="text-xs bg-[#319F44] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#267a34] transition-colors"
+          <div>
+            <h1 className="text-lg font-bold text-[#1F2937]">BitRide Deliveries</h1>
+            <p className="text-xs text-gray-400 mt-0.5">All riders are managed in BitRide — this shows orders dispatched via BitRide</p>
+          </div>
+          <a
+            href="https://bitride-41c11.web.app/"
+            target="_blank"
+            className="text-xs bg-[#1F2937] text-white px-4 py-2 rounded-lg font-bold hover:bg-black flex items-center gap-1.5"
           >
-            + Add Rider
-          </button>
+            Open BitRide ↗
+          </a>
         </div>
       </header>
 
-      <div className="p-6 max-w-4xl">
-        {/* Add/Edit Form */}
-        {showForm && (
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-6">
-            <h3 className="font-bold text-sm mb-4">{editing ? "Edit Rider" : "Add New Rider"}</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input
-                placeholder="Full Name *"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#319F44]"
-              />
-              <input
-                placeholder="Phone *"
-                value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#319F44]"
-              />
-              <input
-                placeholder="Email (for login)"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#319F44]"
-              />
-              <select
-                value={form.status}
-                onChange={(e) => setForm({ ...form, status: e.target.value as "active" | "inactive" })}
-                className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#319F44]"
-              >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-            <div className="flex gap-2 mt-4">
-              <button onClick={handleSubmit} className="bg-[#319F44] text-white px-5 py-2 rounded-lg text-xs font-bold hover:bg-[#267a34]">
-                {editing ? "Update" : "Add Rider"}
-              </button>
-              <button onClick={resetForm} className="bg-gray-100 text-gray-600 px-5 py-2 rounded-lg text-xs font-medium">Cancel</button>
-            </div>
+      <div className="p-6">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+            <p className="text-2xl font-bold text-blue-600">{dispatchedGrocery.length + dispatchedLaundry.length}</p>
+            <p className="text-xs text-gray-400">Total Dispatched</p>
           </div>
-        )}
+          <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+            <p className="text-2xl font-bold text-[#319F44]">{deliveredGrocery.length + deliveredLaundry.length}</p>
+            <p className="text-xs text-gray-400">Completed</p>
+          </div>
+          <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+            <p className="text-2xl font-bold text-orange-500">
+              {dispatchedGrocery.filter(o => !["delivered","cancelled"].includes(o.status)).length +
+               dispatchedLaundry.filter(o => !["delivered","cancelled"].includes(o.status)).length}
+            </p>
+            <p className="text-xs text-gray-400">In Progress</p>
+          </div>
+          <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+            <p className="text-2xl font-bold text-[#1F2937]">₱{totalBitRidePayable.toFixed(0)}</p>
+            <p className="text-xs text-gray-400">Delivery Fees Collected</p>
+          </div>
+        </div>
 
-        {/* Drivers List */}
+        {/* BitRide Info Banner */}
+        <div className="bg-[#1F2937] rounded-xl p-4 mb-6 flex items-start gap-4">
+          <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center shrink-0 text-xl">🏍️</div>
+          <div className="flex-1">
+            <p className="text-white font-bold text-sm">Rider Management is in BitRide</p>
+            <p className="text-white/60 text-xs mt-1">
+              All rider registration, wallet top-ups, commission deductions, and earnings are handled
+              inside the BitRide platform at <span className="text-white font-mono">bitride-41c11.web.app</span>.
+              Gruwcer only pushes bookings to BitRide and receives status callbacks.
+            </p>
+          </div>
+          <a href="https://bitride-41c11.web.app/" target="_blank"
+            className="shrink-0 text-[10px] bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg font-bold transition-colors">
+            Manage Riders ↗
+          </a>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-2 mb-4">
+          {(["grocery", "laundry"] as const).map(t => (
+            <button key={t} onClick={() => setTab(t)}
+              className={`px-5 py-2 text-xs rounded-lg font-medium capitalize transition-colors ${tab === t ? "bg-[#319F44] text-white" : "bg-white border border-gray-200 text-gray-600"}`}>
+              {t === "grocery" ? `🛒 Grocery (${dispatchedGrocery.length})` : `🧺 Laundry (${dispatchedLaundry.length})`}
+            </button>
+          ))}
+        </div>
+
         {loading ? (
           <div className="text-center py-10 text-gray-400">Loading...</div>
-        ) : drivers.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-xl border border-gray-100">
-            <p className="text-4xl mb-3">🏍️</p>
-            <p className="text-gray-400 text-sm">No riders added yet</p>
-            <p className="text-xs text-gray-300 mt-1">Add riders to assign them to deliveries</p>
-          </div>
         ) : (
           <div className="space-y-3">
-            {drivers.map((driver) => (
-              <div key={driver.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="px-5 py-4 flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    {driver.selfieUrl ? (
-                      <img src={driver.selfieUrl} className="w-10 h-10 rounded-full object-cover border border-gray-200" />
-                    ) : (
-                      <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                      </div>
+            {(tab === "grocery" ? dispatchedGrocery : dispatchedLaundry).length === 0 ? (
+              <div className="text-center py-16 bg-white rounded-xl border border-gray-100">
+                <p className="text-4xl mb-3">📭</p>
+                <p className="text-gray-400 text-sm">No BitRide dispatches yet</p>
+              </div>
+            ) : (tab === "grocery" ? dispatchedGrocery : dispatchedLaundry).map((order: any) => (
+              <div key={order.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="px-5 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase ${STATUS_COLOR[order.status] || "bg-gray-100 text-gray-500"}`}>
+                      {order.status.replace(/_/g, " ")}
+                    </span>
+                    <span className="text-[10px] text-gray-400 font-mono">#{order.id.slice(0, 8)}</span>
+                    {/* BitRide booking ID */}
+                    {(order.notes?.match(/FB:(\S+)/)?.[1] || order.fbPickupBookingId) && (
+                      <span className="text-[9px] bg-[#1F2937] text-white px-2 py-0.5 rounded font-mono">
+                        BitRide: {order.notes?.match(/FB:(\S+)/)?.[1] || order.fbPickupBookingId}
+                      </span>
                     )}
-                    <div>
-                      <p className="font-bold text-sm text-gray-800">{driver.name}</p>
-                      <p className="text-xs text-gray-400">{driver.phone} {driver.email && `• ${driver.email}`}</p>
-                      {driver.plateNumber && <p className="text-[10px] text-gray-400">{driver.vehicleType} • {driver.plateNumber}</p>}
-                    </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${driver.status === "active" ? "bg-[#59EBC6]/20 text-[#267a34]" : (driver.status as string) === "pending" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-500"}`}>
-                      {driver.status}
-                    </span>
-                    {driver.profileComplete && !(driver as any).profileVerified && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 animate-pulse">Docs Submitted</span>
+                    {order.riderName && (
+                      <span className="text-[10px] text-gray-500">🏍️ {order.riderName}</span>
                     )}
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full ${(driver.walletBalance || 0) >= 100 ? "bg-[#319F44]/10 text-[#319F44]" : "bg-[#319F44]/10 text-green-500"}`}>
-                      ₱{driver.walletBalance || 0}
+                    <span className="font-bold text-[#319F44] text-sm">
+                      ₱{(order.total || order.totalPrice || 0).toFixed(0)}
                     </span>
                   </div>
                 </div>
-
-                {/* Documents - show if profile complete but not verified */}
-                {driver.profileComplete && !(driver as any).profileVerified && (
-                  <div className="px-5 py-3 bg-orange-50 border-t border-orange-100">
-                    <p className="text-xs font-bold text-orange-700 mb-2">⚠️ Documents pending verification</p>
-                    <div className="flex gap-2 flex-wrap mb-3">
-                      {driver.selfieUrl && <a href={driver.selfieUrl} target="_blank" className="text-[10px] bg-white border border-gray-200 px-2 py-1 rounded">Selfie</a>}
-                      {driver.nbiUrl && <a href={driver.nbiUrl} target="_blank" className="text-[10px] bg-white border border-gray-200 px-2 py-1 rounded">NBI/Clearance</a>}
-                      {driver.vehicleUrl && <a href={driver.vehicleUrl} target="_blank" className="text-[10px] bg-white border border-gray-200 px-2 py-1 rounded">Vehicle Photo</a>}
-                    </div>
-                    <button onClick={async () => { await fetch(`/api/partners/${driver.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ profileVerified: true }) }); await loadDrivers() }} className="text-xs bg-[#319F44]/100 text-white px-4 py-1.5 rounded-lg font-bold hover:bg-green-600">✓ Verify & Approve Documents</button>
+                <div className="px-5 py-3 grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <p className="text-gray-400">Customer</p>
+                    <p className="font-medium text-gray-800">{order.customerName}</p>
+                    <p className="text-gray-400">{order.customerPhone}</p>
                   </div>
-                )}
-
-                {/* Actions */}
-                <div className="px-5 py-3 border-t border-gray-100 flex items-center gap-2">
-                  {(driver.status as string) === "pending" && (
-                    <button onClick={async () => { await fetch(`/api/partners/${driver.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "active" }) }); await loadDrivers() }} className="text-xs bg-[#319F44]/100 text-white px-3 py-1.5 rounded-lg font-bold">Approve Rider</button>
+                  <div>
+                    <p className="text-gray-400">Address</p>
+                    <p className="text-gray-700 line-clamp-2">{order.deliveryAddress || order.pickupAddress}</p>
+                  </div>
+                  {tab === "laundry" && (
+                    <>
+                      <div>
+                        <p className="text-gray-400">Service</p>
+                        <p className="font-medium text-gray-800">{order.serviceName} · {order.weight}kg</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400">Delivery Fee (×2 trips)</p>
+                        <p className="font-bold text-blue-600">₱{((order.deliveryFee || 0) * 2).toFixed(0)}</p>
+                      </div>
+                    </>
                   )}
-                  <button onClick={() => handleEdit(driver)} className="text-xs text-blue-600 hover:underline">Edit</button>
-                  {driver.email && <button onClick={() => setResetEmail(driver.email)} className="text-xs text-orange-600 hover:underline">🔑 Reset Password</button>}
-                  <button onClick={() => handleDelete(driver.id)} className="text-xs text-green-500 hover:underline">Remove</button>
+                  {tab === "grocery" && (
+                    <div>
+                      <p className="text-gray-400">Delivery Fee</p>
+                      <p className="font-bold text-blue-600">₱{settings?.groceryBaseFare || 39}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
           </div>
         )}
-
-        {/* Info Box */}
-        <div className="mt-6 bg-blue-50 border border-blue-100 rounded-xl p-4">
-          <p className="text-xs font-bold text-blue-700 mb-1">💡 Rider Login Credentials</p>
-          <p className="text-xs text-blue-600">
-            Riders log in at <span className="font-mono font-bold">/driver</span> using their email and the password you provide them.
-            The rider ID used for order assignment is their Firestore document ID shown below their name.
-          </p>
-        </div>
       </div>
-
-      {resetEmail && <ResetPasswordModal email={resetEmail} onClose={() => setResetEmail(null)} />}
     </>
   )
 }

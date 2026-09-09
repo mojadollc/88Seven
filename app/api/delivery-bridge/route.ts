@@ -47,8 +47,6 @@ export async function GET(req: NextRequest) {
   if (newStatus === "delivered")       updateData.deliveredAt = new Date()
 
   const order = await prisma.order.update({ where: { id: orderId }, data: updateData })
-
-  // Notify customer
   const statusMessages: Record<string, [string, string]> = {
     rider_accepted:  ["Rider Assigned 🏍️",    "Your rider is on the way to pick up your order"],
     rider_picked_up: ["Order Picked Up 📦",    "Your rider has picked up your order and is heading to you"],

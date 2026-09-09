@@ -18,7 +18,7 @@ const NAV_ITEMS = [
   { href: "/admin/partners", label: "Partners", icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" },
   { href: "/admin/promos", label: "Promos", icon: "M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" },
   { href: "/admin/customers", label: "Customers", icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" },
-  { href: "/admin/drivers", label: "Riders", icon: "M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" },
+  { href: "/admin/drivers", label: "BitRide Deliveries", icon: "M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" },
   { href: "/admin/reports", label: "Reports", icon: "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" },
   { href: "/admin/search-logs", label: "Search Analytics", icon: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" },
   { href: "/admin/wallet", label: "Wallet", icon: "M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" },
@@ -34,21 +34,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [pendingGrocery, setPendingGrocery] = useState(0)
   const [pendingLaundry, setPendingLaundry] = useState(0)
   const [pendingPartners, setPendingPartners] = useState(0)
-  const [pendingRiders, setPendingRiders] = useState(0)
 
   // Poll pending counts every 10s
   useEffect(() => {
     async function fetchCounts() {
-      const [grocery, laundry, partners, riders] = await Promise.all([
+      const [grocery, laundry, partners] = await Promise.all([
         fetch("/api/counts?type=grocery").then((r) => r.json()),
         fetch("/api/counts?type=laundry").then((r) => r.json()),
         fetch("/api/counts?type=partners").then((r) => r.json()),
-        fetch("/api/counts?type=riders").then((r) => r.json()),
       ])
       setPendingGrocery(grocery.count || 0)
       setPendingLaundry(laundry.count || 0)
       setPendingPartners(partners.count || 0)
-      setPendingRiders(riders.count || 0)
     }
     fetchCounts()
     const interval = setInterval(fetchCounts, 10000)
@@ -108,7 +105,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             const isActive = pathname === item.href || (item.href !== "/admin" && item.href !== "/admin/hero" && pathname.startsWith(item.href))
             const isExactAdmin = item.href === "/admin" && pathname === "/admin"
             const active = isActive || isExactAdmin
-            const badge = item.href === "/admin/orders" ? pendingGrocery : item.href === "/admin/laundry" ? pendingLaundry : item.href === "/admin/partners" ? pendingPartners : item.href === "/admin/drivers" ? pendingRiders : 0
+            const badge = item.href === "/admin/orders" ? pendingGrocery : item.href === "/admin/laundry" ? pendingLaundry : item.href === "/admin/partners" ? pendingPartners : 0
             return (
               <Link
                 key={item.href}
@@ -146,7 +143,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 flex">
         {NAV_ITEMS.slice(0, 5).map((item) => {
           const active = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href)) || (item.href === "/admin" && pathname === "/admin")
-          const badge = item.href === "/admin/orders" ? pendingGrocery : item.href === "/admin/laundry" ? pendingLaundry : item.href === "/admin/partners" ? pendingPartners : item.href === "/admin/drivers" ? pendingRiders : 0
+          const badge = item.href === "/admin/orders" ? pendingGrocery : item.href === "/admin/laundry" ? pendingLaundry : item.href === "/admin/partners" ? pendingPartners : 0
           return (
             <Link key={item.href} href={item.href} className={`flex-1 flex flex-col items-center py-2 relative ${active ? "text-[#319F44]" : "text-gray-400"}`}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

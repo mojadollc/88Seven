@@ -5,14 +5,12 @@ import { useEffect, useState } from "react"
 type AdjustTarget = { id: string; name: string; balance: number; type: "customer" | "partner" }
 
 export default function AdminWalletPage() {
-  const [transactions, setTransactions] = useState<any[]>([])
   const [customerTxns, setCustomerTxns] = useState<any[]>([])
   const [partnerTxns, setPartnerTxns] = useState<any[]>([])
-  const [drivers, setDrivers] = useState<any[]>([])
   const [customers, setCustomers] = useState<any[]>([])
   const [partners, setPartners] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<"riders" | "customers" | "partners">("riders")
+  const [tab, setTab] = useState<"customers" | "partners">("customers")
   const [filter, setFilter] = useState<"all" | "topup" | "deduction">("all")
 
   // Adjust wallet modal
@@ -24,14 +22,10 @@ export default function AdminWalletPage() {
 
   useEffect(() => {
     async function load() {
-      const [txns, d, c, p] = await Promise.all([
-        fetch("/api/wallet").then(r => r.json()),
-        fetch("/api/users?role=driver").then(r => r.json()),
+      const [c, p] = await Promise.all([
         fetch("/api/users?role=customer").then(r => r.json()),
         fetch("/api/users?role=partner").then(r => r.json()),
       ])
-      setTransactions(txns)
-      setDrivers(d)
       setCustomers(c)
       setPartners(p)
       setLoading(false)
@@ -39,11 +33,9 @@ export default function AdminWalletPage() {
     load()
   }, [])
 
-  const getDriverName = (id: string) => drivers.find((d) => d.id === id)?.name || id.slice(0, 8)
   const getCustomerName = (id: string) => customers.find((c: any) => c.id === id)?.name || id.slice(0, 8)
   const getPartnerName = (id: string) => partners.find((p: any) => p.id === id)?.shopName || id.slice(0, 8)
 
-  const filteredRider = filter === "all" ? transactions : transactions.filter((t) => t.type === filter)
   const filteredCustomer = filter === "all" ? customerTxns : customerTxns.filter((t) => t.type === filter)
   const filteredPartner = filter === "all" ? partnerTxns : partnerTxns.filter((t) => t.type === filter)
 
@@ -83,93 +75,18 @@ export default function AdminWalletPage() {
       <div className="p-6">
         {/* Tab Switch */}
         <div className="flex gap-2 mb-6">
-          {(["riders", "customers", "partners"] as const).map((t) => (
+          {(["customers", "partners"] as const).map((t) => (
             <button key={t} onClick={() => { setTab(t); setFilter("all") }} className={`px-5 py-2.5 text-sm rounded-lg font-medium capitalize transition-colors ${tab === t ? "bg-[#319F44] text-white" : "bg-white border border-gray-200 text-gray-600"}`}>
-              {t === "riders" ? "Rider Wallets" : t === "customers" ? "Customer Wallets" : "Partner Wallets"}
+              {t === "customers" ? "Customer Wallets" : "Partner Wallets"}
             </button>
           ))}
         </div>
 
-        {/* RIDERS TAB */}
-        {tab === "riders" && (
-          <>
-            <div className="grid grid-cols-3 gap-3 mb-6">
-              <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                <p className="text-2xl font-bold text-[#319F44]">₱{transactions.filter((t) => t.type === "topup").reduce((s, t) => s + t.amount, 0).toLocaleString()}</p>
-                <p className="text-xs text-gray-400">Total Top-Ups</p>
-              </div>
-              <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                <p className="text-2xl font-bold text-green-500">₱{transactions.filter((t) => t.type === "deduction").reduce((s, t) => s + Math.abs(t.amount), 0).toLocaleString()}</p>
-                <p className="text-xs text-gray-400">Total Deductions</p>
-              </div>
-              <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                <p className="text-2xl font-bold text-[#1F2937]">{transactions.length}</p>
-                <p className="text-xs text-gray-400">Transactions</p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm mb-6 overflow-hidden">
-              <div className="px-5 py-3 bg-gray-50 border-b border-gray-100">
-                <h3 className="font-bold text-sm text-gray-800">Rider Wallet Balances</h3>
-              </div>
-              <div className="divide-y divide-gray-50">
-                {drivers.filter((d) => d.status === "active" || (d.status as string) === "pending").map((d) => (
-                  <div key={d.id} className="px-5 py-3 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {d.selfieUrl ? (
-                        <img src={d.selfieUrl} className="w-8 h-8 rounded-full object-cover" />
-                      ) : (
-                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                        </div>
-                      )}
-                      <div>
-                        <p className="text-sm font-medium text-gray-800">{d.name}</p>
-                        <p className="text-[10px] text-gray-400">{d.phone}</p>
-                      </div>
-                    </div>
-                    <span className={`text-sm font-bold ${(d.walletBalance || 0) >= 100 ? "text-[#319F44]" : "text-green-500"}`}>
-                      ₱{(d.walletBalance || 0).toFixed(0)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex gap-2 mb-4">
-              {(["all", "topup", "deduction"] as const).map((f) => (
-                <button key={f} onClick={() => setFilter(f)} className={`px-4 py-2 text-xs rounded-lg capitalize font-medium transition-colors ${filter === f ? "bg-[#319F44] text-white" : "bg-white border border-gray-200 text-gray-600"}`}>
-                  {f === "topup" ? "Top-Ups" : f === "deduction" ? "Deductions" : "All"}
-                </button>
-              ))}
-            </div>
-
-            {loading ? <div className="text-center py-10 text-gray-400">Loading...</div> : filteredRider.length === 0 ? (
-              <div className="text-center py-16 bg-white rounded-xl border border-gray-100"><p className="text-gray-400 text-sm">No transactions</p></div>
-            ) : (
-              <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="divide-y divide-gray-50">
-                  {filteredRider.map((txn) => (
-                    <div key={txn.id} className="px-5 py-3 flex items-center justify-between">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className={`w-2 h-2 rounded-full ${txn.type === "topup" ? "bg-[#319F44]/100" : "bg-[#319F44]/100"}`} />
-                          <p className="text-sm font-medium text-gray-800">{txn.type === "topup" ? "Top-Up" : "Deduction"}</p>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-0.5">{getDriverName(txn.driverId || "")}</p>
-                        {txn.note && <p className="text-[10px] text-gray-400">{txn.note}</p>}
-                        <p className="text-[10px] text-gray-300">{txn.createdAt?.toLocaleString?.() || ""}</p>
-                      </div>
-                      <span className={`text-sm font-bold ${txn.amount >= 0 ? "text-[#319F44]" : "text-green-500"}`}>
-                        {txn.amount >= 0 ? "+" : ""}₱{Math.abs(txn.amount)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
-        )}
+        {/* BitRide note */}
+        <div className="bg-[#1F2937]/5 border border-[#1F2937]/10 rounded-xl px-4 py-3 mb-6 flex items-center gap-3">
+          <span className="text-lg">🏍️</span>
+          <p className="text-xs text-gray-600">Rider wallets and commissions are managed in <a href="https://bitride-41c11.web.app/" target="_blank" className="font-bold text-[#319F44] underline">BitRide</a> — not here.</p>
+        </div>
 
         {/* CUSTOMERS TAB */}
         {tab === "customers" && (
