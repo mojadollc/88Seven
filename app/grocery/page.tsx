@@ -516,10 +516,11 @@ export default function GroceryPage() {
                     </div>
                   ))}
                 </div>
-                <div className="border-t p-4 space-y-3 shrink-0 bg-white">
-                  <div className="flex justify-between text-sm text-gray-600"><span>Subtotal</span><span>₱{cartTotal.toFixed(2)}</span></div>
+                <div className="border-t p-4 space-y-2 shrink-0 bg-white">
+                  <div className="flex justify-between text-sm text-gray-600"><span>Subtotal ({cartCount} items)</span><span>₱{cartTotal.toFixed(2)}</span></div>
                   {cartDeposit > 0 && <div className="flex justify-between text-sm text-orange-600"><span>Bottle Deposit</span><span>₱{cartDeposit.toFixed(2)}</span></div>}
-                  <div className="flex justify-between font-bold text-gray-900 text-base border-t pt-2"><span>Total</span><span className="text-[#319F44]">₱{(cartTotal + cartDeposit).toFixed(2)}</span></div>
+                  <div className="flex justify-between text-xs text-gray-400"><span>🏍️ Delivery fee</span><span>calculated at checkout</span></div>
+                  <div className="flex justify-between font-bold text-gray-900 text-base border-t pt-2"><span>Subtotal</span><span className="text-[#319F44]">₱{(cartTotal + cartDeposit).toFixed(2)}</span></div>
                   <button onClick={() => { setShowCart(false); if (!user) { window.location.href = "/auth?redirect=/grocery" } else { setShowCheckout(true); if (!checkoutForm.lat) detectLocation() } }} className="w-full bg-[#FF8A00] text-white py-3.5 rounded-xl font-bold hover:bg-[#e07800] transition-colors">Checkout →</button>
                 </div>
               </>
@@ -583,11 +584,49 @@ export default function GroceryPage() {
                 )}
               </div>
 
-              <div className="bg-gray-50 rounded-xl p-3 space-y-1.5">
-                <div className="flex justify-between text-sm text-gray-600"><span>Items ({cartCount})</span><span>₱{cartTotal.toFixed(2)}</span></div>
-                {cartDeposit > 0 && <div className="flex justify-between text-sm text-orange-600"><span>Bottle Deposit</span><span>₱{cartDeposit.toFixed(2)}</span></div>}
-                <div className="flex justify-between text-sm"><span className={deliveryFee === 0 ? "text-[#319F44]" : "text-gray-600"}>Delivery</span><span className={deliveryFee === 0 ? "text-[#319F44] font-bold" : ""}>{deliveryFee === 0 ? "FREE" : `₱${deliveryFee.toFixed(2)}`}</span></div>
-                <div className="flex justify-between font-bold text-gray-900 border-t pt-2"><span>Total</span><span className="text-[#319F44] text-lg">₱{(cartTotal + cartDeposit + deliveryFee).toFixed(2)}</span></div>
+              {/* Order Summary */}
+              <div className="rounded-xl overflow-hidden border border-gray-200">
+                <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Order Summary</p>
+                </div>
+                <div className="p-3 space-y-2">
+                  {/* Items breakdown */}
+                  {cart.map((item: any) => (
+                    <div key={item.product.id} className="flex justify-between text-xs text-gray-500">
+                      <span className="truncate max-w-[60%]">{item.product.name} × {item.quantity}</span>
+                      <span>₱{((item.product.onSale && item.product.salePrice ? item.product.salePrice : item.product.price) * item.quantity).toFixed(2)}</span>
+                    </div>
+                  ))}
+                  <div className="border-t border-dashed border-gray-200 pt-2 flex justify-between text-sm text-gray-700">
+                    <span>Items subtotal</span>
+                    <span className="font-semibold">₱{cartTotal.toFixed(2)}</span>
+                  </div>
+                  {cartDeposit > 0 && (
+                    <div className="flex justify-between text-sm text-orange-600">
+                      <span>Bottle deposit</span>
+                      <span>₱{cartDeposit.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {/* Delivery fee — from BitRide distance calc */}
+                  <div className="flex justify-between text-sm">
+                    <span className="flex items-center gap-1 text-gray-700">
+                      🏍️ Delivery fee
+                      {checkoutForm.lat && checkoutForm.lng
+                        ? <span className="text-[10px] text-gray-400">(distance-based)</span>
+                        : <span className="text-[10px] text-gray-400">(base rate)</span>}
+                    </span>
+                    <span className={deliveryFee === 0 ? "text-[#319F44] font-bold" : "font-semibold text-gray-800"}>
+                      {deliveryFee === 0 ? "FREE 🎉" : `₱${deliveryFee.toFixed(2)}`}
+                    </span>
+                  </div>
+                  {deliveryFee === 0 && cartTotal >= (deliverySettings?.freeDeliveryMinOrder || 1000) && (
+                    <p className="text-[10px] text-[#319F44] bg-[#319F44]/10 rounded-lg px-2 py-1">✓ Free delivery applied — order over ₱{deliverySettings?.freeDeliveryMinOrder || 1000}</p>
+                  )}
+                  <div className="border-t border-gray-200 pt-2 flex justify-between items-center">
+                    <span className="font-bold text-gray-900">Total to pay</span>
+                    <span className="text-[#319F44] text-xl font-black">₱{(cartTotal + cartDeposit + deliveryFee).toFixed(2)}</span>
+                  </div>
+                </div>
               </div>
             </div>
             <div className="px-5 py-4 border-t bg-gray-50 shrink-0">

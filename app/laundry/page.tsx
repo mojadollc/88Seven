@@ -180,7 +180,7 @@ export default function LaundryPage() {
   const servicePrice = selectedService.price * form.weight
   const pickupFee = selectedPartner ? getPickupFee(selectedPartner) : 0
   const deliveryFee = selectedPartner ? getDeliveryFee(selectedPartner) : 0
-  const totalPrice = servicePrice + pickupFee + deliveryFee
+  const totalPrice = servicePrice + pickupFee + (deliveryFee * 2) // pickup trip + return trip
 
   const handleBook = async () => {
     if (!user || !selectedPartner || !form.address || !form.phone) return
@@ -192,7 +192,7 @@ export default function LaundryPage() {
       price: servicePrice,
       pickupFee,
       deliveryFee,
-      totalPrice,
+      totalPrice: servicePrice + pickupFee + (deliveryFee * 2),
       pickupAddress: form.address,
       notes: form.notes,
       status: "pending",
@@ -442,21 +442,32 @@ export default function LaundryPage() {
                 <p className="text-sm font-bold text-gray-800 mb-1">{order.serviceName} — {order.weight}kg</p>
                 <p className="text-[10px] text-gray-500 mb-2">🧺 {order.partnerName}</p>
                 {/* Breakdown */}
-                <div className="bg-gray-50 rounded-lg p-3 space-y-1.5">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-gray-500">Service ({order.serviceName})</span>
-                    <span className="text-gray-700">₱{order.price}</span>
+                <div className="rounded-xl overflow-hidden border border-gray-100 mt-2">
+                  <div className="bg-gray-50 px-3 py-1.5 border-b border-gray-100">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Price Breakdown</p>
                   </div>
-
-                  <div className="flex justify-between text-xs">
-                    <span className="text-gray-500">Delivery Fee</span>
-                    <span className="text-gray-700">₱{order.deliveryFee}</span>
+                  <div className="p-3 space-y-1.5">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-gray-500">{order.serviceName} × {order.weight}kg</span>
+                      <span className="text-gray-700 font-medium">₱{order.price}</span>
+                    </div>
+                    <div className="border-t border-dashed border-gray-100 pt-1.5">
+                      <p className="text-[9px] font-bold text-gray-400 uppercase mb-1">🏍️ Rider Delivery</p>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-500">Pickup <span className="text-gray-400">(you → shop)</span></span>
+                        <span className="text-gray-700">₱{order.deliveryFee}</span>
+                      </div>
+                      <div className="flex justify-between text-xs mt-1">
+                        <span className="text-gray-500">Return <span className="text-gray-400">(shop → you)</span></span>
+                        <span className="text-gray-700">₱{order.deliveryFee}</span>
+                      </div>
+                    </div>
+                    <div className="border-t border-gray-200 pt-1.5 flex justify-between">
+                      <span className="text-xs font-bold text-gray-800">Total paid</span>
+                      <span className="text-sm font-black text-blue-600">₱{order.totalPrice}</span>
+                    </div>
+                    <p className="text-[9px] text-gray-400">Payment: {order.paymentMethod === "qrph" ? "QR Ph" : order.paymentMethod === "ewallet" ? "E-Wallet" : order.paymentMethod === "bank" ? "Bank Transfer" : order.paymentMethod === "xendit" ? "Online Payment" : "COD"}</p>
                   </div>
-                  <div className="border-t border-gray-200 pt-1.5 flex justify-between">
-                    <span className="text-xs font-bold text-gray-800">Total</span>
-                    <span className="text-sm font-bold text-blue-600">₱{order.totalPrice}</span>
-                  </div>
-                  <p className="text-[9px] text-gray-400">Payment: {order.paymentMethod === "qrph" ? "QR Ph" : order.paymentMethod === "ewallet" ? "E-Wallet" : order.paymentMethod === "bank" ? "Bank Transfer" : order.paymentMethod === "xendit" ? "Online Payment" : "COD"}</p>
                 </div>
                 {/* Cancel button for pending/accepted orders */}
                 {(order.status === "pending" || order.status === "accepted") && (
@@ -578,19 +589,39 @@ export default function LaundryPage() {
               <input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes (optional)" className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-blue-600" />
 
               {/* Price Breakdown */}
-              <div className="bg-blue-50 rounded-lg p-3 space-y-1">
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>{selectedService.name} × {form.weight}kg</span>
-                  <span>₱{servicePrice}</span>
+              <div className="rounded-xl overflow-hidden border border-gray-200">
+                <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Price Breakdown</p>
                 </div>
-
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>Delivery Fee</span>
-                  <span>₱{deliveryFee}</span>
-                </div>
-                <div className="border-t border-blue-200 pt-1 flex justify-between font-bold text-blue-700">
-                  <span>Total</span>
-                  <span>₱{totalPrice}</span>
+                <div className="p-3 space-y-2">
+                  <div className="flex justify-between text-sm text-gray-600">
+                    <span>{selectedService.name} × {form.weight}kg</span>
+                    <span className="font-semibold">₱{servicePrice}</span>
+                  </div>
+                  <div className="border-t border-dashed border-gray-200 pt-2 space-y-1.5">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">🏍️ Rider Delivery</p>
+                    <div className="flex justify-between text-sm text-gray-600">
+                      <span className="flex items-center gap-1">
+                        Pickup
+                        <span className="text-[10px] text-gray-400">(you → shop)</span>
+                      </span>
+                      <span className="font-semibold">₱{deliveryFee}</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-gray-600">
+                      <span className="flex items-center gap-1">
+                        Return
+                        <span className="text-[10px] text-gray-400">(shop → you)</span>
+                      </span>
+                      <span className="font-semibold">₱{deliveryFee}</span>
+                    </div>
+                    {!form.lat && (
+                      <p className="text-[10px] text-amber-600 bg-amber-50 rounded px-2 py-1">Set your address to get exact delivery fee</p>
+                    )}
+                  </div>
+                  <div className="border-t border-gray-200 pt-2 flex justify-between items-center">
+                    <span className="font-bold text-gray-900">Total to pay</span>
+                    <span className="text-blue-600 text-xl font-black">₱{totalPrice}</span>
+                  </div>
                 </div>
               </div>
 
