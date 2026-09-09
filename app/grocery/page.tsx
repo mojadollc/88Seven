@@ -669,7 +669,7 @@ function HeroSlider() {
   const slide = slides[current]
   return (
     <div className="relative rounded-2xl overflow-hidden h-[160px] md:h-[260px] shadow-sm"
-      style={{ backgroundColor: slide.bgColor, backgroundImage: slide.imageUrl ? `linear-gradient(105deg,rgba(0,0,0,0.6) 0%,rgba(0,0,0,0.1) 60%),url(${slide.imageUrl})` : undefined, backgroundSize: "cover", backgroundPosition: "center" }}>
+      style={{ backgroundColor: slide.bgColor, backgroundImage: slide.imageUrl ? `linear-gradient(105deg,rgba(0,0,0,0.4) 0%,rgba(0,0,0,0.05) 60%),url(${slide.imageUrl})` : undefined, backgroundSize: "contain", backgroundRepeat: "no-repeat", backgroundPosition: "center" }}>
       <div className="absolute -right-12 -top-12 w-48 h-48 bg-white/5 rounded-full" />
       <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-white/5 rounded-full" />
       <a href={slide.link || "#"} className="absolute inset-0 flex flex-col justify-center p-5 md:p-10">
