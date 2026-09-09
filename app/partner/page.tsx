@@ -159,7 +159,17 @@ export default function PartnerPage() {
   }, [partner, playSound])
 
   const handleStatus = async (orderId: string, status: string) => {
-    await fetch(`/api/laundry-orders/${orderId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) })
+    const body: any = { status }
+    // When accepting, attach shop GPS so BitRide knows pickup/drop locations
+    if (status === "accepted" && shopLat && shopLng) {
+      body.partnerLat = shopLat
+      body.partnerLng = shopLng
+    }
+    await fetch(`/api/laundry-orders/${orderId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    })
   }
 
   const handleToggleOnline = async () => {
@@ -416,12 +426,15 @@ export default function PartnerPage() {
                           )}
                         </div>
                       )}
-                      {order.status === "accepted" && <p className="text-xs text-blue-600 font-medium">✓ Accepted — Waiting for rider</p>}
-                      {(order.status === "rider_picked_up" || order.status === "rider_to_laundromat") && <p className="text-xs text-cyan-600 font-medium">🏍️ Rider bringing laundry to you</p>}
-                      {order.status === "at_laundromat" && <button onClick={() => handleStatus(order.id, "washing")} className="flex-1 bg-indigo-600 text-white py-2.5 rounded-lg text-xs font-bold">Start Washing</button>}
-                      {order.status === "washing" && <button onClick={() => handleStatus(order.id, "ready")} className="flex-1 bg-orange-500 text-white py-2.5 rounded-lg text-xs font-bold">Mark Ready</button>}
-                      {order.status === "ready" && <p className="text-xs text-orange-600 font-medium">⏳ Waiting for rider pickup</p>}
-                      {(order.status === "rider_return_pickup" || order.status === "rider_returning") && <p className="text-xs text-teal-600 font-medium">🏍️ Rider returning to customer</p>}
+                      {order.status === "accepted" && <p className="text-xs text-blue-600 font-medium">⚡ Dispatching pickup rider via BitRide...</p>}
+                      {order.status === "rider_to_customer" && <p className="text-xs text-cyan-600 font-medium">🏍️ Rider heading to customer</p>}
+                      {order.status === "rider_picked_up" && <p className="text-xs text-cyan-600 font-medium">🏍️ Rider picked up — heading here</p>}
+                      {order.status === "rider_to_laundromat" && <p className="text-xs text-teal-600 font-medium">🏍️ Rider almost at your shop</p>}
+                      {order.status === "at_laundromat" && <button onClick={() => handleStatus(order.id, "washing")} className="flex-1 bg-indigo-600 text-white py-2.5 rounded-lg text-xs font-bold">▶ Start Washing</button>}
+                      {order.status === "washing" && <button onClick={() => handleStatus(order.id, "ready")} className="flex-1 bg-orange-500 text-white py-2.5 rounded-lg text-xs font-bold">✅ Mark Ready — Auto-Dispatch Return Rider</button>}
+                      {order.status === "ready" && <p className="text-xs text-orange-600 font-medium">⚡ Dispatching return rider via BitRide...</p>}
+                      {order.status === "rider_return_pickup" && <p className="text-xs text-teal-600 font-medium">🏍️ Rider collecting clean laundry</p>}
+                      {order.status === "rider_returning" && <p className="text-xs text-teal-600 font-medium">🏍️ Rider returning clean laundry to customer</p>}
                       {order.status === "delivered" && <p className="text-xs text-[#319F44] font-medium">✓ Completed</p>}
                     </div>
                   </div>

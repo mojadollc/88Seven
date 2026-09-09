@@ -61,14 +61,10 @@ type FilterTab = "needs_action" | "active" | "completed" | "all"
 
 export default function AdminLaundryPage() {
   const [orders, setOrders] = useState<LaundryOrder[]>([])
-  const [drivers, setDrivers] = useState<any[]>([])
-  const [partners, setPartners] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<FilterTab>("needs_action")
 
   useEffect(() => {
-    fetch("/api/users?role=driver").then(r => r.json()).then((d: any[]) => setDrivers(d.filter(x => x.status === "active")))
-    fetch("/api/users?role=partner").then(r => r.json()).then((p: any[]) => setPartners(p.filter(x => x.status === "active")))
     async function loadOrders() {
       const res = await fetch("/api/laundry-orders")
       if (res.ok) { const data = await res.json(); setOrders(data); setLoading(false) }
@@ -82,19 +78,14 @@ export default function AdminLaundryPage() {
     await fetch(`/api/laundry-orders/${orderId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) })
   }
 
-  const handleAssignRider = async (orderId: string, driverId: string) => {
-    const d = drivers.find((x) => x.id === driverId)
-    await fetch(`/api/laundry-orders/${orderId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ riderId: driverId, riderName: d?.name || "" }) })
-  }
-
-  const handleAutoAssignRider = async (orderId: string, targetLat: number, targetLng: number, nextStatus: string) => {
-    const drivers: any[] = await fetch("/api/users?role=driver").then(r => r.json())
-    const nearest = drivers.find((d: any) => d.isOnline && d.status === "active") || null
-    if (nearest) {
-      await fetch(`/api/laundry-orders/${orderId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ riderId: nearest.id, riderName: nearest.name, status: nextStatus }) })
-    } else {
-      alert("No online riders available nearby. Please assign manually.")
-    }
+  const handleReDispatch = async (orderId: string, trip: "pickup" | "return") => {
+    const res = await fetch("/api/laundry-delivery-bridge", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId, trip }),
+    })
+    const data = await res.json()
+    if (!res.ok) alert(`BitRide dispatch failed: ${data.error || "Unknown error"}`)
   }
 
   // Admin only needs to act on: accepted (assign pickup rider) and ready (assign return rider)
@@ -190,51 +181,52 @@ export default function AdminLaundryPage() {
 
                   {/* Admin Actions */}
                   <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-gray-100">
-                    {/* ACCEPTED by shop — Admin dispatches pickup rider */}
+                    {/* ACCEPTED — BitRide auto-dispatched pickup, admin can re-dispatch if needed */}
                     {order.status === "accepted" && (
-                      <>
+                      <div className="flex items-center gap-2 w-full">
+                        <span className="text-xs text-blue-600 font-medium flex-1">⚡ Dispatching pickup rider via BitRide...</span>
                         <button
-                          onClick={() => handleAutoAssignRider(order.id, order.pickupLat || 0, order.pickupLng || 0, "rider_to_customer")}
-                          className="text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-green-700"
+                          onClick={() => handleReDispatch(order.id, "pickup")}
+                          className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-700"
                         >
-                          ⚡ Auto-Assign Nearest Rider
+                          🔄 Re-Dispatch
                         </button>
-                        <span className="text-[10px] text-gray-300">or</span>
-                        <select onChange={(e) => e.target.value && handleAssignRider(order.id, e.target.value)} defaultValue="" className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none bg-white">
-                          <option value="" disabled>Manual Assign</option>
-                          {drivers.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-                        </select>
-                        <button onClick={() => handleStatus(order.id, "rider_to_customer")} disabled={!order.riderId} className="text-xs bg-cyan-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-cyan-700 disabled:opacity-40 ml-auto">
-                          Dispatch
-                        </button>
-                      </>
+                      </div>
                     )}
 
-                    {/* READY (clean) — Admin dispatches return rider */}
+                    {/* RIDER_TO_CUSTOMER — in transit to customer */}
+                    {order.status === "rider_to_customer" && (
+                      <div className="flex items-center gap-2 w-full">
+                        <span className="text-xs text-cyan-600 font-medium flex-1">🏍️ Rider heading to customer</span>
+                        {order.riderName && <span className="text-[10px] bg-cyan-50 text-cyan-700 px-2 py-1 rounded-lg">{order.riderName}</span>}
+                        <button onClick={() => handleReDispatch(order.id, "pickup")} className="text-xs border border-gray-200 text-gray-500 px-3 py-1.5 rounded-lg">Re-Dispatch</button>
+                      </div>
+                    )}
+
+                    {/* READY — BitRide auto-dispatched return, admin can re-dispatch if needed */}
                     {order.status === "ready" && (
-                      <>
+                      <div className="flex items-center gap-2 w-full">
+                        <span className="text-xs text-orange-600 font-medium flex-1">⚡ Dispatching return rider via BitRide...</span>
                         <button
-                          onClick={() => {
-                            const p = partners.find((x) => x.id === order.partnerId)
-                            handleAutoAssignRider(order.id, p?.lat || 0, p?.lng || 0, "rider_return_pickup")
-                          }}
-                          className="text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-green-700"
+                          onClick={() => handleReDispatch(order.id, "return")}
+                          className="text-xs bg-orange-500 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-orange-600"
                         >
-                          ⚡ Auto-Assign Nearest Rider
+                          🔄 Re-Dispatch
                         </button>
-                        <span className="text-[10px] text-gray-300">or</span>
-                        <select onChange={(e) => e.target.value && handleAssignRider(order.id, e.target.value)} defaultValue="" className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none bg-white">
-                          <option value="" disabled>Manual Assign</option>
-                          {drivers.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-                        </select>
-                        <button onClick={() => handleStatus(order.id, "rider_return_pickup")} disabled={!order.riderId} className="text-xs bg-teal-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-teal-700 disabled:opacity-40 ml-auto">
-                          Dispatch
-                        </button>
-                      </>
+                      </div>
                     )}
 
-                    {/* Other states — manual override */}
-                    {!["accepted", "ready", "delivered", "cancelled"].includes(order.status) && (
+                    {/* RIDER_RETURN_PICKUP — in transit back to customer */}
+                    {order.status === "rider_return_pickup" && (
+                      <div className="flex items-center gap-2 w-full">
+                        <span className="text-xs text-teal-600 font-medium flex-1">🏍️ Rider collecting clean laundry from shop</span>
+                        {order.riderName && <span className="text-[10px] bg-teal-50 text-teal-700 px-2 py-1 rounded-lg">{order.riderName}</span>}
+                        <button onClick={() => handleReDispatch(order.id, "return")} className="text-xs border border-gray-200 text-gray-500 px-3 py-1.5 rounded-lg">Re-Dispatch</button>
+                      </div>
+                    )}
+
+                    {/* Other active states — manual override dropdown */}
+                    {!["accepted", "ready", "rider_to_customer", "rider_return_pickup", "delivered", "cancelled"].includes(order.status) && (
                       <select value={order.status} onChange={(e) => handleStatus(order.id, e.target.value)} className="text-[10px] border border-gray-200 rounded-lg px-2 py-1.5 outline-none bg-white text-gray-500 ml-auto">
                         {ALL_STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
                       </select>

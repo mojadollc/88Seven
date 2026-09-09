@@ -95,14 +95,14 @@ enum ListingMode {
 // ─── USER ─────────────────────────────────────────────────────────────────────
 
 model User {
-  id              String     @id @default(cuid())
-  role            UserRole
-  name            String
-  email           String?    @unique
-  phone           String?
-  passwordHash    String?
-  status          UserStatus @default(pending)
-  isOnline        Boolean    @default(false)
+  id           String     @id @default(cuid())
+  role         UserRole
+  name         String
+  email        String?    @unique
+  phone        String?
+  passwordHash String?
+  status       UserStatus @default(pending)
+  isOnline     Boolean    @default(false)
 
   // Driver / location fields
   lat             Float?
@@ -112,43 +112,43 @@ model User {
   selfieUrl       String?
   nbiUrl          String?
   vehicleUrl      String?
-  profileComplete Boolean    @default(false)
+  profileComplete Boolean @default(false)
 
   // Partner / Provider fields
-  shopName        String?
-  address         String?
-  landmark        String?
-  openTime        String?
-  closeTime       String?
-  openDays        String[]
-  logoUrl         String?
-  skills          String[]
-  services        Json?      // [{id, name, price, unit}]
-  listingMode     ListingMode @default(free)
-  minimumBalance  Float      @default(0)
-  rating          Float?
-  completedJobs   Int        @default(0)
+  shopName       String?
+  address        String?
+  landmark       String?
+  openTime       String?
+  closeTime      String?
+  openDays       String[]
+  logoUrl        String?
+  skills         String[]
+  services       Json? // [{id, name, price, unit}]
+  listingMode    ListingMode @default(free)
+  minimumBalance Float       @default(0)
+  rating         Float?
+  completedJobs  Int         @default(0)
 
   // Wallet
-  walletBalance   Float      @default(0)
+  walletBalance Float @default(0)
 
   // Saved addresses (customer)
-  savedAddresses  Json?      // [{id, label, address, lat, lng}]
+  savedAddresses Json? // [{id, label, address, lat, lng}]
 
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  ordersAsCustomer        Order[]              @relation("CustomerOrders")
-  ordersAsDriver          Order[]              @relation("DriverOrders")
-  walletTransactions      WalletTransaction[]
-  sentChats               ChatMessage[]
-  notifications           Notification[]
-  reports                 Report[]
-  serviceJobsAsCustomer   ServiceJob[]         @relation("CustomerJobs")
-  serviceJobsAsProvider   ServiceJob[]         @relation("ProviderJobs")
-  serviceBookingsAsCustomer ServiceBooking[]   @relation("CustomerBookings")
-  serviceBookingsAsProvider ServiceBooking[]   @relation("ProviderBookings")
+  ordersAsCustomer          Order[]             @relation("CustomerOrders")
+  ordersAsDriver            Order[]             @relation("DriverOrders")
+  walletTransactions        WalletTransaction[]
+  sentChats                 ChatMessage[]
+  notifications             Notification[]
+  reports                   Report[]
+  serviceJobsAsCustomer     ServiceJob[]        @relation("CustomerJobs")
+  serviceJobsAsProvider     ServiceJob[]        @relation("ProviderJobs")
+  serviceBookingsAsCustomer ServiceBooking[]    @relation("CustomerBookings")
+  serviceBookingsAsProvider ServiceBooking[]    @relation("ProviderBookings")
 }
 
 // ─── PRODUCT ──────────────────────────────────────────────────────────────────
@@ -170,7 +170,7 @@ model Product {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  orderItems    OrderItem[]
+  orderItems OrderItem[]
 }
 
 // ─── ORDER ────────────────────────────────────────────────────────────────────
@@ -214,16 +214,16 @@ model Order {
 }
 
 model OrderItem {
-  id          String   @id @default(cuid())
-  orderId     String
-  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId   String?
-  product     Product? @relation(fields: [productId], references: [id])
-  name        String
-  price       Float
-  quantity    Int
-  imageUrl    String?
-  outOfStock  Boolean  @default(false)
+  id         String   @id @default(cuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId  String?
+  product    Product? @relation(fields: [productId], references: [id])
+  name       String
+  price      Float
+  quantity   Int
+  imageUrl   String?
+  outOfStock Boolean  @default(false)
 }
 
 // ─── SERVICE JOB (Home Services) ─────────────────────────────────────────────
@@ -266,7 +266,7 @@ model ServiceBooking {
   partnerId     String?
   partner       User?            @relation("ProviderBookings", fields: [partnerId], references: [id])
   partnerName   String?
-  services      Json             // [{id, name, price, unit, quantity}]
+  services      Json // [{id, name, price, unit, quantity}]
   total         Float
   address       String
   lat           Float?
@@ -354,29 +354,29 @@ model DeliverySettings {
 // ─── APP SETTINGS ─────────────────────────────────────────────────────────────
 
 model AppSettings {
-  id                  String      @id @default(cuid())
-  key                 String      @unique
+  id                       String      @id @default(cuid())
+  key                      String      @unique
   // Site settings
-  logoUrl             String?
-  logoText            String?
+  logoUrl                  String?
+  logoText                 String?
   // Payment methods
-  codEnabled          Boolean     @default(true)
-  walletEnabled       Boolean     @default(true)
-  qrphEnabled         Boolean     @default(true)
-  ewalletEnabled      Boolean     @default(true)
-  bankEnabled         Boolean     @default(true)
-  xenditEnabled       Boolean     @default(true)
+  codEnabled               Boolean     @default(true)
+  walletEnabled            Boolean     @default(true)
+  qrphEnabled              Boolean     @default(true)
+  ewalletEnabled           Boolean     @default(true)
+  bankEnabled              Boolean     @default(true)
+  xenditEnabled            Boolean     @default(true)
   // Listing mode
-  defaultListingMode  ListingMode @default(free)
-  defaultMinBalance   Float       @default(100)
+  defaultListingMode       ListingMode @default(free)
+  defaultMinBalance        Float       @default(100)
   // Theme
-  themeType           String      @default("solid")   // solid | gradient
-  themeColor          String      @default("#319F44")
-  themeColorTo        String      @default("#59EBC6")
-  themeTextColor      String      @default("#ffffff")
-  themeBgColor        String      @default("#F5F5DB")
-  themeDeliveryBannerColor String @default("#267a34")
-  updatedAt           DateTime    @updatedAt
+  themeType                String      @default("solid") // solid | gradient
+  themeColor               String      @default("#319F44")
+  themeColorTo             String      @default("#59EBC6")
+  themeTextColor           String      @default("#ffffff")
+  themeBgColor             String      @default("#F5F5DB")
+  themeDeliveryBannerColor String      @default("#267a34")
+  updatedAt                DateTime    @updatedAt
 }
 
 // ─── NOTIFICATION ─────────────────────────────────────────────────────────────
@@ -403,7 +403,7 @@ model ChatMessage {
   senderId   String
   sender     User     @relation(fields: [senderId], references: [id])
   senderName String
-  senderRole String   // customer | driver | admin
+  senderRole String // customer | driver | admin
   message    String
   createdAt  DateTime @default(now())
 }
@@ -429,30 +429,34 @@ model Report {
 // ─── LAUNDRY ORDER ───────────────────────────────────────────────────────────────────
 
 model LaundryOrder {
-  id              String   @id @default(cuid())
-  customerId      String
-  customerName    String
-  customerPhone   String
-  partnerId       String?
-  partnerName     String?
-  riderId         String?
-  riderName       String?
-  serviceName     String
-  weight          Float    @default(0)
-  price           Float    @default(0)
-  pickupFee       Float    @default(0)
-  deliveryFee     Float    @default(0)
-  totalPrice      Float    @default(0)
-  pickupAddress   String
-  pickupLat       Float?
-  pickupLng       Float?
-  notes           String?
-  status          String   @default("pending")
-  paymentStatus   PaymentStatus @default(unpaid)
-  paymentMethod   String?
-  cancelReason    String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                String        @id @default(cuid())
+  customerId        String
+  customerName      String
+  customerPhone     String
+  partnerId         String?
+  partnerName       String?
+  partnerLat        Float?
+  partnerLng        Float?
+  riderId           String?
+  riderName         String?
+  serviceName       String
+  weight            Float         @default(0)
+  price             Float         @default(0)
+  pickupFee         Float         @default(0)
+  deliveryFee       Float         @default(0)
+  totalPrice        Float         @default(0)
+  pickupAddress     String
+  pickupLat         Float?
+  pickupLng         Float?
+  notes             String?
+  status            String        @default("pending")
+  paymentStatus     PaymentStatus @default(unpaid)
+  paymentMethod     String?
+  cancelReason      String?
+  fbPickupBookingId String?
+  fbReturnBookingId String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 }
 
 // ─── SESSION (JWT alternative — simple DB sessions) ───────────────────────────
