@@ -10,7 +10,7 @@ function AuthPage() {
   const defaultTab = searchParams.get("tab") || "login"
   const [tab, setTab] = useState<"login" | "register" | "partner">(defaultTab as any)
   const [form, setForm] = useState({ email: "", password: "", name: "", phone: "" })
-  const [partnerForm, setPartnerForm] = useState({ email: "", password: "", shopName: "", ownerName: "", phone: "", address: "", landmark: "", lat: 0, lng: 0 })
+  const [partnerForm, setPartnerForm] = useState({ serviceType: "laundry", email: "", password: "", shopName: "", ownerName: "", phone: "", address: "", landmark: "", lat: 0, lng: 0, skills: "" })
   const [detectingLoc, setDetectingLoc] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -51,10 +51,24 @@ function AuthPage() {
     setError("")
     if (!partnerForm.shopName || !partnerForm.ownerName || !partnerForm.phone || !partnerForm.address) { setError("All fields are required"); return }
     setLoading(true)
+    const isProvider = partnerForm.serviceType === "home_services"
     try {
-      const data = await callAuth({ action: "register", email: partnerForm.email, password: partnerForm.password, name: partnerForm.ownerName, shopName: partnerForm.shopName, phone: partnerForm.phone, address: partnerForm.address, landmark: partnerForm.landmark, lat: partnerForm.lat, lng: partnerForm.lng, role: "partner" })
+      const data = await callAuth({
+        action: "register",
+        email: partnerForm.email,
+        password: partnerForm.password,
+        name: partnerForm.ownerName,
+        shopName: partnerForm.shopName,
+        phone: partnerForm.phone,
+        address: partnerForm.address,
+        landmark: partnerForm.landmark,
+        lat: partnerForm.lat,
+        lng: partnerForm.lng,
+        role: isProvider ? "provider" : "partner",
+        skills: isProvider ? partnerForm.skills.split(",").map(s => s.trim()).filter(Boolean) : [],
+      })
       setAuth(data.token, data.user)
-      window.location.href = "/partner"
+      window.location.href = isProvider ? "/provider" : "/partner"
     } catch (e: any) { setError(e.message) } finally { setLoading(false) }
   }
 
@@ -91,14 +105,38 @@ function AuthPage() {
           ) : tab === "partner" ? (
             <>
               <h2 className="font-bold text-lg text-gray-800 mb-1">Partner Registration</h2>
-              <p className="text-xs text-gray-400 mb-4">Register your laundromat as a partner</p>
+              <p className="text-xs text-gray-400 mb-4">Register your business to start receiving orders</p>
               {error && <div className="bg-amber-50 border border-amber-200 text-amber-700 text-xs px-3 py-2 rounded-lg mb-3">{error}</div>}
               <div className="space-y-3">
-                <input placeholder="Shop / Business Name" value={partnerForm.shopName} onChange={(e) => setPartnerForm({ ...partnerForm, shopName: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-600" />
+                {/* Service type dropdown */}
+                <div>
+                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1 block">Service Type</label>
+                  <select
+                    value={partnerForm.serviceType}
+                    onChange={(e) => setPartnerForm({ ...partnerForm, serviceType: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-600 bg-white"
+                  >
+                    <option value="laundry">👕 Laundry Partner — list your laundromat</option>
+                    <option value="home_services">🔧 Home Services Provider — aircon, plumbing, electrical, etc.</option>
+                  </select>
+                </div>
+
+                <input placeholder={partnerForm.serviceType === "laundry" ? "Shop / Business Name" : "Business / Brand Name"} value={partnerForm.shopName} onChange={(e) => setPartnerForm({ ...partnerForm, shopName: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-600" />
                 <input placeholder="Owner Full Name" value={partnerForm.ownerName} onChange={(e) => setPartnerForm({ ...partnerForm, ownerName: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-600" />
                 <input placeholder="Phone Number" value={partnerForm.phone} onChange={(e) => setPartnerForm({ ...partnerForm, phone: e.target.value.replace(/[^0-9]/g, "") })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-600" />
+
+                {/* Skills — only for home services */}
+                {partnerForm.serviceType === "home_services" && (
+                  <input
+                    placeholder="Skills (e.g. Aircon, Plumbing, Electrical)"
+                    value={partnerForm.skills}
+                    onChange={(e) => setPartnerForm({ ...partnerForm, skills: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-600"
+                  />
+                )}
+
                 <div className="relative">
-                  <input placeholder="Shop Address" value={partnerForm.address} onChange={(e) => setPartnerForm({ ...partnerForm, address: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 pr-24 text-sm outline-none focus:border-blue-600" />
+                  <input placeholder="Address" value={partnerForm.address} onChange={(e) => setPartnerForm({ ...partnerForm, address: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 pr-24 text-sm outline-none focus:border-blue-600" />
                   <button type="button" onClick={() => {
                     if (!navigator.geolocation) return
                     setDetectingLoc(true)
@@ -114,11 +152,11 @@ function AuthPage() {
                   </button>
                 </div>
                 {partnerForm.lat > 0 && <p className="text-[9px] text-[#319F44]">✓ Location pinned</p>}
-                <input placeholder="Landmark" value={partnerForm.landmark} onChange={(e) => setPartnerForm({ ...partnerForm, landmark: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-600" />
+                <input placeholder="Landmark (optional)" value={partnerForm.landmark} onChange={(e) => setPartnerForm({ ...partnerForm, landmark: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-600" />
                 <input type="email" placeholder="Email" value={partnerForm.email} onChange={(e) => setPartnerForm({ ...partnerForm, email: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-600" />
                 <input type="password" placeholder="Password" value={partnerForm.password} onChange={(e) => setPartnerForm({ ...partnerForm, password: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-600" />
                 <button onClick={handlePartnerRegister} disabled={loading || !partnerForm.email || !partnerForm.password} className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-sm disabled:opacity-40">
-                  {loading ? "Registering..." : "Register as Partner"}
+                  {loading ? "Registering..." : partnerForm.serviceType === "laundry" ? "Register as Laundry Partner" : "Register as Home Services Provider"}
                 </button>
               </div>
             </>
