@@ -8,11 +8,10 @@ function AuthPage() {
   const searchParams = useSearchParams()
   const redirect = searchParams.get("redirect") || "/"
   const defaultTab = searchParams.get("tab") || "login"
-  const [tab, setTab] = useState<"login" | "register" | "partner" | "rider">(defaultTab as any)
+  const [tab, setTab] = useState<"login" | "register" | "partner">(defaultTab as any)
   const [form, setForm] = useState({ email: "", password: "", name: "", phone: "" })
   const [partnerForm, setPartnerForm] = useState({ email: "", password: "", shopName: "", ownerName: "", phone: "", address: "", landmark: "", lat: 0, lng: 0 })
   const [detectingLoc, setDetectingLoc] = useState(false)
-  const [riderForm, setRiderForm] = useState({ email: "", password: "", name: "", phone: "" })
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState("")
@@ -59,17 +58,6 @@ function AuthPage() {
     } catch (e: any) { setError(e.message) } finally { setLoading(false) }
   }
 
-  const handleRiderRegister = async () => {
-    setError("")
-    if (!riderForm.name || !riderForm.phone) { setError("Name and phone are required"); return }
-    setLoading(true)
-    try {
-      await callAuth({ action: "register", email: riderForm.email, password: riderForm.password, name: riderForm.name, phone: riderForm.phone, role: "driver" })
-      setSuccess("Rider account created! Your application is pending admin approval.")
-      setRiderForm({ email: "", password: "", name: "", phone: "" })
-    } catch (e: any) { setError(e.message) } finally { setLoading(false) }
-  }
-
   return (
     <main className="min-h-screen bg-gradient-to-b from-[#319F44] to-[#267a34] flex flex-col items-center justify-center p-4 relative overflow-hidden">
       <div className="w-full max-w-sm relative z-10">
@@ -83,10 +71,10 @@ function AuthPage() {
         </div>
 
         <div className="flex bg-white/10 rounded-xl p-1 mb-4">
-          {(["login", "register", "partner", "rider"] as const).map((t) => (
+          {(["login", "register", "partner"] as const).map((t) => (
             <button key={t} onClick={() => { setTab(t); setError(""); setSuccess("") }}
               className={`flex-1 py-2 rounded-lg text-[10px] font-bold transition-colors capitalize ${tab === t ? "bg-white text-[#319F44]" : "text-white/70"}`}>
-              {t === "login" ? "Sign In" : t === "register" ? "Register" : t === "partner" ? "Partner" : "Rider"}
+              {t === "login" ? "Sign In" : t === "register" ? "Register" : "Partner"}
             </button>
           ))}
         </div>
@@ -100,21 +88,6 @@ function AuthPage() {
               <p className="text-sm font-bold text-gray-800">{success}</p>
               <a href="/auth" className="inline-block mt-4 text-xs text-[#319F44] font-bold">← Back to Sign In</a>
             </div>
-          ) : tab === "rider" ? (
-            <>
-              <h2 className="font-bold text-lg text-gray-800 mb-1">Rider Registration</h2>
-              <p className="text-xs text-gray-400 mb-4">Register as a delivery rider</p>
-              {error && <div className="bg-amber-50 border border-amber-200 text-amber-700 text-xs px-3 py-2 rounded-lg mb-3">{error}</div>}
-              <div className="space-y-3">
-                <input placeholder="Full Name" value={riderForm.name} onChange={(e) => setRiderForm({ ...riderForm, name: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-green-600" />
-                <input placeholder="Phone Number" value={riderForm.phone} onChange={(e) => setRiderForm({ ...riderForm, phone: e.target.value.replace(/[^0-9]/g, "") })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-green-600" />
-                <input type="email" placeholder="Email" value={riderForm.email} onChange={(e) => setRiderForm({ ...riderForm, email: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-green-600" />
-                <input type="password" placeholder="Password" value={riderForm.password} onChange={(e) => setRiderForm({ ...riderForm, password: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-green-600" />
-                <button onClick={handleRiderRegister} disabled={loading || !riderForm.email || !riderForm.password} className="w-full bg-green-600 text-white py-3 rounded-xl font-bold text-sm disabled:opacity-40">
-                  {loading ? "Registering..." : "Register as Rider"}
-                </button>
-              </div>
-            </>
           ) : tab === "partner" ? (
             <>
               <h2 className="font-bold text-lg text-gray-800 mb-1">Partner Registration</h2>

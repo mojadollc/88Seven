@@ -467,7 +467,7 @@ export default function HomePage() {
                 title: "Ride & earn anytime",
                 desc: "Got a motorbike? Earn on your own schedule delivering groceries and laundry orders across the city. No boss, no fixed hours.",
                 cta: "Become a Rider",
-                href: "/auth?tab=rider",
+                href: "https://bitride-41c11.web.app",
               },
             ].map((s) => (
               <div key={s.title} className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 overflow-hidden">
