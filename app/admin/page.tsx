@@ -121,7 +121,7 @@ export default function AdminProducts() {
         await fetch("/api/products", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: editing.id, name: editing.name, price: editing.price, stock: editing.stock, category: editing.category, unit: editing.unit || "", imageUrl: url, showOnSite: true }) })
       }
       setLocalOverrides(prev => ({ ...prev, [editing.id]: { ...(prev[editing.id] || {}), id: editing.id, imageUrl: url } }))
-      setEditing(prev => prev ? { ...prev, imageUrl: url } : prev)
+      setEditing((prev: any) => prev ? { ...prev, imageUrl: url } : prev)
     } finally {
       setUploading(false)
     }
