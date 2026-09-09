@@ -35,7 +35,7 @@ export default function AdminHomeServicesPage() {
   const [slides, setSlides] = useState<HeroSlide[]>([])
   const [showSlideForm, setShowSlideForm] = useState(false)
   const [editingSlide, setEditingSlide] = useState<HeroSlide | null>(null)
-  const [slideForm, setSlideForm] = useState({ title: "", subtitle: "", bg: "from-[#319F44] to-[#59EBC6]", cta: "Book Now", ctaLink: "/services", icon: "🛠️", order: 0, enabled: true })
+  const [slideForm, setSlideForm] = useState({ title: "", subtitle: "", bg: "#319F44", cta: "Book Now", ctaLink: "/home-services", icon: "🛠️", order: 0, enabled: true })
 
   // Providers
   const [providers, setProviders] = useState<ServiceProvider[]>([])
@@ -50,8 +50,16 @@ export default function AdminHomeServicesPage() {
   useEffect(() => { loadAll() }, [])
 
   const loadAll = async () => {
-    const hp = await fetch("/api/users?role=provider").then(r => r.json())
-    setSlides([])
+    setLoading(true)
+    const [slidesRes, hp] = await Promise.all([
+      fetch("/api/hero?all=true&page=services").then(r => r.json()),
+      fetch("/api/users?role=provider").then(r => r.json()),
+    ])
+    setSlides(Array.isArray(slidesRes) ? slidesRes.map((s: any) => ({
+      id: s.id, title: s.title, subtitle: s.description, bg: s.bgColor,
+      cta: s.link || "Book Now", ctaLink: s.link || "/home-services",
+      icon: s.badge || "🛠️", order: s.order, enabled: s.enabled,
+    })) : [])
     setProviders([])
     setHomeProviders(hp)
     setLoading(false)
@@ -59,31 +67,43 @@ export default function AdminHomeServicesPage() {
 
   const saveSlide = async () => {
     if (!slideForm.title) return
+    const payload = {
+      title: slideForm.title,
+      description: slideForm.subtitle,
+      badge: slideForm.icon,
+      bgColor: slideForm.bg.startsWith("from-") ? "#319F44" : slideForm.bg,
+      highlight: "",
+      imageUrl: "",
+      link: slideForm.ctaLink,
+      order: slideForm.order,
+      enabled: slideForm.enabled,
+      page: "services",
+    }
     if (editingSlide) {
-      await fetch(`/api/hero-slides/${editingSlide.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(slideForm) })
+      await fetch(`/api/hero/${editingSlide.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
     } else {
-      await fetch("/api/hero-slides", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(slideForm) })
+      await fetch("/api/hero", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
     }
     setShowSlideForm(false); setEditingSlide(null)
-    setSlideForm({ title: "", subtitle: "", bg: "from-[#319F44] to-[#59EBC6]", cta: "Book Now", ctaLink: "/services", icon: "🛠️", order: 0, enabled: true })
+    setSlideForm({ title: "", subtitle: "", bg: "#319F44", cta: "Book Now", ctaLink: "/home-services", icon: "🛠️", order: 0, enabled: true })
     await loadAll()
+  }
+
+  const deleteSlide = async (id: string) => {
+    if (!confirm("Delete this slide?")) return
+    await fetch(`/api/hero/${id}`, { method: "DELETE" })
+    await loadAll()
+  }
+
+  const toggleSlide = async (s: HeroSlide) => {
+    await fetch(`/api/hero/${s.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled: !s.enabled }) })
+    setSlides((prev) => prev.map((x) => x.id === s.id ? { ...x, enabled: !x.enabled } : x))
   }
 
   const editSlide = (s: HeroSlide) => {
     setEditingSlide(s)
     setSlideForm({ title: s.title, subtitle: s.subtitle, bg: s.bg, cta: s.cta, ctaLink: s.ctaLink, icon: s.icon, order: s.order, enabled: s.enabled })
     setShowSlideForm(true)
-  }
-
-  const deleteSlide = async (id: string) => {
-    if (!confirm("Delete this slide?")) return
-    await fetch(`/api/hero-slides/${id}`, { method: "DELETE" })
-    await loadAll()
-  }
-
-  const toggleSlide = async (s: HeroSlide) => {
-    await fetch(`/api/hero-slides/${s.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled: !s.enabled }) })
-    setSlides((prev) => prev.map((x) => x.id === s.id ? { ...x, enabled: !x.enabled } : x))
   }
 
   const saveProvider = async () => {
@@ -122,7 +142,7 @@ export default function AdminHomeServicesPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-bold text-[#1F2937]">Home Services</h1>
           <button
-            onClick={() => tab === "sliders" ? (() => { setEditingSlide(null); setSlideForm({ title: "", subtitle: "", bg: "from-[#319F44] to-[#59EBC6]", cta: "Book Now", ctaLink: "/services", icon: "🛠️", order: slides.length + 1, enabled: true }); setShowSlideForm(true) })() : (() => { setEditingProvider(null); setProviderForm({ name: "", phone: "", skills: "", bio: "", rating: 0, completedJobs: 0, photoUrl: "", available: true }); setShowProviderForm(true) })()}
+            onClick={() => tab === "sliders" ? (() => { setEditingSlide(null); setSlideForm({ title: "", subtitle: "", bg: "#319F44", cta: "Book Now", ctaLink: "/home-services", icon: "🛠️", order: slides.length + 1, enabled: true }); setShowSlideForm(true) })() : (() => { setEditingProvider(null); setProviderForm({ name: "", phone: "", skills: "", bio: "", rating: 0, completedJobs: 0, photoUrl: "", available: true }); setShowProviderForm(true) })()}
             className="text-xs bg-[#319F44] text-white px-4 py-2 rounded-lg font-bold"
           >
             + Add {tab === "sliders" ? "Slide" : "Provider"}
@@ -286,15 +306,11 @@ export default function AdminHomeServicesPage() {
                 </div>
               </div>
               <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase">Gradient Background</label>
-                <select value={slideForm.bg} onChange={(e) => setSlideForm({ ...slideForm, bg: e.target.value })} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm mt-1 outline-none focus:border-teal-600">
-                  <option value="from-[#319F44] to-[#59EBC6]">Teal → Emerald</option>
-                  <option value="from-blue-600 to-indigo-700">Blue → Indigo</option>
-                  <option value="from-orange-500 to-green-700">Orange → Red</option>
-                  <option value="from-purple-600 to-pink-600">Purple → Pink</option>
-                  <option value="from-green-600 to-teal-700">Green → Teal</option>
-                  <option value="from-gray-800 to-gray-900">Dark</option>
-                </select>
+                <label className="text-xs font-semibold text-gray-500 uppercase">Background Color</label>
+                <div className="flex gap-2 mt-1">
+                  <input type="color" value={slideForm.bg.startsWith("#") ? slideForm.bg : "#319F44"} onChange={e => setSlideForm({ ...slideForm, bg: e.target.value })} className="w-10 h-10 rounded border border-gray-200 cursor-pointer" />
+                  <input type="text" value={slideForm.bg} onChange={e => setSlideForm({ ...slideForm, bg: e.target.value })} className="flex-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-teal-600" placeholder="#319F44" />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
