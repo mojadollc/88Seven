@@ -353,8 +353,8 @@ export default function GroceryPage() {
         {(() => {
           const isSameDay = new Date().getHours() < 15
           return (
-            <div className="py-1 text-center" style={{ backgroundColor: "var(--theme-delivery-banner, #267a34)" }}>
-              <p className="text-[11px] font-medium" style={{ color: "var(--theme-delivery-banner-text, #ffffff)" }}>
+            <div className="py-1 text-center transition-colors" style={{ backgroundColor: isSameDay ? "var(--theme-delivery-banner, #267a34)" : "#1e1b4b" }}>
+              <p className="text-[11px] font-medium" style={{ color: "#ffffff" }}>
                 {isSameDay ? "⚡ Same-Day Delivery — Order before 3:00 PM" : "🌙 Next-Day Delivery — Orders after 3PM delivered tomorrow"}
               </p>
             </div>
