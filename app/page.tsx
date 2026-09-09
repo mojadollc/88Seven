@@ -433,24 +433,56 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* ── HOW IT WORKS ── */}
+      {/* ── GROW WITH US ── */}
       <section className="bg-gray-50 border-y border-gray-100">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-16">
           <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-black text-gray-900">How it works</h2>
-            <p className="text-gray-400 text-sm mt-2">Simple, fast, and reliable</p>
+            <h2 className="text-2xl md:text-3xl font-black text-gray-900">Grow with us</h2>
+            <p className="text-gray-400 text-sm mt-2">Turn your skills, shop, or motorbike into steady income</p>
           </div>
-          <div className="grid grid-cols-3 gap-4 md:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             {[
-              { step: "01", title: "Choose", desc: "Pick a service or browse products", emoji: "👆" },
-              { step: "02", title: "Order", desc: "Add to cart and pay securely", emoji: "🛒" },
-              { step: "03", title: "Enjoy", desc: "Delivered fast to your door", emoji: "🚀" },
+              {
+                emoji: "🔧",
+                color: "from-teal-500 to-cyan-500",
+                badge: "Home Services",
+                title: "Earn from your skills",
+                desc: "Aircon technician, plumber, electrician? Get booked by hundreds of customers in your area — no marketing needed.",
+                cta: "Apply as Provider",
+                href: "/auth?tab=rider",
+              },
+              {
+                emoji: "👕",
+                color: "from-blue-500 to-indigo-500",
+                badge: "Laundry Partners",
+                title: "Fill your laundry shop",
+                desc: "List your laundromat and get a steady stream of pickup & delivery orders. We bring the customers — you focus on the wash.",
+                cta: "List Your Shop",
+                href: "/auth?tab=partner",
+              },
+              {
+                emoji: "🏍️",
+                color: "from-orange-500 to-amber-500",
+                badge: "Delivery Riders",
+                title: "Ride & earn anytime",
+                desc: "Got a motorbike? Earn on your own schedule delivering groceries and laundry orders across the city. No boss, no fixed hours.",
+                cta: "Become a Rider",
+                href: "/auth?tab=rider",
+              },
             ].map((s) => (
-              <div key={s.step} className="bg-white rounded-2xl p-5 md:p-8 border border-gray-100 shadow-sm text-center hover:shadow-md transition-all hover:-translate-y-0.5">
-                <div className="w-12 h-12 md:w-14 md:h-14 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl md:text-3xl">{s.emoji}</div>
-                <span className="text-[10px] font-black text-teal-600 tracking-widest">{s.step}</span>
-                <p className="font-black text-sm md:text-lg text-gray-900 mt-1">{s.title}</p>
-                <p className="text-[10px] md:text-sm text-gray-400 mt-1 leading-snug">{s.desc}</p>
+              <div key={s.title} className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 overflow-hidden">
+                <div className={`bg-gradient-to-br ${s.color} p-6 flex items-center gap-4`}>
+                  <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center text-3xl shrink-0">{s.emoji}</div>
+                  <span className="text-white/90 text-xs font-black tracking-widest uppercase">{s.badge}</span>
+                </div>
+                <div className="p-5">
+                  <p className="font-black text-lg text-gray-900 leading-tight">{s.title}</p>
+                  <p className="text-sm text-gray-400 mt-2 leading-relaxed">{s.desc}</p>
+                  <a href={s.href} className="inline-flex items-center gap-1.5 mt-5 text-sm font-bold text-teal-600 hover:text-teal-700 transition-colors">
+                    {s.cta}
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                  </a>
+                </div>
               </div>
             ))}
           </div>

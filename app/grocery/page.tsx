@@ -444,7 +444,7 @@ export default function GroceryPage() {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-3">
               {filtered.map((product) => (
-                <ProductCard key={product.id} product={product} onAdd={addToCart} />
+                <ProductCard key={product.id} product={product} onAdd={addToCart} logoUrl={logoUrl} />
               ))}
             </div>
           )}
@@ -618,7 +618,7 @@ export default function GroceryPage() {
   )
 }
 
-function ProductCard({ product, onAdd }: any) {
+function ProductCard({ product, onAdd, logoUrl }: any) {
   const hasDiscount = product.onSale && product.salePrice
   const displayPrice = hasDiscount ? product.salePrice : product.price
   const discount = hasDiscount ? Math.round(((product.price - product.salePrice) / product.price) * 100) : 0
@@ -627,6 +627,8 @@ function ProductCard({ product, onAdd }: any) {
       <div className="relative aspect-square bg-gray-50 flex items-center justify-center overflow-hidden p-2">
         {product.imageUrl ? (
           <img src={product.imageUrl} alt={product.name} className="w-full h-full object-contain group-hover:scale-105 transition-transform" />
+        ) : logoUrl ? (
+          <img src={logoUrl} alt="No image" className="w-3/4 h-3/4 object-contain opacity-30" style={{ filter: "grayscale(100%)" }} />
         ) : (
           <span className="text-4xl">📦</span>
         )}

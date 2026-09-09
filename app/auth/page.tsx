@@ -16,6 +16,11 @@ function AuthPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState("")
+  const [logoUrl, setLogoUrl] = useState("")
+
+  useEffect(() => {
+    fetch("/api/settings/logo").then(r => r.json()).then(d => setLogoUrl(d.logoUrl || ""))
+  }, [])
 
   useEffect(() => {
     const user = getUser()
@@ -70,7 +75,9 @@ function AuthPage() {
       <div className="w-full max-w-sm relative z-10">
         <div className="text-center mb-6">
           <a href="/" className="inline-block">
-            <h1 className="text-white text-2xl font-black tracking-tight">Gruwcer</h1>
+            {logoUrl
+              ? <img src={logoUrl} alt="Logo" className="h-12 object-contain" />
+              : <h1 className="text-white text-2xl font-black tracking-tight">Gruwcer</h1>}
           </a>
           <p className="text-white/60 text-xs mt-1">Sign in to access all services</p>
         </div>
